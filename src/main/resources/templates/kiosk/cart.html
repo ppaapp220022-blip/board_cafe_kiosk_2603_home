@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>장바구니 - Board Game Cafe</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: #f4f6f8;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 상단 배너 */
+        .timer-banner {
+            background-color: #ff8a00;
+            color: white;
+            text-align: center;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .timer-banner i {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* 헤더 */
+        .header {
+            background: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eaeaea;
+        }
+
+        .back-btn {
+            color: #007bff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: bold;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: 0.2s;
+        }
+
+        .back-btn:hover {
+            color: #0056b3;
+        }
+
+        .back-btn i {
+            width: 24px;
+            height: 24px;
+        }
+
+        .table-info {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* 장바구니 아이템 영역 */
+        .content {
+            flex: 1;
+            padding: 30px 40px;
+            overflow-y: auto;
+        }
+
+        .content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .content::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 10px;
+        }
+
+        .content::-webkit-scrollbar-thumb:hover {
+            background: #888;
+        }
+
+        .empty-cart {
+            text-align: center;
+            padding: 80px 20px;
+            color: #888;
+        }
+
+        .empty-cart i {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .empty-cart h2 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .cart-item {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+            transition: all 0.3s ease;
+        }
+
+        .cart-item:hover {
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-info h3 {
+            margin: 0 0 8px 0;
+            font-size: 1.2rem;
+            color: #333;
+        }
+
+        .item-price {
+            color: #007bff;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .item-subtotal {
+            color: #888;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        /* 수량 조절 UI */
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 30px;
+            margin-right: 20px;
+        }
+
+        .qty-btn {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .qty-btn i {
+            width: 20px;
+            height: 20px;
+        }
+
+        .qty-btn.minus {
+            background-color: #e2e4e7;
+            color: #555;
+        }
+
+        .qty-btn.minus:hover {
+            background-color: #d0d2d7;
+        }
+
+        .qty-btn.plus {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .qty-btn.plus:hover {
+            background-color: #0056b3;
+        }
+
+        .qty-number {
+            font-size: 1.3rem;
+            font-weight: bold;
+            min-width: 25px;
+            text-align: center;
+        }
+
+        .delete-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #f8f9fa;
+            border: none;
+            color: #f44336;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+
+        .delete-btn:hover {
+            background: #f44336;
+            color: white;
+        }
+
+        .delete-btn i {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* 하단 결제 바 */
+        .footer {
+            background: white;
+            padding: 30px 40px;
+            border-top: 1px solid #eaeaea;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .total-label {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        #total-amount {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .order-btn, .clear-btn {
+            flex: 1;
+            padding: 20px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .order-btn {
+            background: #007bff;
+            color: white;
+        }
+
+        .order-btn:hover {
+            background: #0056b3;
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+        }
+
+        .order-btn:active {
+            transform: scale(0.98);
+        }
+
+        .clear-btn {
+            background: #f0f2f5;
+            color: #888;
+        }
+
+        .clear-btn:hover {
+            background: #e0e2e7;
+            color: #555;
+        }
+
+        /* 경고 모달 */
+        #warning-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .modal-box {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            width: 400px;
+        }
+
+        .modal-box h2 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .modal-box p {
+            color: #888;
+            margin-bottom: 30px;
+        }
+
+        .keep-btn {
+            width: 100%;
+            padding: 18px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .keep-btn:hover {
+            background: #0056b3;
+        }
+
+        /* 토스트 알림 */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #333;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            z-index: 2000;
+            animation: slideInUp 0.3s ease;
+        }
+
+        @keyframes slideInUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body onclick="resetActivityTimer()">
+
+<div class="timer-banner">
+    <i data-lucide="clock"></i>
+    장바구니가 <span id="timer-display">05:00</span> 후 초기화됩니다
+</div>
+
+<div class="header">
+    <button class="back-btn" onclick="history.back()">
+        <i data-lucide="arrow-left"></i> 메뉴로 돌아가기
+    </button>
+    <div class="table-info" th:text="'Table #' + ${tableNumber}">Table #5</div>
+</div>
+
+<div class="content" id="cart-content">
+    <!-- 동적 콘텐츠 -->
+</div>
+
+<div class="footer">
+    <div class="total-row">
+        <span class="total-label">총 결제액</span>
+        <span id="total-amount">₩0</span>
+    </div>
+    <div class="button-group">
+        <button class="order-btn" id="checkout-btn" onclick="proceedToCheckout()">정산하기</button>
+        <button class="clear-btn" onclick="clearCart()">장바구니 비우기</button>
+    </div>
+</div>
+
+<div id="warning-modal">
+    <div class="modal-box">
+        <h2>계속 이용하시겠습니까?</h2>
+        <p>응답이 없어 곧 장바구니가 비워집니다.</p>
+        <button class="keep-btn" onclick="hideWarningModal()">쇼핑 계속하기</button>
+    </div>
+</div>
+
+<script>
+    lucide.createIcons({
+        attrs: { 'stroke-width': 2.5 }
+    });
+
+    const tableNumber = document.querySelector('.table-info').textContent.replace('Table #', '');
+    let remainingTime = 300;
+    const timerDisplay = document.getElementById('timer-display');
+    const warningModal = document.getElementById('warning-modal');
+    let timerInterval;
+
+    // ===== 페이지 로드 시 장바구니 데이터 로드 =====
+    document.addEventListener('DOMContentLoaded', function() {
+        loadCart();
+        startTimer();
+    });
+
+    // ===== 장바구니 로드 =====
+    function loadCart() {
+        fetch('/api/cart')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    renderCart(data.cartItems, data.totalPrice);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading cart:', error);
+                showToast('장바구니를 불러올 수 없습니다.');
+            });
+    }
+
+    // ===== 장바구니 렌더링 =====
+    function renderCart(cartItems, totalPrice) {
+        const cartContent = document.getElementById('cart-content');
+
+        if (cartItems.length === 0) {
+            cartContent.innerHTML = `
+        <div class="empty-cart">
+          <i data-lucide="shopping-cart"></i>
+          <h2>장바구니가 비어있습니다</h2>
+          <p>메뉴에서 상품을 추가해주세요.</p>
+        </div>
+      `;
+            document.getElementById('checkout-btn').disabled = true;
+            lucide.createIcons();
+            return;
+        }
+
+        document.getElementById('checkout-btn').disabled = false;
+
+        cartContent.innerHTML = cartItems.map(item => `
+      <div class="cart-item" data-name="${item.itemName}" data-price="${item.price}">
+        <div class="item-info">
+          <h3>${item.itemName}</h3>
+          <div class="item-price">₩${item.price.toLocaleString()}</div>
+          <div class="item-subtotal">수량: ${item.quantity}개 → ₩${(item.price * item.quantity).toLocaleString()}</div>
+        </div>
+        <div class="quantity-control">
+          <button class="qty-btn minus" onclick="updateQuantity('${item.itemName}', ${item.price}, -1)">
+            <i data-lucide="minus"></i>
+          </button>
+          <span class="qty-number">${item.quantity}</span>
+          <button class="qty-btn plus" onclick="updateQuantity('${item.itemName}', ${item.price}, 1)">
+            <i data-lucide="plus"></i>
+          </button>
+        </div>
+        <button class="delete-btn" onclick="deleteItem('${item.itemName}', ${item.price})" title="삭제">
+          <i data-lucide="trash-2"></i>
+        </button>
+      </div>
+    `).join('');
+
+        document.getElementById('total-amount').innerText = `₩${totalPrice.toLocaleString()}`;
+        lucide.createIcons();
+    }
+
+    // ===== 수량 업데이트 =====
+    function updateQuantity(itemName, price, delta) {
+        const cartItem = document.querySelector(
+            `.cart-item[data-name="${itemName}"][data-price="${price}"]`
+        );
+        const currentQty = parseInt(cartItem.querySelector('.qty-number').innerText);
+        const newQty = currentQty + delta;
+
+        fetch('/api/cart/update', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                itemName: itemName,
+                price: price,
+                quantity: newQty
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadCart();
+                    showToast('수량이 업데이트되었습니다.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('수량 업데이트에 실패했습니다.');
+            });
+    }
+
+    // ===== 상품 삭제 =====
+    function deleteItem(itemName, price) {
+        if (!confirm(`${itemName}을(를) 삭제하시겠습니까?`)) return;
+
+        fetch('/api/cart/update', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                itemName: itemName,
+                price: price,
+                quantity: 0
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadCart();
+                    showToast('상품이 삭제되었습니다.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('삭제에 실패했습니다.');
+            });
+    }
+
+    // ===== 정산으로 이동 =====
+    function proceedToCheckout() {
+        window.location.href = `/kiosk/checkout?tableNumber=${tableNumber}`;
+    }
+
+    // ===== 장바구니 비우기 =====
+    function clearCart() {
+        if (!confirm('장바구니를 비우시겠습니까?')) return;
+
+        fetch('/api/cart', { method: 'DELETE' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadCart();
+                    showToast('장바구니가 비워졌습니다.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('비우기에 실패했습니다.');
+            });
+    }
+
+    // ===== 타이머 =====
+    function startTimer() {
+        timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    function updateTimer() {
+        remainingTime--;
+        const m = Math.floor(remainingTime / 60);
+        const s = remainingTime % 60;
+        timerDisplay.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+
+        if (remainingTime === 30) {
+            warningModal.style.display = 'flex';
+        }
+        if (remainingTime <= 0) {
+            clearInterval(timerInterval);
+            window.location.href = `/kiosk/drinks?tableNumber=${tableNumber}`;
+        }
+    }
+
+    function resetActivityTimer() {
+        remainingTime = 300;
+        if (warningModal.style.display === 'flex') {
+            hideWarningModal();
+        }
+    }
+
+    function hideWarningModal() {
+        warningModal.style.display = 'none';
+    }
+
+    // ===== 토스트 알림 =====
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.innerText = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => toast.remove(), 2000);
+    }
+</script>
+</body>
+</html>

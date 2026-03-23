@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BoardWave Admin</title>
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+  <style>
+    :root {
+      --primary-blue: #4285f4;
+      --bg-light: #f8f9fa;
+      --text-dark: #202124;
+      --text-gray: #70757a;
+      --border-color: #e8eaed;
+      --sidebar-width: 260px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Pretendard', sans-serif;
+      background-color: var(--bg-light);
+      display: flex;
+      color: var(--text-dark);
+    }
+
+    /* ===== 사이드바 ===== */
+    .sidebar {
+      width: var(--sidebar-width);
+      height: 100vh;
+      background-color: white;
+      border-right: 1px solid var(--border-color);
+      padding: 30px 20px;
+      position: fixed;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    /* 브랜드 로고 */
+    .brand-area { margin-bottom: 30px; }
+    .brand-title { font-size: 14px; color: var(--text-gray); font-weight: 500; }
+    .brand-name { font-size: 24px; font-weight: 800; color: var(--primary-blue); letter-spacing: -0.5px; }
+
+    /* 실시간 시계 및 날짜 영역 */
+    .clock-area {
+      background: #f1f3f4;
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 25px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .date-display {
+      font-size: 13px;
+      color: var(--text-gray);
+      font-weight: 600;
+      margin-left: 28px; /* 아이콘 위치 고려한 정렬 */
+    }
+    .time-display {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #current-time { font-size: 18px; font-weight: 700; color: var(--text-dark); }
+    .clock-icon { font-size: 16px; }
+
+    /* 네비게이션 메뉴 */
+    .nav-menu { flex-grow: 1; }
+    .nav-section { margin-bottom: 25px; }
+    .nav-label {
+      font-size: 12px;
+      color: #9aa0a6;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      padding-left: 10px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 15px;
+      text-decoration: none;
+      color: var(--text-dark);
+      border-radius: 10px;
+      margin-bottom: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .nav-item:hover { background-color: #f1f3f4; }
+    .nav-item.active {
+      background-color: #e8f0fe;
+      color: var(--primary-blue);
+      font-weight: 700;
+    }
+    .nav-icon { margin-right: 12px; font-size: 18px; width: 20px; text-align: center; }
+
+    /* 메인 영역 */
+    .main-content {
+      margin-left: var(--sidebar-width);
+      padding: 40px;
+      width: calc(100% - var(--sidebar-width));
+    }
+
+    .logout-btn {
+      margin-top: 20px;
+      padding: 12px;
+      text-align: center;
+      color: #ea4335;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      border-radius: 10px;
+    }
+    .logout-btn:hover { background: #fef2f2; }
+  </style>
+  <th:block layout:fragment="head-extra"></th:block>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="brand-area">
+    <div class="brand-title">Board Game Cafe</div>
+    <div class="brand-name">BOARD WAVE</div>
+  </div>
+
+  <div class="clock-area">
+    <div id="current-date" class="date-display">0000. 00. 00 (요일)</div>
+    <div class="time-display">
+      <span class="clock-icon">🕒</span>
+      <div id="current-time">00:00:00</div>
+    </div>
+  </div>
+
+  <nav class="nav-menu">
+    <div class="nav-section">
+      <div class="nav-label">운영</div>
+      <a th:href="@{/admin/dashboard}" class="nav-item" th:classappend="${activePage == 'tableStatus'} ? 'active'">
+        <span class="nav-icon">📊</span> 테이블 현황
+      </a>
+      <a th:href="@{/admin/points}" class="nav-item" th:classappend="${activePage == 'pointManagement'} ? 'active'">
+        <span class="nav-icon">💳</span> 포인트 관리
+      </a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">매출</div>
+
+      <a th:href="@{/admin/status}" class="nav-item"
+         th:classappend="${activePage == 'salesStats'} ? 'active'">
+        <span class="nav-icon">📈</span> 매출 통계
+      </a>
+
+      <a href="#" class="nav-item">
+        <span class="nav-icon">🧪</span> 매출 분석
+      </a>
+    </div>
+
+<!--    <div class="nav-section">-->
+<!--      <div class="nav-label">상품 관리</div>-->
+<!--      <a href="#" class="nav-item"><span class="nav-icon">📂</span> 상품 등록/삭제</a>-->
+<!--      <a href="#" class="nav-item"><span class="nav-icon">🚫</span> 상품 품절 관리</a>-->
+<!--      <a th:href="@{/admin/price}" class="nav-item"-->
+<!--         th:classappend="${activePage == 'salesAnalysis'} ? 'active'"><span class="nav-icon">💰</span> 가격 관리</a>-->
+<!--    </div>-->
+
+    <div class="nav-section">
+      <div class="nav-label">상품 관리</div>
+
+      <a th:href="@{/admin/product(tab='game')}" class="nav-item"
+         th:classappend="${activePage == 'productReg' && activeTab == 'game'} ? 'active'">
+        <span class="nav-icon">📂</span> 상품 등록/삭제
+      </a>
+
+      <a th:href="@{/admin/product(tab='food')}" class="nav-item"
+         th:classappend="${activePage == 'productReg' && activeTab == 'food'} ? 'active'">
+        <span class="nav-icon">🚫</span> 상품 품절 관리
+      </a>
+
+      <a th:href="@{/admin/price}" class="nav-item"
+         th:classappend="${activePage == 'salesAnalysis'} ? 'active'">
+        <span class="nav-icon">💰</span> 가격 관리
+      </a>
+    </div>
+
+
+
+    <div class="nav-section">
+      <div class="nav-label">운영 설정</div>
+      <a href="#" class="nav-item"><span class="nav-icon">💬</span> 매크로 메시지 관리</a>
+      <a href="#" class="nav-item"><span class="nav-icon">⚡</span> 해피아워 설정</a>
+      <a href="#" class="nav-item"><span class="nav-icon">👥</span> 직원 관리</a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">계정</div>
+      <a href="#" class="nav-item"><span class="nav-icon">👤</span> 내 정보 관리</a>
+    </div>
+  </nav>
+
+  <a href="#" class="logout-btn">로그아웃</a>
+</aside>
+
+<main class="main-content">
+  <div layout:fragment="content"></div>
+</main>
+
+<script>
+  function updateClock() {
+    const now = new Date();
+
+    // 날짜 및 요일 포맷팅
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const date = String(now.getDate()).padStart(2, '0');
+    const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+    const day = dayNames[now.getDay()];
+
+    const dateString = `${year}. ${month}. ${date} (${day})`;
+    document.getElementById('current-date').textContent = dateString;
+
+    // 시간 포맷팅
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+
+    const timeString = `${hours}:${minutes}:${seconds}`;
+    document.getElementById('current-time').textContent = timeString;
+  }
+
+  // 1초마다 업데이트
+  setInterval(updateClock, 1000);
+  updateClock(); // 즉시 실행
+</script>
+<th:block layout:fragment="scripts"></th:block>
+
+</body>
+</html>

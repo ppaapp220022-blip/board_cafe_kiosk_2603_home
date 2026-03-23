@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/admin_layout}">
+
+<head>
+    <title>BoardWave Dashboard</title>
+    <th:block layout:fragment="head-extra">
+        <style>
+            .header-container {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 30px;
+            }
+
+            .page-title {
+                font-size: 28px;
+                font-weight: 700;
+            }
+
+            /* 상태 범례 (Legend) */
+            .status-legend {
+                display: flex;
+                gap: 15px;
+                font-size: 13px;
+                font-weight: 500;
+            }
+
+            .legend-item {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            .dot {
+                width: 12px;
+                height: 12px;
+                border-radius: 4px;
+            }
+
+            .dot.in-use {
+                background-color: #4285f4;
+            }
+
+            .dot.empty {
+                background-color: #f1f3f4;
+                border: 1px solid #ddd;
+            }
+
+            .dot.cleaning {
+                background-color: #fbbc04;
+            }
+
+            .dot.request {
+                background-color: #ea4335;
+            }
+
+            .dot.completed {
+                background-color: #34a853;
+            }
+
+            /* 테이블 그리드 설정 */
+            .table-grid {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr); /* 한 줄에 4개씩 */
+                gap: 20px;
+            }
+
+            .table-card {
+                background: white;
+                border-radius: 16px;
+                height: 180px;
+                padding: 24px;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+                border: 2px solid transparent;
+                transition: all 0.2s ease;
+                cursor: pointer;
+            }
+
+            .table-card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            }
+
+            /* 빈 테이블 기본 스타일 */
+            .status-empty {
+                background-color: #ffffff;
+                border: 1px solid #eee;
+            }
+
+            .table-number {
+                font-size: 22px;
+                font-weight: 700;
+                color: #3c4043;
+            }
+
+            .empty-text {
+                color: #bdc1c6;
+                font-size: 14px;
+                font-weight: 500;
+            }
+
+            /* 알림 배너 (선택 사항) */
+            .alert-banner {
+                background-color: #ea4335;
+                color: white;
+                padding: 15px 20px;
+                border-radius: 12px;
+                margin-bottom: 25px;
+                font-weight: 600;
+                display: none; /* 요청 데이터가 있을 때만 활성화 */
+            }
+        </style>
+    </th:block>
+</head>
+
+<body>
+<th:block layout:fragment="content">
+    <div class="header-container">
+        <h1 class="page-title">테이블 현황</h1>
+        <div class="status-legend">
+            <div class="legend-item">
+                <div class="dot in-use"></div>
+                사용중
+            </div>
+            <div class="legend-item">
+                <div class="dot empty"></div>
+                빈 테이블
+            </div>
+            <div class="legend-item">
+                <div class="dot cleaning"></div>
+                청소 중
+            </div>
+            <div class="legend-item">
+                <div class="dot request"></div>
+                요청 있음
+            </div>
+            <div class="legend-item">
+                <div class="dot completed"></div>
+                결제 완료
+            </div>
+        </div>
+    </div>
+
+    <div class="table-grid">
+        <div th:each="num : ${#numbers.sequence(1, 12)}" class="table-card status-empty">
+            <div class="table-number" th:text="'Table ' + ${num}">Table 1</div>
+            <div class="empty-text">비어있음</div>
+        </div>
+    </div>
+
+<!--    <div th:each="num : ${#numbers.sequence(1, 12)}"-->
+<!--         th:onclick="|location.href='/admin/table/' + ${num}|"-->
+<!--         class="table-card status-empty">-->
+<!--        <div class="table-number" th:text="'Table ' + ${num}">Table 1</div>-->
+<!--        <div class="empty-text">비어있음</div>-->
+<!--    </div>-->
+</th:block>
+</body>
+</html>

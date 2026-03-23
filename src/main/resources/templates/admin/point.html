@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/admin_layout}">
+
+<head>
+    <title>Point Management - BoardWave</title>
+    <th:block layout:fragment="head-extra">
+        <style>
+            .page-title {
+                font-size: 28px;
+                font-weight: 700;
+                margin-bottom: 24px;
+            }
+
+            /* 상단 검색 및 통계 영역 */
+            .header-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-end;
+                margin-bottom: 20px;
+                gap: 20px;
+            }
+
+            .search-box {
+                flex-grow: 1;
+                background: white;
+                padding: 12px 20px;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+                border: 1px solid var(--border-color);
+            }
+
+            .search-box input {
+                border: none;
+                outline: none;
+                width: 100%;
+                font-size: 15px;
+                margin-left: 10px;
+            }
+
+            /* 통계 카드 */
+            .stats-container {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 15px;
+                margin-bottom: 25px;
+            }
+
+            .stat-mini-card {
+                background: white;
+                padding: 20px;
+                border-radius: 15px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+                border-bottom: 4px solid var(--primary-blue);
+            }
+
+            .stat-mini-label {
+                font-size: 13px;
+                color: var(--text-gray);
+                margin-bottom: 5px;
+            }
+
+            .stat-mini-value {
+                font-size: 22px;
+                font-weight: 700;
+                color: var(--primary-blue);
+            }
+
+            /* 테이블 영역 */
+            .table-container {
+                background: white;
+                border-radius: 15px;
+                padding: 10px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            }
+
+            .point-table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            .point-table th {
+                text-align: left;
+                padding: 15px 20px;
+                border-bottom: 2px solid var(--bg-light);
+                color: var(--text-gray);
+                font-size: 13px;
+                font-weight: 600;
+            }
+
+            .point-table td {
+                padding: 18px 20px;
+                border-bottom: 1px solid var(--bg-light);
+                font-size: 15px;
+            }
+
+            .point-table tr:last-child td {
+                border-bottom: none;
+            }
+
+            .point-table tr:hover {
+                background-color: #f8fbff;
+            }
+
+            .phone-num {
+                font-weight: 600;
+                color: var(--text-dark);
+            }
+
+            .balance-text {
+                font-weight: 700;
+                color: var(--primary-blue);
+            }
+
+            .update-date {
+                color: var(--text-gray);
+                font-size: 13px;
+            }
+
+            .history-btn {
+                padding: 8px 16px;
+                border-radius: 8px;
+                border: 1px solid var(--primary-blue);
+                background: transparent;
+                color: var(--primary-blue);
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: 0.2s;
+            }
+
+            .history-btn:hover {
+                background: var(--primary-blue);
+                color: white;
+            }
+        </style>
+    </th:block>
+</head>
+
+<body>
+<th:block layout:fragment="content">
+    <h1 class="page-title">💰 포인트 관리</h1>
+
+    <div class="stats-container">
+        <div class="stat-mini-card">
+            <div class="stat-mini-label">전체 회원 수</div>
+            <div class="stat-mini-value" th:text="${totalCustomers + '명'}">5명</div>
+        </div>
+        <div class="stat-mini-card">
+            <div class="stat-mini-label">총 포인트 잔액</div>
+            <div class="stat-mini-value" th:text="${#numbers.formatInteger(totalPoints, 0, 'COMMA') + 'P'}">66,000P
+            </div>
+        </div>
+        <div class="stat-mini-card">
+            <div class="stat-mini-label">인당 평균 포인트</div>
+            <div class="stat-mini-value" th:text="${#numbers.formatInteger(avgPoints, 0, 'COMMA') + 'P'}">13,200P</div>
+        </div>
+    </div>
+
+    <div class="header-row">
+        <div class="search-box">
+            <span>🔍</span>
+            <input type="text" placeholder="전화번호를 입력하여 검색하세요...">
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table class="point-table">
+            <thead>
+            <tr>
+                <th>전화번호</th>
+                <th>현재 포인트</th>
+                <th>마지막 적립/변경 일시</th>
+                <th style="text-align: center;">기록</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="point : ${pointList}">
+                <td class="phone-num" th:text="${point.phone}">010-1234-5678</td>
+                <td class="balance-text" th:text="${#numbers.formatInteger(point.balance, 0, 'COMMA') + ' P'}">12,500
+                    P
+                </td>
+                <td class="update-date" th:text="${#temporals.format(point.updatedAt, 'yyyy-MM-dd HH:mm:ss')}">
+                    2026-03-19 14:30:00
+                </td>
+                <td style="text-align: center;">
+                    <button class="history-btn">History</button>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(pointList)}">
+                <td colspan="4" style="text-align: center; color: #aaa; padding: 40px;">등록된 포인트 내역이 없습니다.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</th:block>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!-- menu.html (Thymeleaf 프래그먼트) -->
+<!-- src/main/resources/templates/kiosk/menu.html -->
+
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>키오스크 메인메뉴</title>
+</head>
+<body>
+<!-- 이 프래그먼트는 kiosk_layout.html에서 포함됩니다 -->
+<!-- th:include="kiosk/menu :: menuContent" -->
+
+<div th:fragment="menuContent">
+  <div class="menu-grid" id="menu-grid">
+    <th:block th:each="item : ${menuItems}">
+      <div class="menu-item" th:data-name="${item.itemName}" th:data-price="${item.price}">
+        <div class="menu-emoji" th:text="${item.emoji}">☕</div>
+        <div class="menu-name" th:text="${item.itemName}">상품명</div>
+        <div class="menu-price" th:classappend="${item.price == 0 ? 'free' : ''}"
+             th:text="${item.price == 0 ? 'FREE' : '₩' + #numbers.formatInteger(item.price, 1, 'COMMA')}">
+          ₩5,000
+        </div>
+
+        <div class="quantity-control">
+          <button class="qty-btn minus" onclick="decreaseQty(this)"><i data-lucide="minus"></i></button>
+          <span class="qty-number">0</span>
+          <button class="qty-btn plus" onclick="increaseQty(this)"><i data-lucide="plus"></i></button>
+        </div>
+
+        <button class="add-to-cart-btn" onclick="addItemToCart(this)" th:if="${item.price > 0}">
+          장바구니에 추가
+        </button>
+      </div>
+    </th:block>
+  </div>
+</div>
+
+</body>
+</html>

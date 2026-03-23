@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/admin_layout}">
+
+<head>
+  <title>Sales Statistics</title>
+  <th:block layout:fragment="head-extra">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      .page-title { font-size: 28px; font-weight: 700; margin-bottom: 30px; }
+
+      /* 요약 카드 */
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 15px;
+        margin-bottom: 25px;
+      }
+      .summary-card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        border: 1px solid #f0f0f0;
+      }
+      .summary-label { font-size: 12px; color: #888; margin-bottom: 8px; font-weight: 500; }
+      .summary-value { font-size: 20px; font-weight: 700; }
+      .val-blue   { color: var(--primary-blue); }
+      .val-green  { color: #28a745; }
+      .val-orange { color: #fd7e14; }
+      .val-purple { color: #6f42c1; }
+
+      /* 차트 영역 */
+      .chart-row {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+      .chart-card {
+        background: white;
+        padding: 25px;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        border: 1px solid #f0f0f0;
+      }
+      .chart-title { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
+      .chart-row.full-row { grid-template-columns: 1fr; }
+
+      /* 베스트 셀러 */
+      .best-seller-card {
+        background: white;
+        padding: 25px;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        border: 1px solid #f0f0f0;
+        margin-top: 20px;
+      }
+      .seller-item {
+        display: flex;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid #f8f8f8;
+      }
+      .seller-item:last-child { border-bottom: none; }
+      .rank-badge {
+        width: 24px; height: 24px;
+        background: var(--primary-blue);
+        color: white;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 12px; font-weight: 700;
+        margin-right: 15px;
+        flex-shrink: 0;
+      }
+      .item-name  { flex: 1; font-weight: 500; font-size: 14px; }
+      .item-count { color: #888; font-size: 13px; margin-right: 20px; }
+      .item-price { font-weight: 700; color: var(--primary-blue); font-size: 14px; }
+    </style>
+  </th:block>
+</head>
+
+<body>
+<!--
+  ※ Controller 작성 가이드 (StatsController.java)
+  -------------------------------------------------
+  @GetMapping("/stats")
+  public String stats(Model model) {
+      model.addAttribute("activePage", "salesStats");
+      model.addAttribute("isAdmin", true);
+
+      // 요약 통계
+      model.addAttribute("totalRevenue",   statsService.totalRevenue7Days());  // Long
+      model.addAttribute("dailyAvgRevenue",statsService.dailyAverage());       // Long
+      model.addAttribute("totalOrders",    statsService.totalOrders());        // int
+      model.addAttribute("totalVisitors",  statsService.totalVisitors());      // int
+      model.addAttribute("avgUsageTime",   statsService.avgUsageMinutes());    // int (분)
+
+      // 차트 데이터 (JSON 문자열로 전달 권장)
+      model.addAttribute("dailyLabels",    statsService.dailyLabelsJson());    // "[\"3/5\",...]"
+      model.addAttribute("dailyData",      statsService.dailyRevenueJson());   // "[450000,...]"
+      model.addAttribute("categoryLabels", statsService.categoryLabelsJson()); // "[\"음료\",...]"
+      model.addAttribute("categoryData",   statsService.categoryRevenueJson());// "[600000,...]"
+      model.addAttribute("avgTimeData",    statsService.avgTimeJson());        // "[65,72,...]"
+
+      // 베스트 셀러
+      model.addAttribute("bestSellers",    statsService.bestSellers());        // List<BestSellerDto>
+      return "pages/stats";
+  }
+
+  BestSellerDto 필드:
+    - int    rank       : 순위
+    - String productName: 상품명
+    - int    soldCount  : 판매 수량
+    - long   totalAmount: 총 매출액
+-->
+<th:block layout:fragment="content">
+  <h1 class="page-title">매출 통계</h1>
+
+  <!-- 요약 통계 카드 -->
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="summary-label">💰 총 매출 (7일)</div>
+      <div class="summary-value val-blue"
+           th:text="'₩' + ${#numbers.formatInteger(totalRevenue, 0, 'COMMA')}">₩0</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">📈 일평균 매출</div>
+      <div class="summary-value val-green"
+           th:text="'₩' + ${#numbers.formatInteger(dailyAvgRevenue, 0, 'COMMA')}">₩0</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">📋 총 주문</div>
+      <div class="summary-value val-orange" th:text="${totalOrders}">0</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">👥 총 방문자</div>
+      <div class="summary-value val-purple" th:text="${totalVisitors}">0</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">🕒 평균 이용시간</div>
+      <div class="summary-value val-blue" th:text="${avgUsageTime} + 'm'">0m</div>
+    </div>
+  </div>
+
+  <!-- 차트 영역 -->
+  <div class="chart-row">
+    <div class="chart-card">
+      <div class="chart-title">일별 매출 추이</div>
+      <canvas id="dailySalesChart" height="200"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">카테고리별 매출</div>
+      <canvas id="categorySalesChart" height="200"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-row full-row">
+    <div class="chart-card">
+      <div class="chart-title">일별 평균 이용 시간</div>
+      <canvas id="avgTimeChart" height="100"></canvas>
+    </div>
+  </div>
+
+  <!-- 베스트 셀러 -->
+  <div class="best-seller-card">
+    <div class="chart-title">베스트 셀러 (이번 주)</div>
+    <div th:each="item, stat : ${bestSellers}" class="seller-item">
+      <div class="rank-badge" th:text="${stat.count}">1</div>
+      <div class="item-name"  th:text="${item.productName}">상품명</div>
+      <div class="item-count" th:text="${item.soldCount} + '개 판매'">0개 판매</div>
+      <div class="item-price" th:text="'₩' + ${#numbers.formatInteger(item.totalAmount, 0, 'COMMA')}">₩0</div>
+    </div>
+  </div>
+</th:block>
+
+<!-- 차트 스크립트: Thymeleaf inline 문법으로 서버 데이터 주입 -->
+<th:block layout:fragment="scripts">
+  <script th:inline="javascript">
+    /*<![CDATA[*/
+    const dailyLabels    = /*[[${dailyLabels}]]*/ '["3/5","3/6","3/7","3/8","3/9","3/10","3/11"]';
+    const dailyData      = /*[[${dailyData}]]*/   '[450000,520000,380000,620000,580000,680000,720000]';
+    const categoryLabels = /*[[${categoryLabels}]]*/ '["음료","스낵","게임대여"]';
+    const categoryData   = /*[[${categoryData}]]*/ '[600000,420000,150000]';
+    const avgTimeData    = /*[[${avgTimeData}]]*/  '[65,72,58,85,78,92,88]';
+    /*]]>*/
+
+    // 일별 매출 추이 (Line)
+    new Chart(document.getElementById('dailySalesChart'), {
+      type: 'line',
+      data: {
+        labels: JSON.parse(dailyLabels),
+        datasets: [{
+          label: '매출액',
+          data: JSON.parse(dailyData),
+          borderColor: '#007bff',
+          backgroundColor: 'rgba(0,123,255,0.1)',
+          fill: true, tension: 0.4
+        }]
+      },
+      options: { plugins: { legend: { display: false } } }
+    });
+
+    // 카테고리별 매출 (Bar)
+    new Chart(document.getElementById('categorySalesChart'), {
+      type: 'bar',
+      data: {
+        labels: JSON.parse(categoryLabels),
+        datasets: [{
+          data: JSON.parse(categoryData),
+          backgroundColor: ['#007bff','#28a745','#fd7e14']
+        }]
+      },
+      options: { plugins: { legend: { display: false } } }
+    });
+
+    // 일별 평균 이용 시간 (Line)
+    new Chart(document.getElementById('avgTimeChart'), {
+      type: 'line',
+      data: {
+        labels: JSON.parse(dailyLabels),
+        datasets: [{
+          label: '분(min)',
+          data: JSON.parse(avgTimeData),
+          borderColor: '#28a745',
+          tension: 0.3
+        }]
+      },
+      options: { plugins: { legend: { display: false } } }
+    });
+  </script>
+</th:block>
+</body>
+</html>

@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title th:text="'Kiosk - ' + ${pageTitle}">Kiosk Main Menu</title>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background-color: #f4f6f8;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* --- 좌측 사이드바 --- */
+    .sidebar-left {
+      width: 100px;
+      background-color: white;
+      border-right: 1px solid #eaeaea;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 0;
+      z-index: 10;
+    }
+
+    .nav-group {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .nav-btn {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #f0f2f5;
+      color: #888;
+      cursor: pointer;
+      border: none;
+      transition: all 0.3s ease;
+      font-size: 0;
+      position: relative;
+    }
+
+    .nav-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-btn.active {
+      background-color: #007bff;
+      color: white;
+      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    }
+
+    .nav-btn.orange {
+      background-color: #ff9800;
+      color: white;
+    }
+
+    .nav-btn.orange:hover {
+      background-color: #f57c00;
+    }
+
+    .nav-btn.red {
+      background-color: #f44336;
+      color: white;
+    }
+
+    .nav-btn.red:hover {
+      background-color: #d32f2f;
+    }
+
+    .nav-btn i {
+      width: 34px;
+      height: 34px;
+    }
+
+    .nav-label {
+      position: absolute;
+      left: 80px;
+      background-color: #333;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      z-index: 100;
+      bottom: 15px;
+    }
+
+    .nav-btn:hover .nav-label {
+      opacity: 1;
+    }
+
+    /* --- 메인 영역 (헤더 + 콘텐츠) --- */
+    .main-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 헤더 */
+    .header {
+      height: 80px;
+      background-color: white;
+      border-bottom: 1px solid #eaeaea;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 30px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .table-info {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #333;
+      letter-spacing: -0.5px;
+    }
+
+    .party-badge {
+      background: linear-gradient(135deg, #eef6ff 0%, #e3f2fd 100%);
+      color: #007bff;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 1rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid #bbdefb;
+    }
+
+    .party-badge i {
+      width: 20px;
+      height: 20px;
+    }
+
+    .header-right {
+      display: flex;
+      gap: 15px;
+    }
+
+    .icon-btn {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      cursor: pointer;
+      color: white;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      font-size: 0;
+      position: relative;
+    }
+
+    .icon-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .icon-btn.messenger {
+      background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    }
+
+    .icon-btn.cart {
+      background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+      position: relative;
+    }
+
+    .cart-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background-color: #ff5252;
+      color: white;
+      font-size: 0.75rem;
+      font-weight: 700;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid white;
+    }
+
+    .icon-btn i {
+      width: 30px;
+      height: 30px;
+    }
+
+    /* 콘텐츠 영역 */
+    .content {
+      flex: 1;
+      padding: 30px;
+      overflow-y: auto;
+      background-color: #f4f6f8;
+    }
+
+    .content::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .content::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+
+    .content::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 10px;
+    }
+
+    .content::-webkit-scrollbar-thumb:hover {
+      background: #888;
+    }
+
+    /* 메뉴 아이템 그리드 */
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .menu-item {
+      background: white;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .menu-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .menu-emoji {
+      font-size: 3rem;
+      margin-bottom: 15px;
+    }
+
+    .menu-name {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .menu-price {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #007bff;
+      margin-bottom: 15px;
+    }
+
+    .menu-price.free {
+      color: #4caf50;
+      font-size: 0.95rem;
+    }
+
+    .quantity-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #f8f9fa;
+      padding: 8px 12px;
+      border-radius: 20px;
+    }
+
+    .qty-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .qty-btn.minus {
+      background-color: #e2e4e7;
+      color: #555;
+    }
+
+    .qty-btn.minus:hover {
+      background-color: #d0d2d7;
+    }
+
+    .qty-btn.plus {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .qty-btn.plus:hover {
+      background-color: #0056b3;
+    }
+
+    .qty-number {
+      font-size: 1rem;
+      font-weight: bold;
+      min-width: 25px;
+      text-align: center;
+    }
+
+    .add-to-cart-btn {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .add-to-cart-btn:hover {
+      background: #0056b3;
+    }
+
+    .add-to-cart-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* --- 모달 (서비스 호출) --- */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-content {
+      background: white;
+      padding: 40px;
+      border-radius: 24px;
+      width: 500px;
+      text-align: center;
+      position: relative;
+      animation: slideUp 0.3s ease;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .modal-description {
+      color: #888;
+      margin-bottom: 30px;
+      font-size: 0.95rem;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      cursor: pointer;
+      color: #888;
+      border: none;
+      background: none;
+      font-size: 0;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .close-btn:hover {
+      color: #333;
+      transform: rotate(90deg);
+    }
+
+    .close-btn i {
+      width: 28px;
+      height: 28px;
+    }
+
+    .modal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .service-btn {
+      background: #f8f9fa;
+      padding: 30px 10px;
+      border-radius: 16px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s;
+    }
+
+    .service-btn:hover {
+      background: #eef6ff;
+      border-color: #007bff;
+      transform: translateY(-2px);
+    }
+
+    .service-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0;
+    }
+
+    .service-icon i {
+      width: 32px;
+      height: 32px;
+    }
+
+    .service-btn strong {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .service-btn span {
+      font-size: 0.85rem;
+      color: #888;
+    }
+
+    /* 토스트 알림 */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: #333;
+      color: white;
+      padding: 15px 25px;
+      border-radius: 12px;
+      z-index: 2000;
+      animation: slideInUp 0.3s ease;
+    }
+
+    @keyframes slideInUp {
+      from { transform: translateY(100px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="sidebar-left">
+  <div class="nav-group">
+    <button class="nav-btn" th:classappend="${currentMenu == 'drinks' ? 'active' : ''}"
+            onclick="navigateMenu('drinks')">
+      <i data-lucide="coffee"></i>
+      <span class="nav-label">음료</span>
+    </button>
+
+    <button class="nav-btn" th:classappend="${currentMenu == 'food' ? 'active' : ''}"
+            onclick="navigateMenu('food')">
+      <i data-lucide="utensils"></i>
+      <span class="nav-label">음식</span>
+    </button>
+
+    <button class="nav-btn" th:classappend="${currentMenu == 'games' ? 'active' : ''}"
+            onclick="navigateMenu('games')">
+      <i data-lucide="gamepad-2"></i>
+      <span class="nav-label">게임</span>
+    </button>
+  </div>
+
+  <div class="nav-group">
+    <button class="nav-btn orange" onclick="openServiceModal()" title="직원 호출">
+      <i data-lucide="bell"></i>
+      <span class="nav-label">직원호출</span>
+    </button>
+
+    <button class="nav-btn red" onclick="navigateCheckout()" title="정산">
+      <i data-lucide="credit-card"></i>
+      <span class="nav-label">정산</span>
+    </button>
+  </div>
+</div>
+
+<div class="main-area">
+  <div class="header">
+    <div class="header-left">
+      <span class="table-info" th:text="'Table #' + ${tableNumber}">Table #5</span>
+      <span class="party-badge">
+        <i data-lucide="users"></i>
+        <span th:text="${partySize} + ' ' + (${partySize} > 1 ? 'people' : 'person')">2 people</span>
+      </span>
+    </div>
+
+    <div class="header-right">
+      <button class="icon-btn messenger" onclick="navigateMessenger()" title="메신저">
+        <i data-lucide="message-circle"></i>
+      </button>
+
+      <button class="icon-btn cart" onclick="navigateCart()" title="장바구니">
+        <i data-lucide="shopping-cart"></i>
+        <span class="cart-badge" id="cart-badge" th:if="${cartCount} and ${cartCount} > 0"
+              th:text="${cartCount}" style="display: none;">0</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="menu-grid" id="menu-grid">
+      <th:block th:each="item : ${menuItems}">
+        <div class="menu-item" th:data-name="${item.itemName}" th:data-price="${item.price}">
+          <div class="menu-emoji" th:text="${item.emoji}">☕</div>
+          <div class="menu-name" th:text="${item.itemName}">상품명</div>
+          <div class="menu-price" th:classappend="${item.price == 0 ? 'free' : ''}"
+               th:text="${item.price == 0 ? 'FREE' : '₩' + #numbers.formatInteger(item.price, 1, 'COMMA')}">
+            ₩5,000
+          </div>
+
+          <div class="quantity-control">
+            <button class="qty-btn minus" onclick="decreaseQty(this)"><i data-lucide="minus"></i></button>
+            <span class="qty-number">0</span>
+            <button class="qty-btn plus" onclick="increaseQty(this)"><i data-lucide="plus"></i></button>
+          </div>
+
+          <button class="add-to-cart-btn" onclick="addItemToCart(this)" th:if="${item.price > 0}">
+            장바구니에 추가
+          </button>
+        </div>
+      </th:block>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="serviceModal">
+  <div class="modal-content">
+    <button class="close-btn" onclick="closeServiceModal()">
+      <i data-lucide="x"></i>
+    </button>
+
+    <h2 class="modal-title">서비스 요청</h2>
+    <p class="modal-description">무엇을 도와드릴까요?</p>
+
+    <div class="modal-grid">
+      <button class="service-btn" onclick="callService('직원 호출')">
+        <div class="service-icon" style="background: #eef6ff; color: #007bff;">
+          <i data-lucide="user"></i>
+        </div>
+        <strong>직원 호출</strong>
+        <span>Staff Call</span>
+      </button>
+
+      <button class="service-btn" onclick="callService('물티슈 요청')">
+        <div class="service-icon" style="background: #e8f5e9; color: #4caf50;">
+          <i data-lucide="droplet"></i>
+        </div>
+        <strong>물티슈</strong>
+        <span>Wet Tissue</span>
+      </button>
+
+      <button class="service-btn" onclick="callService('게임 규칙 설명')">
+        <div class="service-icon" style="background: #fff3e0; color: #ff9800;">
+          <i data-lucide="help-circle"></i>
+        </div>
+        <strong>게임 규칙</strong>
+        <span>Game Help</span>
+      </button>
+
+      <button class="service-btn" onclick="callService('테이블 청소')">
+        <div class="service-icon" style="background: #f3e5f5; color: #9c27b0;">
+          <i data-lucide="sparkles"></i>
+        </div>
+        <strong>테이블 청소</strong>
+        <span>Clean Table</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  lucide.createIcons({
+    attrs: {
+      'stroke-width': 2.5
+    }
+  });
+
+  const tableNumber = document.querySelector('.table-info').textContent.replace('Table #', '');
+
+  // ===== 메뉴 네비게이션 =====
+  function navigateMenu(menu) {
+    const path = `/kiosk/${menu}?tableNumber=${tableNumber}`;
+    window.location.href = path;
+  }
+
+  function navigateCart() {
+    window.location.href = `/kiosk/cart?tableNumber=${tableNumber}`;
+  }
+
+  function navigateCheckout() {
+    if (confirm('정산하시겠습니까?')) {
+      window.location.href = `/kiosk/checkout?tableNumber=${tableNumber}`;
+    }
+  }
+
+  function navigateMessenger() {
+    window.location.href = `/kiosk/messenger?tableNumber=${tableNumber}`;
+  }
+
+  // ===== 수량 조절 =====
+  function increaseQty(btn) {
+    const qtyElement = btn.parentElement.querySelector('.qty-number');
+    qtyElement.innerText = parseInt(qtyElement.innerText) + 1;
+  }
+
+  function decreaseQty(btn) {
+    const qtyElement = btn.parentElement.querySelector('.qty-number');
+    const currentQty = parseInt(qtyElement.innerText);
+    if (currentQty > 0) {
+      qtyElement.innerText = currentQty - 1;
+    }
+  }
+
+  // ===== 장바구니 추가 =====
+  function addItemToCart(btn) {
+    const menuItem = btn.closest('.menu-item');
+    const itemName = menuItem.getAttribute('data-name');
+    const price = parseInt(menuItem.getAttribute('data-price'));
+    const quantity = parseInt(menuItem.querySelector('.qty-number').innerText);
+
+    if (quantity === 0) {
+      showToast('수량을 선택해주세요.');
+      return;
+    }
+
+    const payload = {
+      itemName: itemName,
+      price: price,
+      quantity: quantity
+    };
+
+    fetch('/api/cart/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                showToast(`${itemName} x${quantity}이(가) 장바구니에 추가되었습니다.`);
+                menuItem.querySelector('.qty-number').innerText = '0';
+                updateCartBadge(data.cartCount);
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              showToast('장바구니 추가에 실패했습니다.');
+            });
+  }
+
+  // ===== 장바구니 배지 업데이트 =====
+  function updateCartBadge(count) {
+    const badge = document.getElementById('cart-badge');
+    if (count > 0) {
+      badge.innerText = count;
+      badge.style.display = 'flex';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  // ===== 서비스 요청 =====
+  function openServiceModal() {
+    document.getElementById('serviceModal').classList.add('active');
+  }
+
+  function closeServiceModal() {
+    document.getElementById('serviceModal').classList.remove('active');
+  }
+
+  function callService(serviceType) {
+    fetch('/kiosk/service-request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tableNumber: tableNumber,
+        serviceType: serviceType,
+        timestamp: new Date().toISOString()
+      })
+    })
+            .then(response => response.json())
+            .then(data => {
+              showToast(`${serviceType} 요청이 관리자에게 전송되었습니다.`);
+              closeServiceModal();
+            })
+            .catch(error => {
+              console.error('Service request error:', error);
+              showToast('요청 전송에 실패했습니다.');
+            });
+  }
+
+  // ===== 토스트 알림 =====
+  function showToast(message) {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerText = message;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      toast.remove();
+    }, 2000);
+  }
+
+  // ===== 모달 닫기 =====
+  document.getElementById('serviceModal').addEventListener('click', function(e) {
+    if (e.target === this) closeServiceModal();
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeServiceModal();
+  });
+</script>
+<script>
+  let idleTimer;
+  // const timeoutMS = 15 * 60 * 1000; // 15분 (밀리초 단위)
+  // 테스트를 위해 30초로 설정 (30 * 1000ms)
+  const timeoutMS = 30 * 1000;
+
+  function resetIdleTimer() {
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(goScreensaver, timeoutMS);
+  }
+
+  function goScreensaver() {
+    // 현재 URL을 로컬 스토리지에 저장하여 나중에 복귀할 때 사용
+    // localStorage.setItem('returnUrl', window.location.pathname);
+    // window.location.href = '/kiosk/screensaver'; // 화면 보호기 경로
+
+    // pathname(/kiosk/drinks) + search(?tableNumber=5)를 합쳐서 전체 경로를 저장합니다.
+    const currentFullUrl = window.location.pathname + window.location.search;
+
+    localStorage.setItem('returnUrl', currentFullUrl);
+    console.log("세션 보존 경로 저장됨: " + currentFullUrl); // 디버깅용
+
+    window.location.href = '/kiosk/screensaver';
+  }
+
+  // 사용자 활동(클릭, 터치, 키입력)이 있을 때마다 타이머 초기화
+  window.onload = resetIdleTimer;
+  window.onmousemove = resetIdleTimer;
+  window.onmousedown = resetIdleTimer;
+  window.ontouchstart = resetIdleTimer;
+  window.onclick = resetIdleTimer;
+  window.onkeypress = resetIdleTimer;
+</script>
+</body>
+</html>
