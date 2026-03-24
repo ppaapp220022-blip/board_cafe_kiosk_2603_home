@@ -8,46 +8,79 @@
   <title>Macro Management</title>
   <th:block layout:fragment="head-extra">
     <style>
-      .header-flex { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; }
-      .page-title  { font-size: 28px; font-weight: 700; margin-bottom: 5px; }
-      .page-desc   { color: var(--text-gray); font-size: 15px; }
-
-      .btn-add-macro {
-        background: var(--primary-blue); color: white; border: none;
-        padding: 12px 20px; border-radius: 8px; font-weight: 600;
-        cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 15px;
+      .page-title {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 24px;
       }
 
-      /* 추가 폼 */
-      #add-macro-form { display: none; margin-bottom: 30px; }
-      .form-card { background: white; border-radius: 16px; padding: 30px; box-shadow: var(--card-shadow); border: 1px solid #f0f0f0; }
-      .form-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
-      .form-group { margin-bottom: 20px; }
-      .form-group label { display: block; font-size: 14px; font-weight: 600; color: #666; margin-bottom: 8px; }
-      .form-select  { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #333; font-size: 15px; font-weight: 500; background: #fff; cursor: pointer; }
-      .form-textarea { width: 100%; padding: 15px; border-radius: 8px; border: 1px solid #ddd; background: #f8f9fa; font-size: 15px; min-height: 100px; resize: none; outline: none; }
-      .form-textarea:focus { border-color: var(--primary-blue); background: #fff; }
-      .btn-row { display: flex; gap: 10px; }
-      .btn-save   { background: #2ecc71; color: white; border: none; padding: 12px 30px; border-radius: 8px; font-weight: 600; cursor: pointer; }
-      .btn-cancel { background: #828282; color: white; border: none; padding: 12px 30px; border-radius: 8px; font-weight: 600; cursor: pointer; }
-
-      /* 매크로 카드 */
-      .macro-card { background: white; border-radius: 16px; padding: 25px; box-shadow: var(--card-shadow); border: 1px solid #f0f0f0; margin-bottom: 25px; }
-      .macro-group-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; font-size: 18px; font-weight: 700; }
-      .icon-box   { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
-      .bg-blue    { background: #e7f3ff; color: var(--primary-blue); }
-      .bg-green   { background: #eafaf1; color: #2ecc71; }
-
-      .message-item {
-        background: #f1f3f5; padding: 18px 20px; border-radius: 10px;
-        margin-bottom: 12px; font-size: 15px; color: #444;
-        border: 1px solid transparent; transition: 0.2s;
-        display: flex; justify-content: space-between; align-items: center;
+      /* 테이블 영역 */
+      .table-container {
+        background: white;
+        border-radius: 15px;
+        padding: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
       }
-      .message-item:hover { border-color: #ddd; background: #ebedf0; }
-      .message-item:last-child { margin-bottom: 0; }
-      .btn-delete-msg { background: none; border: none; color: #ccc; cursor: pointer; font-size: 18px; padding: 0 5px; transition: 0.2s; }
-      .btn-delete-msg:hover { color: var(--danger-red); }
+
+      .macro-massage-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .macro-massage-table th {
+        text-align: left;
+        padding: 15px 20px;
+        border-bottom: 2px solid var(--bg-light);
+        color: var(--text-gray);
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .macro-massage-table td {
+        padding: 18px 20px;
+        border-bottom: 1px solid var(--bg-light);
+        font-size: 15px;
+      }
+
+      .macro-massage-table tr:last-child td {
+        border-bottom: none;
+      }
+
+      .macro-massage-table tr:hover {
+        background-color: #f8fbff;
+      }
+
+      .phone-num {
+        font-weight: 600;
+        color: var(--text-dark);
+      }
+
+      .balance-text {
+        font-weight: 700;
+        color: var(--primary-blue);
+      }
+
+      .update-date {
+        color: var(--text-gray);
+        font-size: 13px;
+      }
+
+      .history-btn {
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: 1px solid var(--primary-blue);
+        background: transparent;
+        color: var(--primary-blue);
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+
+      .history-btn:hover {
+        background: var(--primary-blue);
+        color: white;
+      }
     </style>
   </th:block>
 </head>
@@ -90,62 +123,30 @@
     "Service Request"→ [MacroDto, ...]
 -->
 <th:block layout:fragment="content">
-  <div class="header-flex">
-    <div>
-      <h1 class="page-title">Macro Management</h1>
-      <p class="page-desc">Create and manage quick response messages</p>
-    </div>
-    <button class="btn-add-macro" onclick="toggleAddForm()">+ Add Macro</button>
+  <h1 class="page-title">💬 매크로 메시지 확인</h1>
+
+  <div class="table-container">
+    <table class="macro-massage-table">
+      <thead>
+      <tr>
+        <th>내용</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="massage : ${macroMassages}">
+        <td class="phone-num" th:text="${massage}"></td>
+      </tr>
+      <tr th:if="${#lists.isEmpty(macroMassages)}">
+        <td colspan="4" style="text-align: center; color: #aaa; padding: 40px;">등록된 메크로 메세지 내역이 없습니다.</td>
+      </tr>
+      </tbody>
+    </table>
   </div>
-
-  <!-- 추가 폼 -->
-  <section id="add-macro-form">
-    <div class="form-card">
-      <div class="form-title">Add New Macro</div>
-      <form th:action="@{/macros}" method="post">
-        <div class="form-group">
-          <label>Category</label>
-          <select name="category" class="form-select">
-            <option value="order">Order Status</option>
-            <option value="service">Service Request</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Message</label>
-          <textarea name="message" class="form-textarea" placeholder="Enter macro message..."></textarea>
-        </div>
-        <div class="btn-row">
-          <button type="submit" class="btn-save">💾 Save</button>
-          <button type="button" class="btn-cancel" onclick="toggleAddForm()">✕ Cancel</button>
-        </div>
-      </form>
-    </div>
-  </section>
-
-  <!-- 매크로 그룹 목록 (macroGroups: Map<String, List<MacroDto>>) -->
-  <th:block th:each="entry, stat : ${macroGroups}">
-    <section class="macro-card">
-      <div class="macro-group-header">
-        <div class="icon-box" th:classappend="${stat.even} ? 'bg-blue' : 'bg-green'">💬</div>
-        <span th:text="${entry.key}">카테고리명</span>
-      </div>
-      <div th:each="macro : ${entry.value}" class="message-item">
-        <span th:text="${macro.message}">메시지 내용</span>
-        <form th:action="@{/macros/{id}/delete(id=${macro.id})}" method="post" style="margin:0;">
-          <button type="submit" class="btn-delete-msg" title="삭제">✕</button>
-        </form>
-      </div>
-    </section>
-  </th:block>
 </th:block>
 
 <th:block layout:fragment="scripts">
   <script>
-    function toggleAddForm() {
-      const form = document.getElementById('add-macro-form');
-      form.style.display = (form.style.display === 'block') ? 'none' : 'block';
-      if (form.style.display === 'block') form.scrollIntoView({ behavior: 'smooth' });
-    }
+
   </script>
 </th:block>
 </body>

@@ -154,19 +154,15 @@
          th:classappend="${activePage == 'salesStats'} ? 'active'">
         <span class="nav-icon">📈</span> 매출 통계
       </a>
-
-      <a href="#" class="nav-item">
-        <span class="nav-icon">🧪</span> 매출 분석
-      </a>
     </div>
 
-<!--    <div class="nav-section">-->
-<!--      <div class="nav-label">상품 관리</div>-->
-<!--      <a href="#" class="nav-item"><span class="nav-icon">📂</span> 상품 등록/삭제</a>-->
-<!--      <a href="#" class="nav-item"><span class="nav-icon">🚫</span> 상품 품절 관리</a>-->
-<!--      <a th:href="@{/admin/price}" class="nav-item"-->
-<!--         th:classappend="${activePage == 'salesAnalysis'} ? 'active'"><span class="nav-icon">💰</span> 가격 관리</a>-->
-<!--    </div>-->
+    <!--    <div class="nav-section">-->
+    <!--      <div class="nav-label">상품 관리</div>-->
+    <!--      <a href="#" class="nav-item"><span class="nav-icon">📂</span> 상품 등록/삭제</a>-->
+    <!--      <a href="#" class="nav-item"><span class="nav-icon">🚫</span> 상품 품절 관리</a>-->
+    <!--      <a th:href="@{/admin/price}" class="nav-item"-->
+    <!--         th:classappend="${activePage == 'salesAnalysis'} ? 'active'"><span class="nav-icon">💰</span> 가격 관리</a>-->
+    <!--    </div>-->
 
     <div class="nav-section">
       <div class="nav-label">상품 관리</div>
@@ -181,23 +177,29 @@
         <span class="nav-icon">🚫</span> 상품 품절 관리
       </a>
 
-      <a th:href="@{/admin/price}" class="nav-item"
-         th:classappend="${activePage == 'salesAnalysis'} ? 'active'">
-        <span class="nav-icon">💰</span> 가격 관리
-      </a>
+      <!--      <a th:href="@{/admin/price}" class="nav-item"-->
+      <!--         th:classappend="${activePage == 'salesAnalysis'} ? 'active'">-->
+      <!--        <span class="nav-icon">💰</span> 가격 관리-->
+      <!--      </a>-->
     </div>
 
 
 
     <div class="nav-section">
       <div class="nav-label">운영 설정</div>
-      <a href="#" class="nav-item"><span class="nav-icon">💬</span> 매크로 메시지 관리</a>
-      <a href="#" class="nav-item"><span class="nav-icon">⚡</span> 해피아워 설정</a>
-      <a href="#" class="nav-item"><span class="nav-icon">👥</span> 직원 관리</a>
+      <a th:href="@{/admin/macro}" class="nav-item"
+         th:classappend="${activePage == 'macroMassage'} ? 'active'">
+        <span class="nav-icon">💬</span> 매크로 메시지 확인
+      </a>
+      <a th:href="@{/admin/package}" class="nav-item"
+         th:classappend="${activePage == 'packageManagement'} ? 'active'">
+        <span class="nav-icon">⚡</span> 요금 정책
+      </a>
     </div>
 
     <div class="nav-section">
       <div class="nav-label">계정</div>
+      <a href="#" class="nav-item"><span class="nav-icon">👥</span> 직원 관리</a>
       <a href="#" class="nav-item"><span class="nav-icon">👤</span> 내 정보 관리</a>
     </div>
   </nav>

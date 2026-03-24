@@ -183,4 +183,31 @@ public class AdminController {
         return "redirect:/admin/product";
     }
 
+    // 매크로 메세지 확인
+    @GetMapping("/macro")
+    public String getAllMacro(Model model) {
+        log.info("--- AdminController getAllMacro get ---");
+        // 화면 확인을 위한 더미 데이터 (추후 DB 연동)
+        // 화면 확인을 위한 더미 데이터 (추후 DB 연동)
+        List<String> macroMassage = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            String massage = "Macro Massage Test " + i;
+            macroMassage.add(massage);
+        }
+
+        model.addAttribute("macroMassages", macroMassage);
+
+        // 중요: 사이드바 하이라이트를 위해 'pointManagement' 전달
+        model.addAttribute("activePage", "macroMassage");
+
+        return "admin/macro";
+    }
+
+    // 패키지 요금 정책
+    @GetMapping("/package")
+    public String addPackage() {
+        log.info("--- AdminController addPackage post ---");
+        return "admin/package";
+    }
+
 }
