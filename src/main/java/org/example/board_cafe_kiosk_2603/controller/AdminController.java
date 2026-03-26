@@ -26,20 +26,20 @@ import java.util.stream.Collectors;
 public class AdminController {
     private final MacroMessageService macroMessageService;
 
-    @GetMapping("/dashboard")
-    public String dashboard(Model model) {
-        // 추후 DB 연동 시 이 리스트에 데이터를 채우게 됩니다.
-        // 현재는 화면 확인을 위해 빈 리스트를 넘깁니다.
-        model.addAttribute("tableList", new ArrayList<>());
-        model.addAttribute("emptyCount", 12); // 초기값은 모두 비어있음으로 설정
-        model.addAttribute("occupiedCount", 0);
-        model.addAttribute("waitingCount", 0);
-
-        // activePage 변수는 사이드바의 하이라이트 처리를 위해 사용됩니다.
-        model.addAttribute("activePage", "tableStatus");
-
-        return "admin/dashboard"; // templates/admin/dashboard.html 호출
-    }
+//    @GetMapping("/dashboard")
+//    public String dashboard(Model model) {
+//        // 추후 DB 연동 시 이 리스트에 데이터를 채우게 됩니다.
+//        // 현재는 화면 확인을 위해 빈 리스트를 넘깁니다.
+//        model.addAttribute("tableList", new ArrayList<>());
+//        model.addAttribute("emptyCount", 12); // 초기값은 모두 비어있음으로 설정
+//        model.addAttribute("occupiedCount", 0);
+//        model.addAttribute("waitingCount", 0);
+//
+//        // activePage 변수는 사이드바의 하이라이트 처리를 위해 사용됩니다.
+//        model.addAttribute("activePage", "tableStatus");
+//
+//        return "admin/dashboard"; // templates/admin/dashboard.html 호출
+//    }
 
     // 포인트 관리 페이지 이동 로직
     @GetMapping("/points")
@@ -189,19 +189,19 @@ public class AdminController {
         return "redirect:/admin/product";
     }
 
-    // 매크로 메세지 확인
-    @GetMapping("/macro")
-    public String getAllMacro(Model model) {
-        log.info("--- AdminController getAllMacro get ---");
-        List<MacroMessageResponseDTO> macroList = macroMessageService.getAllActiveMessages();
-
-        // direction별로 그룹핑 (예: "STAFF_TO_TABLE" -> 리스트, "CUSTOMER_TO_STAFF" -> 리스트)
-        Map<String, List<MacroMessageResponseDTO>> macroGroups = macroList.stream()
-                .collect(Collectors.groupingBy(MacroMessageResponseDTO::getDirection));
-
-        model.addAttribute("macroGroups", macroGroups);
-        return "admin/macro";
-    }
+//    // 매크로 메세지 확인
+//    @GetMapping("/macro")
+//    public String getAllMacro(Model model) {
+//        log.info("--- AdminController getAllMacro get ---");
+//        List<MacroMessageResponseDTO> macroList = macroMessageService.getAllActiveMessages();
+//
+//        // direction별로 그룹핑 (예: "STAFF_TO_TABLE" -> 리스트, "CUSTOMER_TO_STAFF" -> 리스트)
+//        Map<String, List<MacroMessageResponseDTO>> macroGroups = macroList.stream()
+//                .collect(Collectors.groupingBy(MacroMessageResponseDTO::getDirection));
+//
+//        model.addAttribute("macroGroups", macroGroups);
+//        return "admin/macro";
+//    }
 
     // 패키지 요금 정책
     @GetMapping("/package")
