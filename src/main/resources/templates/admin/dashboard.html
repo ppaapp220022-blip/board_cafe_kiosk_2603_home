@@ -70,11 +70,20 @@
 <th:block layout:fragment="content">
     <div class="header-container">
         <h1 class="page-title">📊 테이블 현황</h1>
-        <div class="status-legend">
-            <div class="legend-item"><div class="dot in-use"></div>사용중</div>
-            <div class="legend-item"><div class="dot empty"></div>빈 테이블</div>
-            <div class="legend-item"><div class="dot cleaning"></div>청소 중</div>
-            <div class="legend-item"><div class="dot request"></div>요청 있음</div>
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <button class="btn btn-msg"
+                    style="background: #5f6368; padding: 8px 16px; font-size: 13px;"
+                    onclick="handleTotalReset()">
+                🔄 전체 리셋 (마감)
+            </button>
+
+            <div class="status-legend">
+                <div class="legend-item"><div class="dot empty"></div>빈 테이블</div>
+                <div class="legend-item"><div class="dot in-use"></div>사용중</div>
+                <div class="legend-item"><div class="dot cleaning"></div>청소 중</div>
+                <div class="legend-item"><div class="dot request"></div>요청 있음</div>
+            </div>
+            </div>
         </div>
     </div>
 
@@ -134,8 +143,9 @@
 
     <th:block layout:fragment="script">
         <script th:inline="javascript">
-            /** [핵심] 현재 제어 중인 테이블 ID 전역 관리 */
+            /** [핵심] 현재 제어 중인 테이블 ID 및 상태 전역 관리 */
             let currentTableId = null;
+            let currentTableStatus = null;
 
             /** [핵심] 모달 열기 및 데이터 연동 */
             function openTableModal(element) {
@@ -145,12 +155,13 @@
 
                 currentTableId = element.getAttribute('data-id');
                 const tableNum = element.getAttribute('data-num');
-                const status = element.getAttribute('data-status');
+                currentTableStatus = element.getAttribute('data-status'); // 현재 상태 저장
 
                 document.getElementById('modalTitle').innerText = 'Table ' + tableNum;
 
                 /* 주 설명: 이용 중인 테이블인 경우에만 샘플 주문 데이터를 표시함 */
-                if (status === 'OCCUPIED') {
+                // 상세 설명: 실제 구현 시에는 별도의 API를 통해 세션 기반 주문 내역을 가져와야 함
+                if (currentTableStatus === 'OCCUPIED') {
                     const mockData = [
                         { name: '아메리카노', qty: 2, price: '8,000' },
                         { name: '보드게임 2시간', qty: 1, price: '10,000' }
@@ -171,6 +182,8 @@
                 modal.style.display = 'none';
                 modal.querySelector('.modal-content').style.transform = 'translateY(-20px)';
                 document.querySelectorAll('.table-card').forEach(c => c.classList.remove('selected'));
+                currentTableId = null;
+                currentTableStatus = null;
             }
 
             /** [핵심] 주문 내역 및 합계 렌더링 */
@@ -186,7 +199,8 @@
                 }
 
                 listDiv.innerHTML = orders.map(item => {
-                    sum += parseInt(item.price.replace(/,/g, ''));
+                    const price = parseInt(item.price.replace(/,/g, ''));
+                    sum += price;
                     return `<div class="order-item"><span>${item.name} x ${item.qty}</span><span>${item.price}원</span></div>`;
                 }).join('');
 
@@ -195,7 +209,7 @@
 
             /** [핵심] 상태 변경 API 연동 (PATCH) */
             async function callUpdateStatus(status) {
-                /* 주 설명: 서버의 API를 호출하여 DB 상태와 입실 시간을 갱신함 */
+                /* 주 설명: 서버의 TableController.updateStatus API를 호출함 */
                 try {
                     const response = await fetch(`/admin/dashboard/${currentTableId}/status`, {
                         method: 'PATCH',
@@ -203,48 +217,82 @@
                         body: JSON.stringify({ status: status })
                     });
 
+                    const result = await response.json();
+
                     if (response.ok) {
-                        location.reload(); // 성공 시 화면 갱신
+                        // 상세 설명: 성공 메시지 출력 후 대시보드 새로고침
+                        alert(result.message);
+                        location.reload();
+                    } else {
+                        alert(result.error || "상태 변경에 실패했습니다.");
                     }
                 } catch (err) {
                     console.error("통신 에러:", err);
+                    alert("서버와 통신 중 오류가 발생했습니다.");
                 }
-                // 상세 설명: 0시 자정 리셋과 동일한 Repository 로직이 수행됨
             }
 
+            /** [핵심] 결제 완료 처리 로직 */
             function handlePayment() {
-                if(confirm("결제를 완료하고 테이블을 비우시겠습니까?")) {
-                    callUpdateStatus('CLEANING'); // 결제 후 청소 단계로 이동
+                if (currentTableStatus !== 'OCCUPIED') {
+                    alert("이용 중인 테이블만 결제가 가능합니다.");
+                    return;
+                }
+
+                if(confirm("결제를 완료하시겠습니까?\n확인 시 퇴실 처리 및 청소 단계로 전환됩니다.")) {
+                    /* 상세 설명: 서비스 로직에 따라 세션 마감(is_active=false) 및 CLEANING 상태로 변경됨 */
+                    callUpdateStatus('CLEANING');
                 }
             }
 
             /** 상태 순환 로직: EMPTY -> OCCUPIED -> CLEANING -> EMPTY */
             async function handleStatusUpdate() {
-                /* 현재 모달이 열린 테이블의 상태를 확인하여 다음 단계로 전환함 */
-                if (!currentTableId) return;
-
-                // 1. 현재 카드의 상태값 가져오기 (data-status 속성 활용)
-                const currentCard = document.querySelector(`.table-card[data-id="${currentTableId}"]`);
-                const currentStatus = currentCard.getAttribute('data-status');
+                /* 주 설명: 현재 상태를 기반으로 다음 단계 상태를 결정하여 서버에 요청함 */
+                if (!currentTableId || !currentTableStatus) return;
 
                 let nextStatus = '';
+                let confirmMsg = '';
 
-                // 2. 순환 로직 결정
-                if (currentStatus === 'EMPTY') {
+                // 설계된 순환 구조 적용
+                if (currentTableStatus === 'EMPTY') {
                     nextStatus = 'OCCUPIED';
-                } else if (currentStatus === 'OCCUPIED') {
+                    confirmMsg = "손님 입실 처리를 하시겠습니까?\n(새로운 방문 세션이 생성됩니다)";
+                } else if (currentTableStatus === 'OCCUPIED') {
                     nextStatus = 'CLEANING';
-                } else if (currentStatus === 'CLEANING') {
+                    confirmMsg = "퇴실 처리 및 청소 중 상태로 변경하시겠습니까?\n(이용 세션이 마감됩니다)";
+                } else if (currentTableStatus === 'CLEANING') {
                     nextStatus = 'EMPTY';
-                } else {
-                    nextStatus = 'EMPTY'; // 예외 상황 대비 초기화
+                    confirmMsg = "청소가 완료되었습니까?\n(다음 손님 대기 상태로 전환됩니다)";
                 }
 
-                // 3. 사용자 확인 후 서버 전송
-                if (confirm(`테이블 상태를 [${nextStatus}]이(가) 되도록 변경하시겠습니까?`)) {
+                if (confirm(confirmMsg)) {
                     await callUpdateStatus(nextStatus);
                 }
-                // callUpdateStatus 내부의 location.reload()를 통해 DB 결과가 화면에 즉시 반영됨
+            }
+
+            async function handleTotalReset() {
+                const confirmMsg = "⚠️ 주의: 모든 테이블의 상태, 토큰, 세션 정보가 완전히 초기화됩니다.\n영업 종료 시에만 사용하세요. 진행하시겠습니까?";
+
+                if (!confirm(confirmMsg)) return;
+
+                try {
+                    // 이전에 작성한 Controller의 @DeleteMapping("/reset") 호출
+                    const response = await fetch('/admin/dashboard/reset', {
+                        method: 'DELETE'
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        alert(result.message);
+                        location.reload(); // 모든 데이터가 초기화된 상태로 화면 갱신
+                    } else {
+                        alert(result.error || "리셋 처리 중 오류가 발생했습니다.");
+                    }
+                } catch (err) {
+                    console.error("리셋 통신 에러:", err);
+                    alert("서버와 통신할 수 없습니다.");
+                }
             }
         </script>
     </th:block>

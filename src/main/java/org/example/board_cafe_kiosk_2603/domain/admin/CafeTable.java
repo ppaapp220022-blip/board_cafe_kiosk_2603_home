@@ -5,36 +5,26 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Getter
-@Setter
 @Builder
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class CafeTable {
-    /* 시스템 PK */
+    /* 테이블 고유 ID (PK) */
     private Integer id;
 
-    /* 실물 테이블 번호 */
+    /* 테이블 번호 (1번, 2번 등) */
     private Integer tableNumber;
 
-    /* 태블릿 접속 비밀번호 */
+    /* 테이블 관리 비밀번호 (필요 시) */
     private String password;
 
-    /**
-     * 테이블 상태값 (String 처리)
-     * EMPTY: 빈 자리 / OCCUPIED: 이용 중 / CLEANING: 정리 필요
-     */
+    /* 테이블 현재 상태 (EMPTY, OCCUPIED, CLEANING) */
     private String status;
 
-    /* 태블릿 로그인 유지용 토큰 */
+    /* 키오스크/태블릿 접속용 토큰 */
     private String accessToken;
 
-    /* 손님 입장 시각 */
+    /* JOIN을 통해 가져온 세션 시작 시간 */
     private LocalDateTime checkInTime;
-
-    /* 입장 후 현재까지의 이용 시간(분) 계산 */
-    public long getElapsedMinutes() {
-        if (checkInTime == null) return 0;
-        return java.time.Duration.between(checkInTime, LocalDateTime.now()).toMinutes();
-    }
 }

@@ -2,6 +2,7 @@ package org.example.board_cafe_kiosk_2603.repository.admin;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.example.board_cafe_kiosk_2603.domain.admin.TableSession;
 import org.example.board_cafe_kiosk_2603.domain.admin.CafeTable;
 
 import java.util.List;
@@ -12,31 +13,53 @@ import java.util.List;
  */
 @Mapper
 public interface CafeTableRepository {
-    /** * [Select] 대시보드 메인용 전체 테이블 20개 조회
-     * DB의 모든 테이블 리스트를 번호 순으로 반환함
+    /**
+     * [Select] 전체 테이블 현황 조회
+     * 주 설명: 모든 테이블의 번호, 상태, 현재 세션 ID 포인터를 가져옴
      */
     List<CafeTable> selectAllTables();
 
     /**
-     * [핵심] 테이블 상태 및 체크인 시간 업데이트
-     * @Param id: 테이블 PK
-     * @Param status: 'EMPTY', 'OCCUPIED', 'CLEANING' 등
-     * 주 설명: 상태값에 따라 DB 내부 CASE 문이 check_in_time을 자동 제어함
+     * [Insert] 신규 세션 생성 (입장 시)
+     * 주 설명: table_session 테이블에 신규 행을 추가하고, 생성된 PK(id)를 session 객체에 채워줌
      */
-    int updateTableStatus(@Param("id") Integer id, @Param("status") String status);
+    int insertNewSession(TableSession session);
 
     /**
-     * [핵심] 특정 테이블의 액세스 토큰만 개별 변경
-     * @Param id: 테이블 PK
-     * @Param accessToken: 새로 발급된 인증 토큰 (UUID 등)
-     * 상세 설명: 테이블 상태나 시간에 영향을 주지 않고 인증 세션만 갱신 시 사용
+     * [Update] 테이블 상태 및 세션 포인터 갱신 (핵심)
+     * @param id 테이블 PK
+     * @param status 'EMPTY', 'OCCUPIED', 'CLEANING'
+     * @param sessionId 연결할 세션 ID (입장 시 할당, 퇴실 시 NULL)
+     */
+    int updateTableStatusAndSession(@Param("id") Integer id,
+                                    @Param("status") String status,
+                                    @Param("sessionId") Long sessionId);
+
+    /**
+     * [Update] 세션 종료 처리 (퇴실 시)
+     * 주 설명: 세션의 isActive를 false로 바꾸고 check_out_time을 현재 시각으로 기록
+     */
+    int closeSession(@Param("sessionId") Long sessionId);
+
+    /**
+     * [Select] 특정 테이블의 현재 세션 ID 포인터 조회
+     */
+    Long selectCurrentSessionId(@Param("id") Integer id);
+
+    /**
+     * [Update] 액세스 토큰(UUID) 개별 갱신
      */
     int updateAccessToken(@Param("id") Integer id, @Param("accessToken") String accessToken);
 
     /**
-     * [핵심] 자정 기준 전체 데이터 초기화
-     * 주 설명: 매일 AM 00:00 스케줄러에 의해 호출되어 모든 테이블을 공석으로 만듦
-     * 상세 설명: 모든 테이블의 status='EMPTY', 시간=NULL, 토큰=NULL 처리
+     * [Batch Update] 자정 시스템 초기화
+     * 주 설명: 모든 테이블의 상태를 EMPTY로, 세션 포인터를 NULL로 일괄 초기화
      */
-    int updateAllTablesForNewDay();
+    int resetAllTablesAtMidnight();
+
+    /**
+     * [Batch Update] 자정 기준 모든 활성 세션 종료 처리
+     * 주 설명: 아직 퇴실 처리되지 않은(is_active=TRUE) 세션들의 check_out_time을 현재 시각으로 기록
+     */
+    int updateAllActiveSessions();
 }

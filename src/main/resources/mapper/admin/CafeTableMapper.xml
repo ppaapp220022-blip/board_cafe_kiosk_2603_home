@@ -6,45 +6,78 @@
     <select id="selectAllTables" resultType="org.example.board_cafe_kiosk_2603.domain.admin.CafeTable">
         /* DB의 스네이크 케이스 필드명을 Entity의 카멜케이스 속성에 매핑 */
         SELECT
-            id,
-            table_number AS tableNumber,
-            password,
-            status,
-            access_token AS accessToken,
-            check_in_time AS checkInTime
-        FROM cafe_table
-        ORDER BY table_number
+            t.id,
+            t.table_number AS tableNumber,
+            t.password,
+            t.status,
+            t.access_token AS accessToken,
+            t.current_session_id AS currentSessionId,
+            s.check_in_time AS checkInTime
+            FROM cafe_table t
+        LEFT JOIN table_session s ON t.current_session_id = s.id
+        ORDER BY t.table_number
             <!-- 메인 대시보드 배치를 위해 테이블 번호 순으로 정렬하여 리턴 -->
     </select>
 
-    <update id="updateTableStatus">
-        /* status 값에 따라 check_in_time을 조건부로 업데이트 */
+    <insert id="insertNewSession" useGeneratedKeys="true" keyProperty="id">
+        /* 입장 인원, 패키지 정보를 기반으로 세션 생성. check_in_time은 DB DEFAULT 사용 */
+        INSERT INTO table_session (
+            table_id,
+            package_id,
+            initial_guest_cnt,
+            is_active
+        ) VALUES (
+                     #{tableId},
+                     #{packageId},
+                     #{initialGuestCnt},
+                     TRUE
+                 )
+    </insert>
+
+    <update id="updateTableStatusAndSession">
+        /* 상태 변경과 동시에 현재 이용 중인 세션 ID(포인터)를 동기화 */
         UPDATE cafe_table
         SET
             status = #{status},
-            check_in_time = CASE
-                                WHEN #{status} = 'OCCUPIED' THEN NOW()
-                                WHEN #{status} = 'EMPTY' OR #{status} = 'CLEANING' THEN NULL
-                                ELSE check_in_time
-                END
-        WHERE id = #{id}
+            current_session_id = #{sessionId}  WHERE id = #{id}
     </update>
+
+    <update id="closeSession">
+        /* 세션을 비활성화하고 퇴실 시각을 현재로 업데이트 */
+        UPDATE table_session
+        SET
+            is_active = FALSE,
+            check_out_time = NOW()
+        WHERE id = #{sessionId}
+    </update>
+
+    <select id="selectCurrentSessionId" resultType="long">
+        SELECT current_session_id
+        FROM cafe_table
+        WHERE id = #{id}
+    </select>
 
     <update id="updateAccessToken">
-        /* 특정 테이블의 인증 토큰만 갱신 (상태/시간에 영향 없음) */
         UPDATE cafe_table
-        SET
-            access_token = #{accessToken}
+        SET access_token = #{accessToken}
         WHERE id = #{id}
     </update>
 
-    <update id="updateAllTablesForNewDay">
-        /* 주 설명: 매일 자정 모든 운영 데이터를 초기 상태로 되돌림 */
+    <update id="resetAllTablesAtMidnight">
+        /* 모든 테이블을 공석으로 만들고 세션 연결을 강제 해제 */
+        /* 자정/강제 리셋: 상태(EMPTY), 세션포인터(NULL), 인증토큰(NULL)을 한 번에 초기화 */
         UPDATE cafe_table
         SET
             status = 'EMPTY',
-            check_in_time = NULL,
+            current_session_id = NULL,
             access_token = NULL
+    </update>
+
+    <update id="updateAllActiveSessions">
+        UPDATE table_session
+        SET is_active = FALSE,
+            check_out_time = NOW()
+        WHERE is_active = TRUE
     </update>
 
 </mapper>

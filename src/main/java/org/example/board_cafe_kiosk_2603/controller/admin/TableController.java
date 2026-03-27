@@ -19,58 +19,82 @@ import java.util.Map;
 public class TableController {
     private final CafeTableService cafeTableService;
 
+    /**
+     * [GET] 대시보드 메인 페이지
+     * 주 설명: 현재 20개 테이블의 실시간 상태(이용중/공석/청소중)와 입실 시간을 조회하여 뷰에 전달
+     */
     @GetMapping
     public String dashboard(Model model) {
-        /* 주 설명: 서비스에서 전체 테이블 리스트를 가져와서 뷰에 전달 */
         List<CafeTableDTO> tables = cafeTableService.getAllTableStatus();
         model.addAttribute("tables", tables);
 
+        log.info("대시보드 조회: 총 {}개의 테이블 상태 로드 완료", tables.size());
         return "admin/dashboard";
     }
 
     /**
-     * [PATCH] 테이블 상태 변경 (입실/퇴실/청소)
-     * @Param id: 테이블 PK
-     * @RequestBody request: {"status": "OCCUPIED"} 형식
+     * [PATCH] 테이블 상태 변경 및 세션 연동 (입실/퇴실/청소)
+     * @param id 테이블 PK
+     * @param request {"status": "OCCUPIED" | "CLEANING" | "EMPTY"}
+     * 상세 설명: 상태가 'OCCUPIED'가 되면 세션이 생성되고, 'CLEANING'이 되면 세션이 마감됩니다.
      */
+    @ResponseBody
     @PatchMapping("/{id}/status")
-    public ResponseEntity<Void> updateStatus(@PathVariable("id") Integer id, @RequestBody Map<String, String> request) {
-        /* 주 설명: 특정 테이블의 이용 상태를 변경하고 입실 시간을 기록함 */
-        String status = request.get("status");
-        cafeTableService.changeTableStatus(id, status);
+    public ResponseEntity<Map<String, String>> updateStatus(
+            @PathVariable("id") Integer id,
+            @RequestBody Map<String, String> request) {
 
-        log.info("관리자 요청: 테이블 {}번 상태를 {}로 변경", id, status);
-        return ResponseEntity.noContent().build();
-        // 상세 설명: 상태값이 'EMPTY'일 경우 DB 내부 로직에 의해 시간도 자동 초기화됨
+        String status = request.get("status");
+
+        try {
+            // 핵심 로직 실행 (세션 생성/종료 및 테이블 포인터 업데이트)
+            cafeTableService.changeTableStatus(id, status);
+
+            log.info("상태 변경 성공: 테이블 {}번 -> {}", id, status);
+            return ResponseEntity.ok(Map.of("message", "상태가 " + status + "(으)로 변경되었습니다."));
+
+        } catch (Exception e) {
+            log.error("상태 변경 실패: 테이블 {}번, 사유: {}", id, e.getMessage());
+            return ResponseEntity.internalServerError().body(Map.of("error", "상태 변경 중 오류가 발생했습니다."));
+        }
     }
 
     /**
-     * [POST] 특정 테이블의 액세스 토큰 갱신
-     * @Param id: 테이블 PK
+     * [POST] 특정 테이블의 액세스 토큰(UUID) 갱신
+     * @param id 테이블 PK
+     * 상세 설명: 태블릿의 로그인이 풀렸거나 보안 갱신이 필요할 때 새로운 8자리 토큰 발급
      */
+    @ResponseBody
     @PostMapping("/{id}/token")
     public ResponseEntity<Map<String, String>> refreshToken(@PathVariable("id") Integer id) {
-        /** * [핵심] 보안 세션 갱신을 위한 독립적인 토큰 발급 로직
-         * 상태나 시간의 변경 없이 오직 access_token 필드만 업데이트함
-         */
-        String newToken = cafeTableService.generateNewToken(id);
+        try {
+            String newToken = cafeTableService.generateNewToken(id);
+            log.info("토큰 갱신 완료: 테이블 {}번 -> {}", id, newToken);
 
-        return ResponseEntity.ok(Map.of("accessToken", newToken));
-        // 상세 설명: 새로 생성된 8자리(또는 UUID) 토큰을 클라이언트에 반환
+            return ResponseEntity.ok(Map.of(
+                    "accessToken", newToken,
+                    "message", "새로운 인증 토큰이 발급되었습니다."
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     /**
-     * [DELETE] 자정 리셋 수동 실행 (테스트용 또는 비상용)
-     * 주 설명: AM 12:00 스케줄러와 동일한 로직을 즉시 실행함
+     * [DELETE] 자정 데이터 리셋 강제 실행 (운영/테스트용)
+     * 주 설명: 모든 활성 세션을 강제 종료하고 모든 테이블을 공석(EMPTY)으로 초기화
      */
+    @ResponseBody
     @DeleteMapping("/reset")
-    public ResponseEntity<String> forceReset() {
-        /* 주 설명: 모든 테이블을 강제로 EMPTY 및 토큰 초기화 상태로 만듦 */
-        cafeTableService.resetAllTablesForNewDay();
+    public ResponseEntity<Map<String, String>> forceReset() {
+        try {
+            cafeTableService.resetAllTablesForNewDay();
+            log.warn("경고: 관리자에 의한 시스템 전체 강제 리셋이 수행되었습니다.");
 
-        log.warn("관리자에 의한 전체 테이블 강제 초기화 실행됨");
-        return ResponseEntity.ok("All tables have been reset.");
-        // 상세 설명: 영업 마감 후 수동으로 데이터를 클린하게 비울 때 사용
+            return ResponseEntity.ok(Map.of("message", "모든 테이블과 세션이 초기화되었습니다."));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", "리셋 중 오류 발생"));
+        }
     }
 }
 
