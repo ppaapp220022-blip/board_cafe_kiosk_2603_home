@@ -171,9 +171,10 @@
 
   function goToNext() {
     if (selectedCount > 0) {
-      // 작성하신 컨트롤러 @GetMapping("/kiosk/phone_login") 주소와 일치하도록 수정
-      // 데이터 전달을 위해 쿼리 스트링(?size=)을 추가했습니다.
-      location.href = '/kiosk/phone_login?size=' + selectedCount;
+      // tableNumber를 URL에서 읽어서 다음 페이지로 전달
+      const params = new URLSearchParams(window.location.search);
+      const tableNumber = params.get('tableNumber') || '1';
+      location.href = `/kiosk/phone_login?tableNumber=${tableNumber}&size=${selectedCount}`;
     }
   }
 </script>
