@@ -118,5 +118,30 @@ public class TableController {
             return ResponseEntity.internalServerError().body(Map.of("error", "리셋 중 오류 발생"));
         }
     }
+
+    /**
+     * [GET] 특정 테이블의 미확인 메시지 목록 조회 (모달용)
+     */
+    @GetMapping("/messages/{tableId}")
+    @ResponseBody
+    public ResponseEntity<List<String>> getUnreadMessages(@PathVariable("tableId") Integer tableId) {
+        List<String> messages = cafeTableService.getUnreadMessages(tableId);
+        return ResponseEntity.ok(messages);
+    }
+
+    /**
+     * [PATCH] 특정 테이블의 알림 '읽음' 처리
+     */
+    @PatchMapping("/messages/{tableId}/read")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> markAsRead(@PathVariable("tableId") Integer tableId) {
+        try {
+            cafeTableService.markMessagesAsRead(tableId);
+            return ResponseEntity.ok(Map.of("success", true));
+        } catch (Exception e) {
+            log.error("알림 읽음 처리 중 오류: {}", e.getMessage());
+            return ResponseEntity.internalServerError().body(Map.of("success", false));
+        }
+    }
 }
 

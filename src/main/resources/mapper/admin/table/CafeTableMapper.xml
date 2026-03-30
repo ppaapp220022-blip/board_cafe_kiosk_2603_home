@@ -9,9 +9,11 @@
             ct.id,
             ct.table_number AS tableNumber,
             ct.status,
-            ct.access_token AS accessToken,
             ts.check_in_time AS checkInTime,
-            ts.initial_guest_cnt AS guestCount FROM cafe_table ct
+            ts.initial_guest_cnt AS guestCount,
+            (SELECT COUNT(*) FROM table_message tm
+            WHERE tm.table_id = ct.id AND tm.is_read = false) > 0 AS hasUnreadMessage
+            FROM cafe_table ct
             LEFT JOIN table_session ts ON ct.current_session_id = ts.id
             ORDER BY ct.table_number
             <!-- 메인 대시보드 배치를 위해 테이블 번호 순으로 정렬하여 리턴 -->
@@ -91,6 +93,20 @@
         WHERE o.session_id = #{sessionId}
           AND o.status NOT IN ('PAID', 'CANCELLED')
         ORDER BY o.ordered_at DESC
+    </select>
+
+    <update id="updateMessagesReadStatus">
+        UPDATE table_message
+        SET is_read = true
+        WHERE table_id = #{tableId}
+          AND is_read = false
+    </update>
+
+    <select id="selectUnreadMessageContents" resultType="string">
+        SELECT content
+        FROM table_message
+        WHERE table_id = #{tableId} AND is_read = false
+        ORDER BY created_at DESC
     </select>
 
 </mapper>

@@ -36,6 +36,7 @@ public class CafeTableServiceImpl implements CafeTableService {
                 .accessToken(cafeTable.getAccessToken())
                 .checkInTime(cafeTable.getCheckInTime())
                 .guestCount(cafeTable.getGuestCount())
+                .hasUnreadMessage(cafeTable.isHasUnreadMessage())
                 .build()
         ).collect(Collectors.toList());
     }
@@ -156,5 +157,23 @@ public class CafeTableServiceImpl implements CafeTableService {
                 tableId, sessionId, activeItems.size());
 
         return activeItems;
+    }
+
+    /**
+     * 읽지 않은 메시지 내용들만 추출
+     */
+    @Override
+    public List<String> getUnreadMessages(Integer tableId) {
+        return cafeTableRepository.selectUnreadMessageContents(tableId);
+    }
+
+    /**
+     * 알림 상태 업데이트 (is_read = true)
+     */
+    @Override
+    @Transactional
+    public void markMessagesAsRead(Integer tableId) {
+        // Mapper에 작성하신 updateMessagesReadStatus 호출
+        cafeTableRepository.updateMessagesReadStatus(tableId);
     }
 }

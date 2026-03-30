@@ -20,4 +20,10 @@ public interface CafeTableService {
 
     /* 실시간 주문 상세 내역 조회(대시보드 모달창에 표시할 특정 테이블의 현재 주문 항목 리스트 출력) */
     List<OrderItemDTO> getActiveOrders(Integer tableId);
+
+    /* 읽지 않은 테이블 요청 목록 */
+    List<String> getUnreadMessages(Integer tableId);
+
+    /* 알림 확인 처리 */
+    void markMessagesAsRead(Integer tableId);
 }

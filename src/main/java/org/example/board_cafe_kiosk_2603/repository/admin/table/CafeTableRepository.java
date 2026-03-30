@@ -69,4 +69,14 @@ public interface CafeTableRepository {
      * (PAID, CANCELLED 상태 제외)
      */
     List<OrderItemDTO> selectActiveOrderItems(@Param("sessionId") Long sessionId);
+
+    /**
+     * 테이블의 요청 매세지 읽음 여부 변경
+     */
+    int updateMessagesReadStatus(@Param("tableId") Integer tableId);
+
+    /**
+     * 특정 테이블의 읽지 않은 메시지들만 가져오기
+     */
+    List<String> selectUnreadMessageContents(@Param("tableId") Integer tableId);
 }
