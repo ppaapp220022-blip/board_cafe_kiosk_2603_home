@@ -167,6 +167,7 @@ CREATE TABLE `game`
     `max_players` INT,
     `play_time`   INT,
     `is_active`   BOOLEAN      NOT NULL DEFAULT TRUE,
+    `image_url`   VARCHAR(255)          DEFAULT NULL,
     CONSTRAINT `fk_game_category` FOREIGN KEY (`category_id`) REFERENCES `category` (`id`) ON DELETE SET NULL
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;

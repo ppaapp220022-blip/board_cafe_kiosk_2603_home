@@ -58,6 +58,17 @@ public class MenuServiceImpl implements MenuService {
     }
 
     /**
+     * 소프트 삭제 여부 기준 메뉴 목록 조회 (숨김 탭용)
+     */
+    @Override
+    public List<MenuResponseDTO> getByIsDeleted(boolean isDeleted) {
+        log.debug("MenuServiceImpl.getByIsDeleted() 실행 - isDeleted: {}", isDeleted);
+        List<MenuResponseDTO> list = menuMapper.findByIsDeleted(isDeleted);
+        log.debug("조회된 메뉴 수 (isDeleted={}): {}", isDeleted, list.size());
+        return list;
+    }
+
+    /**
      * 판매 가능 여부 기준 메뉴 목록 조회
      */
     @Override
@@ -74,7 +85,7 @@ public class MenuServiceImpl implements MenuService {
     @Override
     public MenuResponseDTO getById(int id) {
         log.debug("MenuServiceImpl.getById() 실행 - id: {}", id);
-        return menuMapper.findById(id)
+        return menuMapper.findByIdIncludeDeleted(id)
                 .orElseThrow(() -> {
                     log.warn("메뉴 없음 - id: {}", id);
                     return new NoSuchElementException("메뉴를 찾을 수 없습니다. id=" + id);
@@ -105,7 +116,7 @@ public class MenuServiceImpl implements MenuService {
     @Override
     public void modify(int id, MenuRequestDTO dto) {
         log.debug("MenuServiceImpl.modify() 실행 - id: {}, dto: {}", id, dto);
-        menuMapper.findById(id)
+        menuMapper.findByIdIncludeDeleted(id)
                 .orElseThrow(() -> {
                     log.warn("수정 대상 메뉴 없음 - id: {}", id);
                     return new NoSuchElementException("메뉴를 찾을 수 없습니다. id=" + id);
@@ -124,12 +135,12 @@ public class MenuServiceImpl implements MenuService {
     }
 
     /**
-     * 메뉴 소프트 삭제 (is_deleted = true)
+     * 메뉴 소프트 삭제 (is_deleted = true, 숨김처리)
      */
     @Override
     public void remove(int id) {
         log.debug("MenuServiceImpl.remove() 실행 - id: {}", id);
-        menuMapper.findById(id)
+        menuMapper.findByIdIncludeDeleted(id)
                 .orElseThrow(() -> {
                     log.warn("삭제 대상 메뉴 없음 - id: {}", id);
                     return new NoSuchElementException("메뉴를 찾을 수 없습니다. id=" + id);
@@ -139,12 +150,27 @@ public class MenuServiceImpl implements MenuService {
     }
 
     /**
+     * 메뉴 복원 (is_deleted = false)
+     */
+    @Override
+    public void restore(int id) {
+        log.debug("MenuServiceImpl.restore() 실행 - id: {}", id);
+        menuMapper.findByIdIncludeDeleted(id)
+                .orElseThrow(() -> {
+                    log.warn("복원 대상 메뉴 없음 - id: {}", id);
+                    return new NoSuchElementException("메뉴를 찾을 수 없습니다. id=" + id);
+                });
+        int result = menuMapper.restore(id);
+        log.debug("메뉴 복원 결과 - affected rows: {}", result);
+    }
+
+    /**
      * 메뉴 판매 상태 토글 (is_available 반전)
      */
     @Override
     public void toggleAvailable(int id) {
         log.debug("MenuServiceImpl.toggleAvailable() 실행 - id: {}", id);
-        menuMapper.findById(id)
+        menuMapper.findByIdIncludeDeleted(id)
                 .orElseThrow(() -> {
                     log.warn("토글 대상 메뉴 없음 - id: {}", id);
                     return new NoSuchElementException("메뉴를 찾을 수 없습니다. id=" + id);

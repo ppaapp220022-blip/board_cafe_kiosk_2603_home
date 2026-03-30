@@ -56,8 +56,8 @@
 
     <!-- 게임 등록 -->
     <insert id="insert">
-        INSERT INTO game (category_id, name, min_players, max_players, play_time, is_active)
-        VALUES (#{categoryId}, #{name}, #{minPlayers}, #{maxPlayers}, #{playTime}, #{isActive})
+        INSERT INTO game (category_id, name, min_players, max_players, play_time, is_active, image_url)
+        VALUES (#{categoryId}, #{name}, #{minPlayers}, #{maxPlayers}, #{playTime}, #{isActive}, #{imageUrl})
     </insert>
 
     <!-- 게임 수정 -->
@@ -68,7 +68,8 @@
             min_players = #{minPlayers},
             max_players = #{maxPlayers},
             play_time   = #{playTime},
-            is_active   = #{isActive}
+            is_active   = #{isActive},
+            image_url   = #{imageUrl}
         WHERE id = #{id}
     </update>
 

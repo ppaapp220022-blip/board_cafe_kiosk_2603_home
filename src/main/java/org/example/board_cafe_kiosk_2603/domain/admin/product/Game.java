@@ -30,4 +30,6 @@ public class Game {
 
     /** 활성 여부 (true: 대여 가능 / false: 비활성) */
     private boolean isActive;
+
+    private String imageUrl;
 }

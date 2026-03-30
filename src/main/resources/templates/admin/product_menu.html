@@ -15,109 +15,89 @@
                 --text-dark: #1e293b;
                 --border-color: #e2e8f0;
             }
-            .header-flex {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 25px;
-            }
-            .page-title { font-size: 26px; font-weight: 700; color: var(--text-dark); }
+            .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+            .page-title  { font-size: 26px; font-weight: 700; color: var(--text-dark); }
 
-            /* 탭 */
             .tab-container {
                 display: grid;
-                grid-template-columns: repeat(4, 1fr);
-                gap: 10px;
-                margin-bottom: 20px;
-                background: #f1f5f9;
-                padding: 5px;
-                border-radius: 12px;
+                grid-template-columns: repeat(5, 1fr);
+                gap: 10px; margin-bottom: 20px;
+                background: #f1f5f9; padding: 5px; border-radius: 12px;
             }
             .tab-btn {
-                padding: 12px;
-                border-radius: 8px;
-                border: none;
-                cursor: pointer;
-                font-weight: 600;
-                background: transparent;
-                color: #64748b;
-                transition: 0.2s;
-                text-decoration: none;
-                text-align: center;
-                font-size: 14px;
+                padding: 12px; border-radius: 8px; border: none; cursor: pointer;
+                font-weight: 600; background: transparent; color: #64748b;
+                transition: 0.2s; text-decoration: none; text-align: center; font-size: 14px;
             }
-            .tab-btn.active {
-                background: white;
-                color: var(--primary-blue);
-                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            }
+            .tab-btn.active { background: white; color: var(--primary-blue); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
             .tab-btn:hover:not(.active) { background: #e2e8f0; }
 
-            /* 검색 */
-            .search-container {
-                background: white;
-                padding: 15px 25px;
-                border-radius: 15px;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-                margin-bottom: 25px;
+            /* ── 카테고리 필터 바 ── */
+            .category-filter {
                 display: flex;
                 align-items: center;
-                gap: 15px;
+                gap: 8px;
+                flex-wrap: wrap;
+                margin-bottom: 18px;
+            }
+            .category-filter-label {
+                font-size: 13px;
+                font-weight: 600;
+                color: #64748b;
+                margin-right: 4px;
+                white-space: nowrap;
+            }
+            .cat-btn {
+                padding: 6px 14px;
+                border-radius: 20px;
+                border: 1.5px solid var(--border-color);
+                background: white;
+                color: #64748b;
+                font-size: 13px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: 0.2s;
+                text-decoration: none;
+                white-space: nowrap;
+            }
+            .cat-btn:hover:not(.active) {
+                border-color: var(--primary-blue);
+                color: var(--primary-blue);
+                background: #eff6ff;
+            }
+            .cat-btn.active {
+                background: var(--primary-blue);
+                border-color: var(--primary-blue);
+                color: white;
+            }
+
+            .search-container {
+                background: white; padding: 15px 25px; border-radius: 15px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 25px;
+                display: flex; align-items: center; gap: 15px;
             }
             .search-input { border: none; outline: none; width: 100%; font-size: 15px; }
 
-            /* 테이블 */
-            .list-card {
-                background: white;
-                border-radius: 15px;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-                overflow: hidden;
-                padding: 10px 0;
-            }
+            .list-card { background: white; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden; padding: 10px 0; }
             .product-table { width: 100%; border-collapse: collapse; }
-            .product-table th {
-                text-align: left;
-                padding: 15px 20px;
-                color: #64748b;
-                font-size: 14px;
-                border-bottom: 1px solid var(--border-color);
-                font-weight: 500;
-            }
-            .product-table td {
-                padding: 15px 20px;
-                border-bottom: 1px solid #f8fafc;
-                vertical-align: middle;
-            }
+            .product-table th { text-align: left; padding: 15px 20px; color: #64748b; font-size: 14px; border-bottom: 1px solid var(--border-color); font-weight: 500; }
+            .product-table td { padding: 15px 20px; border-bottom: 1px solid #f8fafc; vertical-align: middle; }
             .prod-info { display: flex; align-items: center; gap: 15px; }
-            .prod-thumb {
-                width: 40px; height: 40px; border-radius: 8px;
-                background: #f1f5f9; display: flex;
-                align-items: center; justify-content: center; font-size: 18px;
-            }
-            .prod-name { font-weight: 700; color: var(--text-dark); }
+            .prod-thumb { width: 40px; height: 40px; border-radius: 8px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+            .prod-name  { font-weight: 700; color: var(--text-dark); }
             .prod-price { font-weight: 700; color: var(--primary-blue); }
             .status-badge { padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; }
             .badge-active  { background: #dcfce7; color: #16a34a; }
             .badge-soldout { background: #fee2e2; color: #ef4444; }
             .badge-hidden  { background: #f1f5f9; color: #64748b; }
             .action-group { display: flex; gap: 8px; justify-content: flex-end; }
-            .btn-table {
-                padding: 8px 12px; border-radius: 8px;
-                border: 1px solid var(--border-color);
-                background: white; cursor: pointer; font-size: 13px;
-                font-weight: 600; display: flex; align-items: center;
-                gap: 5px; transition: 0.2s; text-decoration: none;
-            }
+            .btn-table { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: white; cursor: pointer; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 5px; transition: 0.2s; text-decoration: none; }
             .btn-table:hover { background: #f8fafc; transform: translateY(-1px); }
-            .btn-edit     { color: var(--primary-blue); border-color: #dbeafe; }
-            .btn-soldout  { color: var(--danger-red);   border-color: #fee2e2; }
-            .btn-instock  { color: var(--success-green); border-color: #dcfce7; }
-            .btn-hide     { color: #64748b; }
-            .btn-add-product {
-                background: var(--primary-blue); color: white;
-                border: none; padding: 10px 20px; border-radius: 10px;
-                font-weight: 600; cursor: pointer; text-decoration: none;
-            }
+            .btn-edit    { color: var(--primary-blue); border-color: #dbeafe; }
+            .btn-soldout { color: var(--danger-red);   border-color: #fee2e2; }
+            .btn-instock { color: var(--success-green); border-color: #dcfce7; }
+            .btn-hide    { color: #64748b; }
+            .btn-add-product { background: var(--primary-blue); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; text-decoration: none; }
             .empty-row td { text-align: center; color: #94a3b8; padding: 40px; }
         </style>
     </th:block>
@@ -128,31 +108,55 @@
 
     <div class="header-flex">
         <h1 class="page-title">상품 관리 시스템</h1>
-        <!-- 숨김 탭에서는 추가 버튼 숨김 -->
         <a th:if="${activeTab != 'hidden'}"
            th:href="@{/admin/product/menu/add(tab=${activeTab})}"
            class="btn-add-product">+ 새 메뉴 추가</a>
     </div>
 
-    <!-- 탭 네비게이션 -->
+    <!-- 상단 탭 네비게이션 (5개) -->
     <div class="tab-container">
-        <a href="/admin/product/game"           class="tab-btn">🎲 게임 관리</a>
-        <a href="/admin/product/menu?tab=food"  class="tab-btn"
-           th:classappend="${activeTab == 'food'}   ? ' active'">🍔 음식 관리</a>
-        <a href="/admin/product/menu?tab=drink" class="tab-btn"
-           th:classappend="${activeTab == 'drink'}  ? ' active'">☕ 음료 관리</a>
-        <a href="/admin/product/menu?tab=hidden"class="tab-btn"
-           th:classappend="${activeTab == 'hidden'} ? ' active'">👁️ 숨김 목록</a>
+        <a href="/admin/product/game"            class="tab-btn">🎲 게임 관리</a>
+        <a href="/admin/product/menu?tab=food"   class="tab-btn" th:classappend="${activeTab == 'food'}   ? ' active'">🍔 음식 관리</a>
+        <a href="/admin/product/menu?tab=drink"  class="tab-btn" th:classappend="${activeTab == 'drink'}  ? ' active'">☕ 음료 관리</a>
+        <a href="/admin/product/menu?tab=guest"  class="tab-btn" th:classappend="${activeTab == 'guest'}  ? ' active'">👥 인원 추가</a>
+        <a href="/admin/product/menu?tab=hidden" class="tab-btn" th:classappend="${activeTab == 'hidden'} ? ' active'">👁️ 숨김 목록</a>
     </div>
 
-    <!-- 검색 (숨김 탭 포함 전체 공통) -->
+    <!--
+        ── 카테고리 필터 바 ──
+        숨김 탭은 카테고리 필터 표시 안 함.
+        컨트롤러에서 categoryList(List<CategoryDto>)와
+        selectedCategoryId(Long, 없으면 null)를 모델에 담아주세요.
+
+        URL 예시: /admin/product/menu?tab=food&categoryId=2
+    -->
+    <div class="category-filter"
+         th:if="${activeTab != 'hidden' and categoryList != null and not #lists.isEmpty(categoryList)}">
+        <span class="category-filter-label">카테고리</span>
+
+        <!-- 전체 버튼 -->
+        <a th:href="@{/admin/product/menu(tab=${activeTab})}"
+           th:classappend="${selectedCategoryId == null} ? ' active'"
+           class="cat-btn">전체</a>
+
+        <!-- 카테고리 버튼 목록 -->
+        <a th:each="cat : ${categoryList}"
+           th:href="@{/admin/product/menu(tab=${activeTab}, categoryId=${cat.id})}"
+           th:text="${cat.name}"
+           th:classappend="${selectedCategoryId != null and selectedCategoryId == cat.id} ? ' active'"
+           class="cat-btn"></a>
+    </div>
+
+    <!-- 검색 -->
     <div class="search-container">
         <span>🔍</span>
-        <input type="text" class="search-input" placeholder="메뉴명을 입력하여 검색하세요..." onkeyup="filterProducts()">
+        <input type="text" class="search-input"
+               th:placeholder="${activeTab == 'guest'} ? '인원추가 상품명을 검색하세요...' : '메뉴명을 입력하여 검색하세요...'"
+               onkeyup="filterProducts()">
     </div>
 
-    <!-- ===== 음식 / 음료 탭 ===== -->
-    <div class="list-card" th:if="${activeTab == 'food' or activeTab == 'drink'}">
+    <!-- ===== 음식 / 음료 / 인원추가 탭 ===== -->
+    <div class="list-card" th:if="${activeTab == 'food' or activeTab == 'drink' or activeTab == 'guest'}">
         <table class="product-table">
             <thead>
             <tr>
@@ -164,15 +168,14 @@
             </tr>
             </thead>
             <tbody id="productList">
-
             <tr th:if="${menuList == null or #lists.isEmpty(menuList)}" class="empty-row">
                 <td colspan="5">등록된 메뉴가 없습니다.</td>
             </tr>
-
             <tr th:each="menu : ${menuList}">
                 <td>
                     <div class="prod-info">
-                        <div class="prod-thumb" th:text="${activeTab == 'food'} ? '🍔' : '☕'"></div>
+                        <div class="prod-thumb"
+                             th:text="${activeTab == 'food'} ? '🍔' : (${activeTab == 'drink'} ? '☕' : '👥')"></div>
                         <div class="prod-name" th:text="${menu.name}"></div>
                     </div>
                 </td>
@@ -182,29 +185,28 @@
                           th:text="'₩' + ${#numbers.formatInteger(menu.price, 0, 'COMMA')}"></span>
                 </td>
                 <td>
-                    <span th:class="${menu.available} ? 'status-badge badge-active' : 'status-badge badge-soldout'"
-                          th:text="${menu.available} ? '판매중' : '품절'"></span>
+                    <span th:class="${menu.isAvailable} ? 'status-badge badge-active' : 'status-badge badge-soldout'"
+                          th:text="${menu.isAvailable} ? '판매중' : '품절'"></span>
                 </td>
                 <td>
                     <div class="action-group">
-                        <!-- 수정 -->
                         <a class="btn-table btn-edit"
                            th:href="@{/admin/product/menu/edit/{id}(id=${menu.id}, tab=${activeTab})}">📝 수정</a>
 
-                        <!-- 품절 / 입고 토글 -->
                         <form th:action="@{/admin/product/menu/{id}/toggle-soldout(id=${menu.id})}"
                               method="post" style="display:inline;">
-                            <input type="hidden" name="tab" th:value="${activeTab}"/>
+                            <input type="hidden" name="tab"        th:value="${activeTab}"/>
+                            <!-- 카테고리 필터 유지 -->
+                            <input type="hidden" name="categoryId" th:value="${selectedCategoryId}"/>
                             <button type="submit" class="btn-table"
-                                    th:classappend="${menu.available} ? 'btn-soldout' : 'btn-instock'"
-                                    th:text="${menu.available} ? '🚫 품절' : '✅ 입고'">
-                            </button>
+                                    th:classappend="${menu.isAvailable} ? 'btn-soldout' : 'btn-instock'"
+                                    th:text="${menu.isAvailable} ? '🚫 품절' : '✅ 입고'"></button>
                         </form>
 
-                        <!-- 숨기기 -->
                         <form th:action="@{/admin/product/menu/{id}/toggle-hide(id=${menu.id})}"
                               method="post" style="display:inline;">
-                            <input type="hidden" name="tab" th:value="${activeTab}"/>
+                            <input type="hidden" name="tab"        th:value="${activeTab}"/>
+                            <input type="hidden" name="categoryId" th:value="${selectedCategoryId}"/>
                             <button type="submit" class="btn-table btn-hide">👁️ 숨기기</button>
                         </form>
                     </div>
@@ -214,7 +216,7 @@
         </table>
     </div>
 
-    <!-- ===== 숨김 탭 ===== -->
+    <!-- ===== 숨김 탭 (카테고리 필터 없음) ===== -->
     <div class="list-card" th:if="${activeTab == 'hidden'}">
         <table class="product-table">
             <thead>
@@ -227,11 +229,9 @@
             </tr>
             </thead>
             <tbody id="productList_hidden">
-
             <tr th:if="${menuList == null or #lists.isEmpty(menuList)}" class="empty-row">
                 <td colspan="5">숨김 처리된 상품이 없습니다.</td>
             </tr>
-
             <tr th:each="menu : ${menuList}">
                 <td>
                     <div class="prod-info">
@@ -247,15 +247,12 @@
                 <td><span class="status-badge badge-hidden">숨김됨</span></td>
                 <td>
                     <div class="action-group">
-                        <!-- 수정 -->
                         <a class="btn-table btn-edit"
                            th:href="@{/admin/product/menu/edit/{id}(id=${menu.id}, tab='hidden')}">📝 수정</a>
 
-                        <!-- 다시 표시 (소프트 삭제 복원) -->
                         <form th:action="@{/admin/product/menu/{id}/restore(id=${menu.id})}"
                               method="post" style="display:inline;">
-                            <button type="submit" class="btn-table btn-instock"
-                                    style="color: var(--primary-blue)">🔓 다시 표시</button>
+                            <button type="submit" class="btn-table btn-instock">🔓 다시 표시</button>
                         </form>
                     </div>
                 </td>
@@ -270,12 +267,10 @@
     <script>
         function filterProducts() {
             const input = document.querySelector('.search-input').value.toLowerCase();
-            const rows = document.querySelectorAll('#productList tr:not(.empty-row)');
+            const rows  = document.querySelectorAll('#productList tr:not(.empty-row)');
             rows.forEach(row => {
                 const nameEl = row.querySelector('.prod-name');
-                if (nameEl) {
-                    row.style.display = nameEl.textContent.toLowerCase().includes(input) ? '' : 'none';
-                }
+                if (nameEl) row.style.display = nameEl.textContent.toLowerCase().includes(input) ? '' : 'none';
             });
         }
     </script>

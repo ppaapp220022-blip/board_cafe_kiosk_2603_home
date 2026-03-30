@@ -20,10 +20,12 @@ public class GameResponseDTO {
     private Integer minPlayers;
     private Integer maxPlayers;
 
-    /** 평균 플레이 시간 (분) */
+    /* 평균 플레이 시간 (분) */
     private Integer playTime;
 
     private boolean isActive;
+
+    private String imageUrl;
 
     /** game_item 테이블 COUNT로 가져온 보유 재고 수 */
     private int gameItemCount;

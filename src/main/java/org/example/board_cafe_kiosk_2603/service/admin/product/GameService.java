@@ -23,7 +23,7 @@ public interface GameService {
     GameResponseDTO getById(int id);
 
     /** 게임 등록 */
-    void register(GameRequestDTO gameRequestDTO);
+    int register(GameRequestDTO gameRequestDTO);
 
     /** 게임 수정 */
     void modify(int id, GameRequestDTO gameRequestDTO);

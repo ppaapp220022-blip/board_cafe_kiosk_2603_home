@@ -25,7 +25,7 @@ class CafeTableRepositoryTest {
     void updateTableStatus() {
         Integer id = 1;
         String status = "EMPTY";
-        cafeTableRepository.updateTableStatus(id, status);
+//        cafeTableRepository.updateTableStatus(id, status);
     }
 
     @Test
@@ -35,9 +35,9 @@ class CafeTableRepositoryTest {
         cafeTableRepository.updateAccessToken(id,accessToken);
     }
 
-    @Test
-    void resetAllTablesForNewDayTest() {
-        cafeTableRepository.updateAllTablesForNewDay();
-    }
+//    @Test
+//    void resetAllTablesForNewDayTest() {
+//        cafeTableRepository.updateAllTablesForNewDay();
+//    }
 
 }

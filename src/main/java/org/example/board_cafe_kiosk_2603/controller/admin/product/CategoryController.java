@@ -53,9 +53,9 @@ public class CategoryController {  /** ⛔️ 수정 필요함 */
      * POST /admin/categories/add
      */
     @PostMapping("/add")
-    public String register(@ModelAttribute CategoryRequestDTO dto) {
-        log.debug("POST /admin/categories/add 요청 - dto: {}", dto);
-        categoryService.register(dto);
+    public String register(@ModelAttribute CategoryRequestDTO categoryRequestDTO) {
+        log.debug("POST /admin/categories/add 요청 - categoryRequestDTO: {}", categoryRequestDTO);
+        categoryService.register(categoryRequestDTO);
         log.debug("카테고리 등록 완료");
         return "redirect:/admin/categories";
     }
@@ -78,9 +78,9 @@ public class CategoryController {  /** ⛔️ 수정 필요함 */
      * POST /admin/categories/edit/{id}
      */
     @PostMapping("/edit/{id}")
-    public String modify(@PathVariable int id, @ModelAttribute CategoryRequestDTO dto) {
-        log.debug("POST /admin/categories/edit/{} 요청 - dto: {}", id, dto);
-        categoryService.modify(id, dto);
+    public String modify(@PathVariable int id, @ModelAttribute CategoryRequestDTO categoryRequestDTO) {
+        log.debug("POST /admin/categories/edit/{} 요청 - categoryRequestDTO: {}", id, categoryRequestDTO);
+        categoryService.modify(id, categoryRequestDTO);
         log.debug("카테고리 수정 완료 - id: {}", id);
         return "redirect:/admin/categories";
     }

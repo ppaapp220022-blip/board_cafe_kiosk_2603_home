@@ -13,5 +13,5 @@ import org.example.board_cafe_kiosk_2603.domain.admin.product.CategoryType;
 public class CategoryRequestDTO {
     /* 카테고리 등록, 수정 요청 DTO */
     private String name;
-    private CategoryType type;
+    private CategoryType type;  // Enum
 }

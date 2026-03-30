@@ -27,8 +27,11 @@ public interface MenuService {
     /** 메뉴 수정 */
     void modify(int id, MenuRequestDTO menuRequestDTO);
 
-    /** 메뉴 소프트 삭제 */
+    /** 메뉴 소프트 삭제 (숨김)*/
     void remove(int id);
+
+    /** 메뉴 복원 (소프트 삭제 해제) */
+    void restore(int id);
 
     /** 메뉴 판매 상태 토글 */
     void toggleAvailable(int id);
@@ -36,4 +39,7 @@ public interface MenuService {
     //
     /** category type 기준 메뉴 목록 반환 (FOOD / DRINK / GUEST) */
     List<MenuResponseDTO> getByType(String type);
+
+    /** 소프트 삭제 여부 기준 메뉴 목록 반환 (숨김 탭용) */
+    List<MenuResponseDTO> getByIsDeleted(boolean isDeleted);
 }

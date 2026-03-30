@@ -15,6 +15,7 @@ import java.util.NoSuchElementException;
 /**
  * GameService 구현체
  * ModelMapper를 사용하여 Domain ↔ DTO 변환 처리
+ * egister()는 생성된 PK를 반환하여 Controller에서 game_item 등록 시 사용
  */
 @Log4j2
 @Service
@@ -73,12 +74,23 @@ class GameServiceImpl implements GameService {
     /**
      * 게임 등록
      */
+    // 생성된 PK 반환
+    // Controller에서 반환된 id로 game_item 등록 시 사용
     @Override
-    public void register(GameRequestDTO gameRequestDTO) {
+    public int register(GameRequestDTO gameRequestDTO) {
         log.debug("GameServiceImpl.register() 실행 - dto: {}", gameRequestDTO);
-        Game game = modelMapper.map(gameRequestDTO, Game.class);
-        int result = gameMapper.insert(game);
-        log.debug("게임 등록 결과 - affected rows: {}, generated id: {}", result, game.getId());
+        Game game = Game.builder()
+                .categoryId(gameRequestDTO.getCategoryId())
+                .name(gameRequestDTO.getName())
+                .minPlayers(gameRequestDTO.getMinPlayers())
+                .maxPlayers(gameRequestDTO.getMaxPlayers())
+                .playTime(gameRequestDTO.getPlayTime())
+                .isActive(gameRequestDTO.isActive())
+                .imageUrl(gameRequestDTO.getImageUrl())
+                .build();
+        gameMapper.insert(game);
+        log.info("게임 등록 완료 - generated id: {}", game.getId());
+        return game.getId();
     }
 
     /**

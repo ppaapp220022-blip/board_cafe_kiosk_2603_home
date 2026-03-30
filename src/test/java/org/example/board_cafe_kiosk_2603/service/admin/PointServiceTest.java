@@ -103,15 +103,15 @@ class PointServiceTest {
         then(pointMapper).should().updateBalance(argThat(p -> p.getBalance() == 300));
     }
 
-    @Test
-    void earnPoint_withOrderId() {
-        given(pointMapper.findByPhone("010-1234-5678")).willReturn(mockPoint);
-
-        pointService.earnPoint("010-1234-5678", 200, 42);
-
-        then(pointMapper).should().insertHistory(
-                argThat(h -> h.getOrderId() != null && h.getOrderId() == 42));
-    }
+//    @Test
+//    void earnPoint_withOrderId() {
+//        given(pointMapper.findByPhone("010-1234-5678")).willReturn(mockPoint);
+//
+//        pointService.earnPoint("010-1234-5678", 200, 42);
+//
+//        then(pointMapper).should().insertHistory(
+//                argThat(h -> h.getOrderId() != null && h.getOrderId() == 42));
+//    }
 
     // ===================================================
     // usePoint

@@ -13,22 +13,38 @@
                 --text-dark: #1e293b;
                 --border-color: #e2e8f0;
             }
+
             .header-flex {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
                 margin-bottom: 30px;
             }
-            .page-title { font-size: 26px; font-weight: 700; color: var(--text-dark); }
+
+            .page-title {
+                font-size: 26px;
+                font-weight: 700;
+                color: var(--text-dark);
+            }
 
             .form-card {
                 background: white;
                 border-radius: 15px;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
                 padding: 35px 40px;
                 max-width: 700px;
             }
-            .form-group { margin-bottom: 22px; }
+
+            .form-group {
+                margin-bottom: 22px;
+            }
+
+            .form-row {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+            }
+
             .form-label {
                 display: block;
                 font-size: 14px;
@@ -36,7 +52,12 @@
                 color: #475569;
                 margin-bottom: 8px;
             }
-            .form-label span { color: #ef4444; margin-left: 2px; }
+
+            .form-label span {
+                color: #ef4444;
+                margin-left: 2px;
+            }
+
             .form-control {
                 width: 100%;
                 padding: 12px 15px;
@@ -46,13 +67,13 @@
                 font-family: 'Pretendard', sans-serif;
                 outline: none;
                 transition: border-color 0.2s;
+                box-sizing: border-box;
             }
-            .form-control:focus { border-color: var(--primary-blue); }
-            .form-row {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 20px;
+
+            .form-control:focus {
+                border-color: var(--primary-blue);
             }
+
             .form-check-group {
                 display: flex;
                 align-items: center;
@@ -61,29 +82,87 @@
                 border: 1px solid var(--border-color);
                 border-radius: 10px;
             }
+
             .form-check-group input[type="checkbox"] {
-                width: 18px; height: 18px; cursor: pointer;
+                width: 18px;
+                height: 18px;
+                cursor: pointer;
             }
-            .form-check-group label { font-size: 15px; cursor: pointer; }
-            .btn-group { display: flex; gap: 12px; margin-top: 30px; }
+
+            .form-check-group label {
+                font-size: 15px;
+                cursor: pointer;
+            }
+
+            /* 메뉴 페이지 스타일의 이미지 미리보기 적용 */
+            .image-preview-box {
+                width: 100%;
+                height: 160px;
+                border: 2px dashed var(--border-color);
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+                background: #f8fafc;
+                margin-bottom: 10px;
+            }
+
+            .image-preview-box img {
+                max-width: 100%;
+                max-height: 100%;
+                object-fit: contain;
+                display: none;
+            }
+
+            .image-placeholder {
+                color: #94a3b8;
+                font-size: 14px;
+                text-align: center;
+            }
+
+            .btn-group {
+                display: flex;
+                gap: 12px;
+                margin-top: 30px;
+            }
+
             .btn-submit {
-                background: var(--primary-blue); color: white;
-                border: none; padding: 13px 30px; border-radius: 10px;
-                font-size: 15px; font-weight: 600; cursor: pointer;
+                background: var(--primary-blue);
+                color: white;
+                border: none;
+                padding: 13px 30px;
+                border-radius: 10px;
+                font-size: 15px;
+                font-weight: 600;
+                cursor: pointer;
                 font-family: 'Pretendard', sans-serif;
                 transition: 0.2s;
             }
-            .btn-submit:hover { background: #2563eb; }
+
+            .btn-submit:hover {
+                background: #2563eb;
+            }
+
             .btn-cancel {
-                background: white; color: #64748b;
+                background: white;
+                color: #64748b;
                 border: 1px solid var(--border-color);
-                padding: 13px 30px; border-radius: 10px;
-                font-size: 15px; font-weight: 600; cursor: pointer;
-                text-decoration: none; display: flex; align-items: center;
+                padding: 13px 30px;
+                border-radius: 10px;
+                font-size: 15px;
+                font-weight: 600;
+                cursor: pointer;
+                text-decoration: none;
+                display: flex;
+                align-items: center;
                 font-family: 'Pretendard', sans-serif;
                 transition: 0.2s;
             }
-            .btn-cancel:hover { background: #f8fafc; }
+
+            .btn-cancel:hover {
+                background: #f8fafc;
+            }
         </style>
     </th:block>
 </head>
@@ -92,22 +171,17 @@
 <th:block layout:fragment="content">
 
     <div class="header-flex">
-        <!-- game.id 유무로 등록/수정 타이틀 구분 -->
         <h1 class="page-title"
             th:text="${game != null and game.id != 0} ? '게임 수정' : '새 게임 등록'"></h1>
     </div>
 
     <div class="form-card">
-        <!--
-            등록: POST /admin/product/game/add
-            수정: POST /admin/product/game/edit/{id}
-        -->
         <form th:action="${game != null and game.id != 0}
                           ? @{/admin/product/game/edit/{id}(id=${game.id})}
                           : @{/admin/product/game/add}"
-              method="post">
+              method="post"
+              enctype="multipart/form-data">
 
-            <!-- 카테고리 -->
             <div class="form-group">
                 <label class="form-label" for="categoryId">카테고리 <span>*</span></label>
                 <select id="categoryId" name="categoryId" class="form-control">
@@ -120,7 +194,6 @@
                 </select>
             </div>
 
-            <!-- 게임명 -->
             <div class="form-group">
                 <label class="form-label" for="name">게임명 <span>*</span></label>
                 <input type="text" id="name" name="name" class="form-control"
@@ -128,7 +201,6 @@
                        th:value="${game != null} ? ${game.name} : ''" required>
             </div>
 
-            <!-- 인원 -->
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" for="minPlayers">최소 인원</label>
@@ -144,7 +216,6 @@
                 </div>
             </div>
 
-            <!-- 플레이 시간 -->
             <div class="form-group">
                 <label class="form-label" for="playTime">평균 플레이 시간 (분)</label>
                 <input type="number" id="playTime" name="playTime" class="form-control"
@@ -152,13 +223,33 @@
                        th:value="${game != null} ? ${game.playTime} : ''">
             </div>
 
-            <!-- 활성 여부 -->
+            <div class="form-group">
+                <label class="form-label">게임 이미지</label>
+                <div class="image-preview-box">
+                    <img id="previewImg"
+                         th:src="${game != null and game.imageUrl != null} ? ${game.imageUrl} : ''"
+                         th:style="${game != null and game.imageUrl != null} ? 'display:block' : 'display:none'"
+                         alt="미리보기">
+                    <div class="image-placeholder" id="imgPlaceholder"
+                         th:style="${game != null and game.imageUrl != null} ? 'display:none' : ''">
+                        📷<br>이미지를 선택하면 미리보기가 표시됩니다
+                    </div>
+                </div>
+                <input type="file" id="imageFile" name="imageFile" class="form-control"
+                       accept="image/*" onchange="previewImage(event)">
+                <input type="hidden" name="imageUrl"
+                       th:value="${game != null} ? ${game.imageUrl} : ''">
+            </div>
+
             <div class="form-group">
                 <label class="form-label">활성 상태</label>
                 <div class="form-check-group">
-                    <input type="checkbox" id="isActive" name="isActive" value="true"
-                           th:checked="${game == null or game.active}">
-                    <label for="isActive">대여 가능 상태로 설정</label>
+                    <input type="hidden" id="activeValue" name="active"
+                           th:value="${game == null or game.active} ? 'true' : 'false'">
+                    <input type="checkbox" id="isActiveCheck"
+                           th:checked="${game == null or game.active}"
+                           onchange="document.getElementById('activeValue').value = this.checked ? 'true' : 'false'">
+                    <label for="isActiveCheck">대여 가능 상태로 설정</label>
                 </div>
             </div>
 
@@ -170,6 +261,25 @@
         </form>
     </div>
 
+</th:block>
+
+<th:block layout:fragment="scripts">
+    <script>
+        /* 메뉴 코드와 동일한 이미지 미리보기 스크립트 */
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const img = document.getElementById('previewImg');
+                const placeholder = document.getElementById('imgPlaceholder');
+                img.src = e.target.result;
+                img.style.display = 'block';
+                placeholder.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+    </script>
 </th:block>
 </body>
 </html>

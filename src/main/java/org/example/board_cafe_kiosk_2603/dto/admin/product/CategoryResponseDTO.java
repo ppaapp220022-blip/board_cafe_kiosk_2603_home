@@ -14,5 +14,5 @@ public class CategoryResponseDTO {
     /* 카테고리 조회 응답 DTO */
     private int id;
     private String name;
-    private CategoryType type;
+    private CategoryType type;  // Enum
 }
