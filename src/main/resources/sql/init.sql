@@ -29,7 +29,7 @@ USE `board_cafe_kiosk_2603`;
 --  │ 19  │ item_sales_history  │ 일일 상품별 판매 통계                             │
 --  │ 20  │ daily_sales_summary │ 매장 전체 일별 매출 요약                          │
 --  │ 21  │ cafe_package        │ 패키지 요금 정책                                 │
---  │ 22  │ rental_log          │ 게임 대여 이력 (session_id 기반으로 변경)           │
+--  │ 22  │ game_history        │ 게임 대여 이력 (session_id 기반으로 변경)           │
 --  └─────┴─────────────────────┴────────────────────────────────────────────────┘
 
 -- 1. manager
@@ -204,20 +204,18 @@ CREATE TABLE `cart_item`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
--- 22. rental_log
+-- 22. game_history
 -- 수정사항: table_id 대신 session_id를 사용하여 히스토리 추적성 강화
-CREATE TABLE `rental_log`
-(
-    `id`           BIGINT                                       NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `session_id`   BIGINT                                       NOT NULL COMMENT '방문 세션 ID (FK)',
-    `game_item_id` INT                                          NOT NULL,
-    `rented_at`    TIMESTAMP                                    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `returned_at`  TIMESTAMP                                    NULL,
-    `status`       ENUM ('RENTING','RETURNED','DAMAGED','LOST') NOT NULL DEFAULT 'RENTING',
-    CONSTRAINT `fk_rental_session` FOREIGN KEY (`session_id`) REFERENCES `table_session` (`id`),
-    CONSTRAINT `fk_rental_item` FOREIGN KEY (`game_item_id`) REFERENCES `game_item` (`id`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4 COMMENT ='게임 대여 이력 로그.';
+CREATE TABLE `game_history` (
+                                `id`           BIGINT    NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                                `session_id`   BIGINT    NOT NULL COMMENT '방문 세션 ID (FK)',
+                                `game_item_id` INT       NOT NULL,
+                                `rented_at`    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                `returned_at`  TIMESTAMP NULL,
+                                `status`       ENUM ('RENTING','RETURNED','DAMAGED','LOST') NOT NULL DEFAULT 'RENTING',
+                                CONSTRAINT `fk_rental_session` FOREIGN KEY (`session_id`) REFERENCES `table_session` (`id`),
+                                CONSTRAINT `fk_rental_item` FOREIGN KEY (`game_item_id`) REFERENCES `game_item` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='게임 대여 이력 로그.';
 
 -- 14. payment / 15. toss_payment
 CREATE TABLE `payment`

@@ -1,33 +1,70 @@
 package org.example.board_cafe_kiosk_2603.controller.kiosk;
 
 import jakarta.servlet.http.HttpSession;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.example.board_cafe_kiosk_2603.dto.kiosk.CafePackageDTO;
 import org.example.board_cafe_kiosk_2603.service.kiosk.CafePackageService;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 /**
- * 키오스크 카페 패키지 REST API 컨트롤러.
- * URL: /kiosk/package/*
+ * 패키지 선택 페이지 + REST API 컨트롤러.
+ *
+ * [페이지] GET  /kiosk/package_selection  → package_selection.html
+ * [API]   POST /kiosk/package/select      → 패키지 선택 처리 (JSON)
  */
 @Log4j2
-@RestController
-@RequestMapping("/kiosk/package")
+@Controller
+@RequestMapping("/kiosk")
 @RequiredArgsConstructor
 public class CafePackageController {
 
     private final CafePackageService cafePackageService;
 
-    @PostMapping("/select")
-    public CafePackageDTO selectPackage(
-            @RequestBody @Valid CafePackageDTO request,
+    // ===========================================================
+    // 페이지
+    // ===========================================================
+
+    @GetMapping("/package_selection")
+    public String packageSelectionPage(
+            @RequestParam(required = false, defaultValue = "1") Integer tableNumber,
+            @RequestParam(required = false, defaultValue = "1") Integer size,
+            HttpSession session, Model model) {
+
+        session.setAttribute("tableNumber", tableNumber);
+        session.setAttribute("partySize",   size);
+
+        model.addAttribute("tableNumber",  tableNumber);
+        model.addAttribute("partySize",    size);
+        model.addAttribute("packageList",  cafePackageService.getActivePackages());
+
+        log.info("패키지 선택 화면 - 테이블: {}, 인원: {}", tableNumber, size);
+        return "kiosk/package_selection";
+    }
+
+    // ===========================================================
+    // REST API
+    // ===========================================================
+
+    @PostMapping("/package/select")
+    @ResponseBody
+    public Map<String, Object> selectPackage(
+            @RequestBody Map<String, Object> req,
             HttpSession session) {
 
-        CafePackageDTO pkg = cafePackageService.getById(request.getPackageId());
+        int packageId = ((Number) req.get("packageId")).intValue();
+
+        var pkg = cafePackageService.getById(packageId);
+
+        Map<String, Object> res = new LinkedHashMap<>();
         if (pkg == null) {
-            return CafePackageDTO.fail("패키지를 찾을 수 없습니다.");
+            res.put("success", false);
+            res.put("message", "패키지를 찾을 수 없습니다.");
+            return res;
         }
 
         session.setAttribute("selectedPackageId",    pkg.getId());
@@ -35,9 +72,13 @@ public class CafePackageController {
         session.setAttribute("selectedPackagePrice", pkg.getBasePrice());
         session.setAttribute("sessionStartTime",     System.currentTimeMillis());
 
-        log.info("패키지 선택 - 테이블: {}, 패키지: {} ({}원)",
+        log.info("패키지 선택 완료 - 테이블: {}, 패키지: {} ({}원)",
                 session.getAttribute("tableNumber"), pkg.getName(), pkg.getBasePrice());
 
-        return CafePackageDTO.selected(pkg, (Integer) session.getAttribute("tableNumber"));
+        res.put("success",     true);
+        res.put("packageId",   pkg.getId());
+        res.put("packageName", pkg.getName());
+        res.put("basePrice",   pkg.getBasePrice());
+        return res;
     }
 }

@@ -792,20 +792,23 @@
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        tableNumber: tableNumber,
-        serviceType: serviceType,
-        timestamp: new Date().toISOString()
+        tableNumber: parseInt(tableNumber),
+        serviceType: serviceType
       })
     })
-            .then(response => response.json())
-            .then(data => {
-              showToast(`${serviceType} 요청이 관리자에게 전송되었습니다.`);
-              closeServiceModal();
-            })
-            .catch(error => {
-              console.error('Service request error:', error);
-              showToast('요청 전송에 실패했습니다.');
-            });
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          showToast(`${serviceType} 요청이 관리자에게 전송되었습니다.`);
+        } else {
+          showToast('요청 전송에 실패했습니다.');
+        }
+        closeServiceModal();
+      })
+      .catch(error => {
+        console.error('Service request error:', error);
+        showToast('요청 전송에 실패했습니다.');
+      });
   }
 
   // ===== 토스트 알림 =====

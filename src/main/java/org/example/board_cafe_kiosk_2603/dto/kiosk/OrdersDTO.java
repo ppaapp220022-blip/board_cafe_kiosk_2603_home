@@ -4,6 +4,7 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import org.example.board_cafe_kiosk_2603.domain.kiosk.Orders;
 
 @Data
 @Builder
@@ -33,7 +34,7 @@ public class OrdersDTO {
                 .build();
     }
 
-    public static OrdersDTO of(org.example.board_cafe_kiosk_2603.domain.kiosk.Orders order,
+    public static OrdersDTO of(Orders order,
                                List<OrderItemDTO> items) {
         return OrdersDTO.builder()
                 .success(true)
