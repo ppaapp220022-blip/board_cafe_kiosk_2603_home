@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.board_cafe_kiosk_2603.domain.kiosk.CartItem;
 
 @Data
 @Builder
@@ -24,7 +25,7 @@ public class CartItemDTO {
     // menuName, menuPrice, quantity 는 위 필드를 그대로 활용
 
     // === 정적 팩토리 ===
-    public static CartItemDTO from(org.example.board_cafe_kiosk_2603.domain.kiosk.CartItem item) {
+    public static CartItemDTO from(CartItem item) {
         return CartItemDTO.builder()
                 .id(item.getId())
                 .cartId(item.getCartId())

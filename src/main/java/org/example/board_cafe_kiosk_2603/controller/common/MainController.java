@@ -62,11 +62,9 @@ public class MainController {
 //        return "kiosk/screensaver";
 //    }
 
-    @GetMapping("/kiosk/headcount")
-    public String partySizePage() {
-        log.info("키오스크 -> 인원수 선택 화면");
-        return "kiosk/headcount";
-    }
+    // ↓ KioskPageController 로 이동됨 (중복 제거)
+//    @GetMapping("/kiosk/headcount")
+//    public String partySizePage() { ... }
 
     /* 인원수 선택 처리 - partySize 세션 저장 */
     @PostMapping("/kiosk/headcount")
@@ -79,11 +77,9 @@ public class MainController {
     }
 
 
-    @GetMapping("/kiosk/phone_login")
-    public String phoneLoginPage() {
-        log.info("키오스크 -> 휴대폰 번호 입력 화면");
-        return "kiosk/phone_login";
-    }
+    // ↓ KioskPageController 로 이동됨 (중복 제거)
+//    @GetMapping("/kiosk/phone_login")
+//    public String phoneLoginPage() { ... }
 
     /* 전화번호 POST 처리 - phone 세션 저장  */
     @PostMapping("/kiosk/phone_login")
@@ -102,12 +98,9 @@ public class MainController {
     }
 
 
-    /* 패키지 선택 화면 추가 */
-    @GetMapping("/kiosk/package_selection")
-    public String packageSelectionPage() {
-        log.info("키오스크 -> 패키지 선택 화면");
-        return "kiosk/package_selection";
-    }
+    // ↓ KioskPageController 로 이동됨 (중복 제거)
+//    @GetMapping("/kiosk/package_selection")
+//    public String packageSelectionPage() { ... }
 
     /* 패키지 선택 처리 - table_session DB 저장 */
     @PostMapping("/kiosk/package_selection")

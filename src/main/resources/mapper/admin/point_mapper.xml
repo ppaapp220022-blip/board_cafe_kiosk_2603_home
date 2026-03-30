@@ -28,12 +28,12 @@
         WHERE id = #{id}
     </update>
 
-    <select id="sumTotalBalance" resultType="org.example.board_cafe_kiosk_2603.domain.admin.Point">
+    <select id="sumTotalBalance" resultType="java.lang.Integer">
         SELECT COALESCE(SUM(balance), 0)
         FROM point
     </select>
 
-    <select id="countAll" resultType="org.example.board_cafe_kiosk_2603.domain.admin.Point">
+    <select id="countAll" resultType="java.lang.Integer">
         SELECT COUNT(*)
         FROM point
     </select>

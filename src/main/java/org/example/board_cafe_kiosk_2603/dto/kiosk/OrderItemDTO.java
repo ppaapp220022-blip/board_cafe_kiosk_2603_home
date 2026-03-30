@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.board_cafe_kiosk_2603.domain.kiosk.OrderItem;
 
 @Data
 @Builder
@@ -18,7 +19,7 @@ public class OrderItemDTO {
     private int     quantity;
 
     // === 정적 팩토리 ===
-    public static OrderItemDTO from(org.example.board_cafe_kiosk_2603.domain.kiosk.OrderItem item) {
+    public static OrderItemDTO from(OrderItem item) {
         return OrderItemDTO.builder()
                 .id(item.getId())
                 .orderId(item.getOrderId())
