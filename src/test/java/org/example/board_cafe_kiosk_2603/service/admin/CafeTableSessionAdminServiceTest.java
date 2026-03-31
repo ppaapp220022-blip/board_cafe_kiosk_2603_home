@@ -1,7 +1,7 @@
 package org.example.board_cafe_kiosk_2603.service.admin;
 
 import lombok.extern.log4j.Log4j2;
-import org.example.board_cafe_kiosk_2603.domain.TableSession;
+import org.example.board_cafe_kiosk_2603.domain.kiosk.TableSession;
 import org.example.board_cafe_kiosk_2603.service.admin.cafeTable.TableSessionAdminService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

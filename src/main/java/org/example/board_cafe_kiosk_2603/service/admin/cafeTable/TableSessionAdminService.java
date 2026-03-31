@@ -1,6 +1,6 @@
 package org.example.board_cafe_kiosk_2603.service.admin.cafeTable;
 
-import org.example.board_cafe_kiosk_2603.domain.TableSession;
+import org.example.board_cafe_kiosk_2603.domain.kiosk.TableSession;
 
 public interface TableSessionAdminService {
     // 테이블 ID로 활성 세션 조회
@@ -10,5 +10,5 @@ public interface TableSessionAdminService {
     void closeSession(int tableId);
 
     // 최종 정산 금액 업데이트
-    void updateTotalAmount(int sessionId, int totalAmount);
+    void updateTotalAmount(long  sessionId, int totalAmount);
 }

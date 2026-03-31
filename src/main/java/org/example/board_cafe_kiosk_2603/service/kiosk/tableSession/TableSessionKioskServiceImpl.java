@@ -2,8 +2,8 @@ package org.example.board_cafe_kiosk_2603.service.kiosk.tableSession;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.example.board_cafe_kiosk_2603.domain.TableSession;
-import org.example.board_cafe_kiosk_2603.mapper.kiosk.TableSessionKioskMapper;
+import org.example.board_cafe_kiosk_2603.domain.kiosk.TableSession;
+import org.example.board_cafe_kiosk_2603.mapper.kiosk.TableSessionMapper;
 import org.springframework.stereotype.Service;
 
 @Log4j2
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class TableSessionKioskServiceImpl implements TableSessionKioskService{
 
-    private final TableSessionKioskMapper tableSessionKioskMapper;
+    private final TableSessionMapper tableSessionMapper;
 
     @Override
     public void createSession(int tableId, int packageId, int initialGuestCnt) {
@@ -21,7 +21,7 @@ public class TableSessionKioskServiceImpl implements TableSessionKioskService{
                 .initialGuestCnt(initialGuestCnt)
                 .build();
 
-        tableSessionKioskMapper.insertSession(tableSession);
+        tableSessionMapper.insert(tableSession);
         log.info("세션 생성 완료... tableId: {}, packageId: {}, 인원: {}",
                 tableId, packageId, initialGuestCnt);
     }

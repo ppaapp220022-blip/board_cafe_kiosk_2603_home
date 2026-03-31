@@ -3,7 +3,7 @@ package org.example.board_cafe_kiosk_2603.controller.common;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.example.board_cafe_kiosk_2603.domain.TableSession;
+import org.example.board_cafe_kiosk_2603.domain.kiosk.TableSession;
 import org.example.board_cafe_kiosk_2603.service.admin.cafeTable.TableSessionAdminService;
 import org.example.board_cafe_kiosk_2603.service.kiosk.tableSession.TableSessionKioskService;
 import org.springframework.stereotype.Controller;
@@ -88,10 +88,10 @@ public class MainController {
             HttpSession session) {
         if (phone != null && !phone.isEmpty()) {
             // 전화번호 입력한 경우 -> 세션에 저장
-            session.setAttribute("phone", phone);
+            session.setAttribute("customerPhone", phone);
         } else {
             // 적립없이 계속 버튼 누른 경우 -> phone 없이 진행
-            session.removeAttribute("phone");
+            session.removeAttribute("customerPhone");
             log.info("비회원으로 진행");
         }
         return "redirect:/kiosk/package_selection";
@@ -102,30 +102,30 @@ public class MainController {
 //    @GetMapping("/kiosk/package_selection")
 //    public String packageSelectionPage() { ... }
 
-    /* 패키지 선택 처리 - table_session DB 저장 */
-    @PostMapping("/kiosk/package_selection")
-    public String packageSelectionProcess(
-            @RequestParam int packageId,
-            HttpSession session) {
-        int tableId = (int) session.getAttribute("tableId");
-        int partySize = (int) session.getAttribute("partySize");
-
-        // 이미 활성 세션이 있으면 새로 생성하지 않음
-        TableSession activeSession = tableSessionAdminService.getActiveSession(tableId);
-        if (activeSession != null) {
-            session.setAttribute("partySize", activeSession.getInitialGuestCnt());
-            log.info("기존 활성 세션 존재 - DB 인원수로 덮어씌움: {}명",
-                    activeSession.getInitialGuestCnt());
-            return "redirect:/kiosk/menu";
-        }
-
-        // 활성 세션 없으면 새로 생성
-        tableSessionKioskService.createSession(tableId, packageId, partySize);
-        log.info("table_session 생성 완료... tableId: {}, packageId: {}, partySize: {}",
-                tableId, packageId, partySize);
-
-        return "redirect:/kiosk/menu";
-    }
+//    /* 패키지 선택 처리 - table_session DB 저장 */
+//    @PostMapping("/kiosk/package_selection")
+//    public String packageSelectionProcess(
+//            @RequestParam int packageId,
+//            HttpSession session) {
+//        int tableId = (int) session.getAttribute("tableId");
+//        int partySize = (int) session.getAttribute("partySize");
+//
+//        // 이미 활성 세션이 있으면 새로 생성하지 않음
+//        TableSession activeSession = tableSessionAdminService.getActiveSession(tableId);
+//        if (activeSession != null) {
+//            session.setAttribute("partySize", activeSession.getInitialGuestCnt());
+//            log.info("기존 활성 세션 존재 - DB 인원수로 덮어씌움: {}명",
+//                    activeSession.getInitialGuestCnt());
+//            return "redirect:/kiosk/menu";
+//        }
+//
+//        // 활성 세션 없으면 새로 생성
+//        tableSessionKioskService.createSession(tableId, packageId, partySize);
+//        log.info("table_session 생성 완료... tableId: {}, packageId: {}, partySize: {}",
+//                tableId, packageId, partySize);
+//
+//        return "redirect:/kiosk/menu";
+//    }
 
     @GetMapping("/kiosk/menu")
     public String mainMenuPage(HttpSession session, Model model) {
