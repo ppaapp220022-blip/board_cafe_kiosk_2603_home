@@ -337,9 +337,13 @@
                 <td>
                     <span th:text="${game.gameItemCount} + '개'"></span>
                 </td>
+                <!-- 재고 0이면 무조건 '재고 없음', active=false면 '대여 불가', 그 외 '대여 가능' -->
                 <td>
-                    <span th:class="${game.active} ? 'status-badge badge-active' : 'status-badge badge-soldout'"
-                          th:text="${game.active} ? '대여 가능' : '대여 불가'"></span>
+                    <span th:class="${game.gameItemCount == 0} ? 'status-badge badge-soldout'
+                                   : (${game.active} ? 'status-badge badge-active' : 'status-badge badge-soldout')"
+                          th:text="${game.gameItemCount == 0} ? '재고 없음'
+                                  : (${game.active} ? '대여 가능' : '대여 불가')">
+                    </span>
                 </td>
                 <td>
                     <div class="action-group">
