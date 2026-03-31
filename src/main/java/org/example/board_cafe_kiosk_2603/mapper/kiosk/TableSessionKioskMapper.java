@@ -8,5 +8,5 @@ import org.example.board_cafe_kiosk_2603.domain.admin.table.CafeTableSession;
 public interface TableSessionKioskMapper {
 
     // 세션 생성 (패키지 선택 완료 시)
-    void insertSession(CafeTableSession cafeTableSession);
+    void insertSession(TableSession tableSession);
 }

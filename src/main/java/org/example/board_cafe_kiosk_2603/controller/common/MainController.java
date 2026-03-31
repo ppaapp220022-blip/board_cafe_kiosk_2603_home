@@ -1,4 +1,4 @@
-package org.example.board_cafe_kiosk_2603.controller;
+package org.example.board_cafe_kiosk_2603.controller.common;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
