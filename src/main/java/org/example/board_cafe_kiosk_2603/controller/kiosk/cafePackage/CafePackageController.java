@@ -3,7 +3,7 @@ package org.example.board_cafe_kiosk_2603.controller.kiosk.cafePackage;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.example.board_cafe_kiosk_2603.domain.kiosk.TableSession;
+import org.example.board_cafe_kiosk_2603.domain.common.cafeTableSession.CafeTableSession;
 import org.example.board_cafe_kiosk_2603.service.admin.cafeTable.TableSessionAdminService;
 import org.example.board_cafe_kiosk_2603.service.kiosk.cafePackage.CafePackageService;
 import org.example.board_cafe_kiosk_2603.service.kiosk.tableSession.TableSessionKioskService;
@@ -72,7 +72,7 @@ public class CafePackageController {
         }
 
         // 활성 세션 있으면 DB 인원수로 HTTP 세션 덮어씌우기
-        TableSession activeSession = tableSessionAdminService.getActiveSession(tableId);
+        CafeTableSession activeSession = tableSessionAdminService.getActiveSession(tableId);
         if (activeSession != null) {
             session.setAttribute("partySize", activeSession.getInitialGuestCnt());
             log.info("기존 활성 세션 존재 - DB 인원수로 덮어씌움: {}명",

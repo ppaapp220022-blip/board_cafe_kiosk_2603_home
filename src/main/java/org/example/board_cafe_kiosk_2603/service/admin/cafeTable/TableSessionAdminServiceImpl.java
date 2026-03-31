@@ -30,7 +30,7 @@ public class TableSessionAdminServiceImpl implements TableSessionAdminService {
      */
     @Override
     public void closeSession(int tableId) {
-        CafeTableSession cafeTableSession = CafeTableSession.findActiveByTableId(tableId);
+        CafeTableSession cafeTableSession = tableSessionAdminMapper.findActiveByTableId(tableId);
         if (cafeTableSession == null) {
             log.warn("종료할 활성 세션이 없습니다 - tableId: {}", tableId);
             return;
@@ -53,8 +53,8 @@ public class TableSessionAdminServiceImpl implements TableSessionAdminService {
      * 퇴장 시 총 결제 금액을 세션에 기록
      */
     @Override
-    public void updateTotalAmount(long sessionId, int totalAmount) {
-            tableSessionAdminMapper.updateTotalAmount(sessionId, totalAmount);
+    public void updateTotalAmount(Long sessionId, int totalAmount) {
+        tableSessionAdminMapper.updateTotalAmount(sessionId, totalAmount);
         log.info("정산 금액 업데이트 완료... sessionId: {}, totalAmount: {}", sessionId, totalAmount);
     }
 }
