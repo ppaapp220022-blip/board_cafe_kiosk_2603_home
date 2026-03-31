@@ -46,4 +46,10 @@ public class CafePackageDTO {
                 .tableNumber(tableNumber)
                 .build();
     }
+
+    public String getDisplayTime() { // package_selection.html에서 pkg.displayTime을 사용하고 있어서 추가함
+        if (durationMinutes == null) return "Free";
+        if (durationMinutes < 60) return durationMinutes + "분";
+        return (durationMinutes / 60) + "시간";
+    }
 }

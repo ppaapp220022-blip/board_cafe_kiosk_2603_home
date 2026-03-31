@@ -37,8 +37,8 @@ public class CartController {
 
     @GetMapping
     public String cartPage(
-            @RequestParam(required = false, defaultValue = "1") Integer tableNumber,
             HttpSession session, Model model) {
+        Integer tableNumber = (Integer) session.getAttribute("tableId");
         model.addAttribute("tableNumber", tableNumber);
         model.addAttribute("partySize",   getPartySize(session));
         return "kiosk/cart";
@@ -50,9 +50,8 @@ public class CartController {
 
     @GetMapping("/items")
     @ResponseBody
-    public Map<String, Object> getCart(
-            @RequestParam(required = false, defaultValue = "1") Integer tableNumber) {
-
+    public Map<String, Object> getCart(HttpSession session) {
+        Integer tableNumber = (Integer) session.getAttribute("tableId");
         Integer tableId = cartMapper.findCafeTableIdByTableNumber(tableNumber);
         Map<String, Object> res = new LinkedHashMap<>();
 
@@ -88,8 +87,9 @@ public class CartController {
     @ResponseBody
     public Map<String, Object> addToCart(
             @RequestBody Map<String, Object> req,
-            @RequestParam(required = false, defaultValue = "1") Integer tableNumber) {
+            HttpSession session) {
 
+        Integer tableNumber = (Integer) session.getAttribute("tableId");
         String menuName  = (String) req.get("menuName");
         int    menuPrice = toInt(req.get("menuPrice"));
         int    quantity  = toInt(req.get("quantity"));
@@ -149,8 +149,9 @@ public class CartController {
     @ResponseBody
     public Map<String, Object> updateCart(
             @RequestBody Map<String, Object> req,
-            @RequestParam(required = false, defaultValue = "1") Integer tableNumber) {
+            HttpSession session) {
 
+        Integer tableNumber = (Integer) session.getAttribute("tableId");
         String menuName  = (String) req.get("menuName");
         int    menuPrice = toInt(req.get("menuPrice"));
         int    quantity  = toInt(req.get("quantity"));
@@ -185,10 +186,10 @@ public class CartController {
     @DeleteMapping("/clear")
     @ResponseBody
     public Map<String, Object> clearCart(
-            @RequestParam(required = false, defaultValue = "1") Integer tableNumber) {
+            HttpSession session) {
 
         Map<String, Object> res = new LinkedHashMap<>();
-
+        Integer tableNumber = (Integer) session.getAttribute("tableId");
         Integer tableId = cartMapper.findCafeTableIdByTableNumber(tableNumber);
         if (tableId == null) { res.put("success", false); return res; }
 

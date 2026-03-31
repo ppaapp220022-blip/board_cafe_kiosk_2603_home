@@ -44,24 +44,20 @@ public class kioskController {
     }
 
     @GetMapping("/headcount")
-    public String headcount(
-            @RequestParam(required = false, defaultValue = "1") Integer tableNumber,
-            Model model) {
+    public String headcount(HttpSession session, Model model) {
+        Integer tableNumber = (Integer) session.getAttribute("tableId");
         model.addAttribute("tableNumber", tableNumber);
         log.info("인원수 선택 화면 - 테이블: {}", tableNumber);
         return "kiosk/headcount";
     }
 
     @GetMapping("/phone_login")
-    public String phoneLogin(
-            @RequestParam(required = false, defaultValue = "1") Integer tableNumber,
-            @RequestParam(required = false, defaultValue = "1") Integer size,
-            HttpSession session, Model model) {
-        session.setAttribute("partySize",   size);
-        session.setAttribute("tableNumber", tableNumber);
+    public String phoneLogin(HttpSession session, Model model) {
+        Integer tableNumber = (Integer) session.getAttribute("tableId");
+        Integer partySize = (Integer) session.getAttribute("partySize"); // 세션에서만 꺼냄
         model.addAttribute("tableNumber", tableNumber);
-        model.addAttribute("partySize",   size);
-        log.info("전화번호 입력 화면 - 테이블: {}, 인원: {}", tableNumber, size);
+        model.addAttribute("partySize", partySize);
+        log.info("전화번호 입력 화면 - 테이블: {}, 인원: {}", tableNumber, partySize);
         return "kiosk/phone_login";
     }
 

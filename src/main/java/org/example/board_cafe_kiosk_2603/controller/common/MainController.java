@@ -89,10 +89,10 @@ public class MainController {
             HttpSession session) {
         if (phone != null && !phone.isEmpty()) {
             // 전화번호 입력한 경우 -> 세션에 저장
-            session.setAttribute("phone", phone);
+            session.setAttribute("customerPhone", phone);
         } else {
             // 적립없이 계속 버튼 누른 경우 -> phone 없이 진행
-            session.removeAttribute("phone");
+            session.removeAttribute("customerPhone");
             log.info("비회원으로 진행");
         }
         return "redirect:/kiosk/package_selection";
