@@ -14,4 +14,5 @@ public class OrderItem {
     private String menuName;
     private int price;
     private int quantity;
+    private String  status;
 }
