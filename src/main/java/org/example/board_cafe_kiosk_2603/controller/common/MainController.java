@@ -1,5 +1,6 @@
 package org.example.board_cafe_kiosk_2603.controller.common;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -63,22 +64,29 @@ public class MainController {
     @PostMapping("/kiosk/login")
     public String kioskLoginProcess(@RequestParam int tableNumber,
                                     @RequestParam String password,
-                                    HttpSession session,
+                                    HttpServletRequest request,
                                     RedirectAttributes redirectAttributes) {
 
         log.info("키오스크 로그인 처리... tableNumber: {}", tableNumber);
 
+        // 기존 세션 무효화 (관리자 로그인 세션 제거)
+        HttpSession oldSession = request.getSession(false);
+        if (oldSession != null) {
+            oldSession.invalidate();
+        }
+
         return cafeTableService.login(tableNumber, password)
                 .map(cafeTable -> {
-                    session.setAttribute("tableNumber", cafeTable.getTableNumber());
-                    session.setAttribute("tableId", cafeTable.getId());
-                    session.setAttribute("cart", new ArrayList<>());
-                    session.setMaxInactiveInterval(60 * 60 * 8);
+                    // 새 세션 생성
+                    HttpSession newSession = request.getSession(true);
+                    newSession.setAttribute("tableNumber", cafeTable.getTableNumber());
+                    newSession.setAttribute("tableId", cafeTable.getId());
+                    newSession.setAttribute("cart", new ArrayList<>());
+                    newSession.setMaxInactiveInterval(60 * 60 * 8);
                     log.info("키오스크 로그인 성공 - 테이블: {}", tableNumber);
                     return "redirect:/kiosk/screensaver";
                 })
                 .orElseGet(() -> {
-                    log.warn("키오스크 로그인 실패 - 테이블: {}", tableNumber);
                     redirectAttributes.addFlashAttribute("error", "테이블 번호 또는 비밀번호가 올바르지 않습니다.");
                     return "redirect:/kiosk/login";
                 });
