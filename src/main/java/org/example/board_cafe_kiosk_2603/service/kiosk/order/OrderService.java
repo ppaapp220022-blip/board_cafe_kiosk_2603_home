@@ -103,4 +103,7 @@ public class OrderService {
                 .map(OrderItemDTO::from)
                 .collect(Collectors.toList());
     }
+
+    public void updateOrderItemStatus(Integer orderId, String nextStatus) {
+    }
 }

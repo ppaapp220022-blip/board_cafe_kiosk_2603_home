@@ -17,6 +17,7 @@ public class OrderItemDTO {
     private String  menuName;
     private int     price;
     private int     quantity;
+    private String  status;
 
     // === 정적 팩토리 ===
     public static OrderItemDTO from(OrderItem item) {
@@ -27,6 +28,7 @@ public class OrderItemDTO {
                 .menuName(item.getMenuName())
                 .price(item.getPrice())
                 .quantity(item.getQuantity())
+                .status(item.getStatus())
                 .build();
     }
 }

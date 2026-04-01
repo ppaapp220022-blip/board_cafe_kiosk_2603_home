@@ -235,22 +235,129 @@
                 if (btn) btn.style.display = 'none';
             }
 
+            // 기존 CSS를 건드리지 않기 위해 JS 내에서 인라인 스타일로 상태 버튼 렌더링
             function renderOrders(orders) {
                 const listDiv = document.getElementById('orderList');
                 const priceSpan = document.getElementById('totalPrice');
                 let sum = 0;
+
                 if (!listDiv || !priceSpan) return;
+
                 if (!orders || orders.length === 0) {
-                    listDiv.innerHTML = '<div class="order-item" style="color:#999;">진행 중인 주문이 없습니다.</div>';
+                    listDiv.innerHTML = '<div class="order-item" style="color:#999; display:flex; justify-content:center; border:none;">진행 중인 주문이 없습니다.</div>';
                     priceSpan.innerText = '0원';
                     return;
                 }
+
                 listDiv.innerHTML = orders.map(item => {
                     const itemTotal = item.price * item.quantity;
-                    sum += itemTotal;
-                    return `<div class="order-item"><span>${item.menuName} x ${item.quantity}</span><span>${itemTotal.toLocaleString()}원</span></div>`;
+
+                    if (item.status !== 'CANCELLED') {
+                        sum += itemTotal;
+                    }
+
+                    let statusText = '';
+                    let badgeBg = '#f1f3f4';
+                    let badgeColor = '#5f6368';
+                    let actionHtml = '';
+
+                    const orderId = item.id || item.orderId;
+                    const currentStatus = item.status || 'PAID';
+
+                    // 인라인 스타일 정의
+                    const btnBase = "padding: 5px 10px; border-radius: 6px; border: none; font-size: 12px; cursor: pointer; font-weight: 600;";
+                    const btnNext = btnBase + " background: #4285f4; color: white;";
+                    const btnCancel = btnBase + " background: #f1f3f4; color: #ea4335;";
+
+                    switch(currentStatus) {
+                        case 'PENDING':
+                            statusText = '결제대기'; badgeBg = '#f1f3f4'; badgeColor = '#5f6368';
+                            actionHtml = `<button style="${btnCancel}" onclick="updateOrderStatus(${orderId}, 'CANCELLED')">취소</button>`;
+                            break;
+                        case 'PAID':
+                            statusText = '결제완료'; badgeBg = '#e8f0fe'; badgeColor = '#1a73e8';
+                            actionHtml = `
+                                <button style="${btnNext}" onclick="updateOrderStatus(${orderId}, 'CONFIRMED')">주방확인</button>
+                                <button style="${btnCancel}" onclick="updateOrderStatus(${orderId}, 'CANCELLED')">취소</button>`;
+                            break;
+                        case 'CONFIRMED':
+                            statusText = '주방확인'; badgeBg = '#fef7e0'; badgeColor = '#b06000';
+                            actionHtml = `
+                                <button style="${btnNext}" onclick="updateOrderStatus(${orderId}, 'COOKING')">조리시작</button>
+                                <button style="${btnCancel}" onclick="updateOrderStatus(${orderId}, 'CANCELLED')">취소</button>`;
+                            break;
+                        case 'COOKING':
+                            statusText = '조리중'; badgeBg = '#fce8e6'; badgeColor = '#c5221f';
+                            actionHtml = `<button style="${btnNext}" onclick="updateOrderStatus(${orderId}, 'DELIVERING')">서빙시작</button>`;
+                            break;
+                        case 'DELIVERING':
+                            statusText = '서빙중'; badgeBg = '#e6f4ea'; badgeColor = '#137333';
+                            actionHtml = `<button style="${btnNext}" onclick="updateOrderStatus(${orderId}, 'COMPLETED')">완료처리</button>`;
+                            break;
+                        case 'COMPLETED':
+                            statusText = '서빙완료'; badgeBg = '#f1f3f4'; badgeColor = '#5f6368';
+                            break;
+                        case 'CANCELLED':
+                            statusText = '주문취소'; badgeBg = '#f1f3f4'; badgeColor = '#ea4335';
+                            break;
+                        default:
+                            statusText = currentStatus;
+                    }
+
+                    const isCancelled = currentStatus === 'CANCELLED';
+                    const textStyle = isCancelled ? 'text-decoration: line-through; color: #999;' : '';
+
+                    return `
+                    <div class="order-item" style="display: flex; flex-direction: column; gap: 10px; padding: 12px 0;">
+                        <div style="display: flex; justify-content: space-between; font-weight: 500;">
+                            <span style="${textStyle}">${item.menuName} x ${item.quantity}</span>
+                            <span style="${textStyle}">${itemTotal.toLocaleString()}원</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; background: ${badgeBg}; color: ${badgeColor}; ${isCancelled ? 'text-decoration: line-through;' : ''}">${statusText}</span>
+                            <div style="display: flex; gap: 6px;">
+                                ${actionHtml}
+                            </div>
+                        </div>
+                    </div>`;
                 }).join('');
+
                 priceSpan.innerText = sum.toLocaleString() + '원';
+            }
+
+            // 주문 상태 변경 API 호출 함수 추가
+            async function updateOrderStatus(orderId, nextStatus) {
+                if (!orderId) {
+                    alert('주문 번호를 찾을 수 없습니다.');
+                    return;
+                }
+
+                let confirmMsg = '주문 상태를 변경하시겠습니까?';
+                if (nextStatus === 'CANCELLED') confirmMsg = '정말 이 주문을 취소하시겠습니까? (복구 불가)';
+                else if (nextStatus === 'CONFIRMED') confirmMsg = '주문 내역을 주방에서 확인하셨습니까?';
+                else if (nextStatus === 'COOKING') confirmMsg = '조리를 시작하시겠습니까?';
+                else if (nextStatus === 'DELIVERING') confirmMsg = '서빙을 시작하시겠습니까?';
+                else if (nextStatus === 'COMPLETED') confirmMsg = '서빙 완료 처리하시겠습니까?';
+
+                if (!confirm(confirmMsg)) return;
+
+                try {
+                    const response = await fetch(`/admin/orders/${orderId}/status`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: nextStatus })
+                    });
+
+                    if (response.ok) {
+                        await fetchActiveOrders();
+                    } else {
+                        const res = await response.json();
+                        alert("❌ " + (res.error || "주문 상태 변경에 실패했습니다."));
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert("서버와 통신 중 오류가 발생했습니다.");
+                }
             }
 
             async function openTableModal(element) {
@@ -326,7 +433,6 @@
                 } catch (err) { renderOrders([]); }
             }
 
-            // --- [2. 상태 변경 (에러 메시지 처리 보강)] ---
             async function callUpdateStatus(status) {
                 try {
                     const response = await fetch(`/admin/dashboard/${currentTableId}/status`, {
@@ -340,7 +446,6 @@
                     if (response.ok) {
                         location.reload();
                     } else {
-                        // 서버(컨트롤러)에서 보낸 error 메시지 출력
                         alert("❌ " + (result.error || "상태 변경에 실패했습니다."));
                     }
                 } catch (err) {
@@ -359,15 +464,12 @@
                 }
             }
 
-            // --- [3. 토큰 유무 체크 로직 추가] ---
             async function handleStatusUpdate() {
                 if (!currentTableId || !currentTableStatus) return;
 
-                // 1. 현재 테이블 카드의 토큰 값 확인
                 const selectedTable = document.querySelector(`.table-card[data-id="${currentTableId}"]`);
                 const token = selectedTable ? selectedTable.getAttribute('data-token') : null;
 
-                // 2. EMPTY 상태에서 입실(OCCUPIED)하려는데 토큰이 없는 경우 차단
                 if (currentTableStatus === 'EMPTY') {
                     if (!token || token.trim() === "" || token === 'null') {
                         alert("⚠️ 인증 토큰이 없는 테이블입니다.\n토큰 발급 후에만 입실(OCCUPIED)이 가능합니다.");
