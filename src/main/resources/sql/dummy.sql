@@ -19,18 +19,18 @@ VALUES ('admin', '1111', '김민준', 'ADMIN', TRUE),
 -- 2. cafe_table (물리적 테이블 8개)
 -- ============================================================
 INSERT INTO `cafe_table` (`table_number`, `password`, `status`, `access_token`, `current_session_id`)
-VALUES (1, 'table1234', 'OCCUPIED', 'a1b2c3d4-e5f6-7890-abcd-ef1234567801', NULL),
-       (2, 'table1234', 'OCCUPIED', 'a1b2c3d4-e5f6-7890-abcd-ef1234567802', NULL),
-       (3, 'table1234', 'EMPTY', 'a1b2c3d4-e5f6-7890-abcd-ef1234567803', NULL),
-       (4, 'table1234', 'EMPTY', 'a1b2c3d4-e5f6-7890-abcd-ef1234567804', NULL),
-       (5, 'table1234', 'OCCUPIED', 'a1b2c3d4-e5f6-7890-abcd-ef1234567805', NULL),
-       (6, 'table1234', 'CLEANING', 'a1b2c3d4-e5f6-7890-abcd-ef1234567806', NULL),
-       (7, 'table1234', 'EMPTY', 'a1b2c3d4-e5f6-7890-abcd-ef1234567807', NULL),
-       (8, 'table1234', 'OCCUPIED', 'a1b2c3d4-e5f6-7890-abcd-ef1234567808', NULL),
-       (9, 'table1234', 'EMPTY', 'a1b2c3d4-e5f6-7890-abcd-ef1234567809', NULL),
-       (10, 'table1234', 'EMPTY', 'a1b2c3d4-e5f6-7890-abcd-ef1234567810', NULL),
-       (11, 'table1234', 'EMPTY', 'a1b2c3d4-e5f6-7890-abcd-ef1234567811', NULL),
-       (12, 'table1234', 'EMPTY', 'a1b2c3d4-e5f6-7890-abcd-ef1234567812', NULL);
+VALUES (1, '1111', 'OCCUPIED', 'a1b2c3d4-e5f6-7890-abcd-ef1234567801', NULL),
+       (2, '2222', 'OCCUPIED', 'a1b2c3d4-e5f6-7890-abcd-ef1234567802', NULL),
+       (3, '3333', 'EMPTY', 'a1b2c3d4-e5f6-7890-abcd-ef1234567803', NULL),
+       (4, '4444', 'EMPTY', 'a1b2c3d4-e5f6-7890-abcd-ef1234567804', NULL),
+       (5, '5555', 'OCCUPIED', 'a1b2c3d4-e5f6-7890-abcd-ef1234567805', NULL),
+       (6, '6666', 'CLEANING', 'a1b2c3d4-e5f6-7890-abcd-ef1234567806', NULL),
+       (7, '7777', 'EMPTY', 'a1b2c3d4-e5f6-7890-abcd-ef1234567807', NULL),
+       (8, '8888', 'OCCUPIED', 'a1b2c3d4-e5f6-7890-abcd-ef1234567808', NULL),
+       (9, '9999', 'EMPTY', 'a1b2c3d4-e5f6-7890-abcd-ef1234567809', NULL),
+       (10, '1010', 'EMPTY', 'a1b2c3d4-e5f6-7890-abcd-ef1234567810', NULL),
+       (11, '1011', 'EMPTY', 'a1b2c3d4-e5f6-7890-abcd-ef1234567811', NULL),
+       (12, '1012', 'EMPTY', 'a1b2c3d4-e5f6-7890-abcd-ef1234567812', NULL);
 
 -- ============================================================
 -- 3. customer (등록 고객)

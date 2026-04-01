@@ -49,12 +49,14 @@ public class kioskController {
     @GetMapping("/screensaver")
     public String screensaver(HttpSession session, Model model) {
         model.addAttribute("tableNumber", session.getAttribute("tableNumber"));
+        log.info("스크린세이버 접근 - 테이블: {}", session.getAttribute("tableNumber"));
         return "kiosk/screensaver";
     }
 
     @GetMapping("/headcount")
     public String headcount(HttpSession session, Model model) {
         model.addAttribute("tableNumber", session.getAttribute("tableNumber"));
+        log.info("인원수 선택 화면 - 테이블: {}", session.getAttribute("tableNumber"));
         return "kiosk/headcount";
     }
 
@@ -62,6 +64,7 @@ public class kioskController {
     public String phoneLogin(HttpSession session, Model model) {
         model.addAttribute("tableNumber", session.getAttribute("tableNumber"));
         model.addAttribute("partySize", session.getAttribute("partySize"));
+        log.info("전화번호 입력 화면 - 테이블: {}", session.getAttribute("tableNumber"));
         return "kiosk/phone_login";
     }
 
@@ -71,7 +74,6 @@ public class kioskController {
     @GetMapping("/games")
     public String games(HttpSession session, Model model) {
         initCart(session);
-
         List<kioskItem> items = gameService.getByIsActive(true).stream()
                 .map(g -> kioskItem.builder()
                         .name(g.getName())
@@ -80,19 +82,13 @@ public class kioskController {
                         .stock(g.getGameItemCount())
                         .build())
                 .toList();
-
-        model.addAttribute("menuItems", items);
-        model.addAttribute("currentMenu", "games");
-        model.addAttribute("pageTitle", "게임");
-        model.addAttribute("tableNumber", session.getAttribute("tableNumber"));
-        model.addAttribute("partySize", getPartySize(session));
+        buildMenuModel(model, session, "games", "게임", items);
         return "layout/kiosk_layout";
     }
 
     @GetMapping("/drinks")
     public String drinks(HttpSession session, Model model) {
         initCart(session);
-
         List<kioskItem> items = menuService.getByType("DRINK").stream()
                 .filter(m -> m.isAvailable() && !m.isDeleted())
                 .map(m -> kioskItem.builder()
@@ -102,19 +98,13 @@ public class kioskController {
                         .stock(-1)
                         .build())
                 .toList();
-
-        model.addAttribute("menuItems", items);
-        model.addAttribute("currentMenu", "drinks");
-        model.addAttribute("pageTitle", "음료");
-        model.addAttribute("tableNumber", session.getAttribute("tableNumber"));
-        model.addAttribute("partySize", getPartySize(session));
+        buildMenuModel(model, session, "drinks", "음료", items);
         return "layout/kiosk_layout";
     }
 
     @GetMapping("/food")
     public String food(HttpSession session, Model model) {
         initCart(session);
-
         List<kioskItem> items = menuService.getByType("FOOD").stream()
                 .filter(m -> m.isAvailable() && !m.isDeleted())
                 .map(m -> kioskItem.builder()
@@ -124,19 +114,13 @@ public class kioskController {
                         .stock(-1)
                         .build())
                 .toList();
-
-        model.addAttribute("menuItems", items);
-        model.addAttribute("currentMenu", "food");
-        model.addAttribute("pageTitle", "음식");
-        model.addAttribute("tableNumber", session.getAttribute("tableNumber"));
-        model.addAttribute("partySize", getPartySize(session));
+        buildMenuModel(model, session, "food", "음식", items);
         return "layout/kiosk_layout";
     }
 
     @GetMapping("/members")
     public String members(HttpSession session, Model model) {
         initCart(session);
-
         List<kioskItem> items = menuService.getByType("GUEST").stream()
                 .filter(m -> m.isAvailable() && !m.isDeleted())
                 .map(m -> kioskItem.builder()
@@ -146,12 +130,7 @@ public class kioskController {
                         .stock(-1)
                         .build())
                 .toList();
-
-        model.addAttribute("menuItems", items);
-        model.addAttribute("currentMenu", "members");
-        model.addAttribute("pageTitle", "추가인원");
-        model.addAttribute("tableNumber", session.getAttribute("tableNumber"));
-        model.addAttribute("partySize", getPartySize(session));
+        buildMenuModel(model, session, "members", "추가인원", items);
         return "layout/kiosk_layout";
     }
     // ===========================================================
@@ -205,23 +184,24 @@ public class kioskController {
 //        }
 //    }
     // 수정 - 세션에 이미 로그인 정보가 있으므로 cart만 초기화 (✅)
-    private void initSession(HttpSession session) {
-        if (session.getAttribute("cart") == null) {
-            session.setAttribute("cart", new ArrayList<>());
-        }
-    }
+//    private void initSession(HttpSession session) {
+//        if (session.getAttribute("cart") == null) {
+//            session.setAttribute("cart", new ArrayList<>());
+//        }
+//    }
 
-    private void buildMenuModel(Model model, int tableNumber, HttpSession session,
-                                String menuType, List<Map<String, Object>> menuItems, String title) {
+    private void buildMenuModel(Model model, HttpSession session,
+                                String menuType, String title, List<kioskItem> items) {
         Object cart = session.getAttribute("cart");
         int cartCount = cart instanceof List ? ((List<?>) cart).size() : 0;
-        model.addAttribute("tableNumber", tableNumber);
-        model.addAttribute("partySize",   getPartySize(session));
+        model.addAttribute("tableNumber", session.getAttribute("tableNumber"));
+        model.addAttribute("partySize", getPartySize(session));
         model.addAttribute("currentMenu", menuType);
-        model.addAttribute("menuItems",   menuItems);
-        model.addAttribute("cartCount",   cartCount);
-        model.addAttribute("pageTitle",   title);
+        model.addAttribute("pageTitle", title);
+        model.addAttribute("menuItems", items);
+        model.addAttribute("cartCount", cartCount);
     }
+
 
     private int getPartySize(HttpSession session) {
         Object val = session.getAttribute("partySize");

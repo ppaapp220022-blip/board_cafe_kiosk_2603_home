@@ -50,9 +50,26 @@ public class MainController {
     }
 
     @GetMapping("/kiosk/login")
-    public String kioskPage() {
+    public String kioskPage(HttpServletRequest request, RedirectAttributes redirectAttributes) {
         log.info("키오스크 -> 로그인 ...");
+
+        HttpSession session = request.getSession(false);
+
+        // [차단] 관리자 로그인 상태에서 키오스크 접근 차단
+        if (session != null && session.getAttribute("SPRING_SECURITY_CONTEXT") != null) {
+            log.warn("관리자 로그인 상태에서 키오스크 접근 차단");
+            redirectAttributes.addFlashAttribute("error",
+                    "관리자로 로그인된 상태입니다. 먼저 관리자 로그아웃 후 시도해주세요.");
+            return "redirect:/common/login";
+        }
+
         return "/login/kiosk_login";
+    }
+
+    @PostMapping("/logout")
+    public String adminLogoutPage() {
+        log.info("admin 로그인 -> 로그아웃 ...");
+        return "redirect:/common/login";
     }
 
     // ===========================================================
@@ -61,23 +78,47 @@ public class MainController {
     // ===========================================================
 
     /* [1단계] 키오스크 로그인 처리 - 테이블번호 + 비밀번호 검증 후 세션 저장 */
+    /*
+    1. 키오스크 로그인 상태 → 다른 테이블 로그인 차단
+    2. 키오스크 로그인 상태 → 관리자 로그인 차단
+    3. 관리자 로그인 상태 → 키오스크 로그인 차단
+     */
     @PostMapping("/kiosk/login")
     public String kioskLoginProcess(@RequestParam int tableNumber,
                                     @RequestParam String password,
                                     HttpServletRequest request,
                                     RedirectAttributes redirectAttributes) {
 
-        log.info("키오스크 로그인 처리... tableNumber: {}", tableNumber);
+        log.info("====== 키오스크 로그인 시도 - 테이블: {} ======", tableNumber);
 
         // 기존 세션 무효화 (관리자 로그인 세션 제거)
-        HttpSession oldSession = request.getSession(false);
-        if (oldSession != null) {
-            oldSession.invalidate();
+        HttpSession existingSession = request.getSession(false);
+
+        // [차단 1] 이미 키오스크 로그인 상태
+        if (existingSession != null && existingSession.getAttribute("tableNumber") != null) {
+            int loggedInTable = (int) existingSession.getAttribute("tableNumber");
+            log.warn("이미 {}번 테이블로 로그인된 상태 - {}번 테이블 로그인 차단", loggedInTable, tableNumber);
+            redirectAttributes.addFlashAttribute("error",
+                    loggedInTable + "번 테이블로 이미 로그인되어 있습니다. 먼저 로그아웃 해주세요.");
+            return "redirect:/kiosk/login";
+        }
+
+        // [차단 2] 관리자 로그인 상태에서 키오스크 로그인 시도
+        if (existingSession != null &&
+                existingSession.getAttribute("SPRING_SECURITY_CONTEXT") != null) {
+            log.warn("관리자 로그인 상태에서 키오스크 로그인 시도 차단");
+            redirectAttributes.addFlashAttribute("error",
+                    "관리자로 로그인된 상태입니다. 먼저 관리자 로그아웃 후 시도해주세요.");
+            return "redirect:/kiosk/login";
+        }
+
+        // 기존 세션 무효화 후 새 세션 생성
+        if (existingSession != null) {
+            existingSession.invalidate();
         }
 
         return cafeTableService.login(tableNumber, password)
                 .map(cafeTable -> {
-                    // 새 세션 생성
                     HttpSession newSession = request.getSession(true);
                     newSession.setAttribute("tableNumber", cafeTable.getTableNumber());
                     newSession.setAttribute("tableId", cafeTable.getId());
