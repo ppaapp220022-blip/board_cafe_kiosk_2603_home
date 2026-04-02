@@ -10,10 +10,16 @@ USE `board_cafe_kiosk_2603`;
 -- 1. manager (관리자·직원)
 -- ============================================================
 INSERT INTO `manager` (`login_id`, `password`, `name`, `role`, `is_active`)
-VALUES ('admin', '1111', '김민준', 'ADMIN', TRUE),
-       ('staff01', '1111', '이서연', 'STAFF', TRUE),
-       ('staff02', '1111', '박지호', 'STAFF', TRUE),
-       ('staff03', '1111', '최유나', 'STAFF', FALSE);
+VALUES ('admin', '$2a$10$I/U.nHfsL/6wBqXAJV1A3u0KwyHn9wiOVRK7ZVI6rAptphEgRW1Qi', '관리자01', 'ADMIN', TRUE),
+       ('admin02', '$2a$10$RySZbh.V/f9khlbVamY3O.Mg8uY9qbwNTbykKep1SqqtbZ9OMB4xe', '관리자02', 'ADMIN', FALSE),
+       ('super', '$2a$10$BTMMVv2aPEqCnTF4aWn7u.Tyuh.yruDyPVk1buElSdgCwbMUWOFRi', '사장님', 'ADMIN', TRUE),
+       ('staff01', '$2a$10$VW29gAYZYxDRdWhNP.KYUOVAkPeS1DZYSrcxywKGdjGpx4z0QitDa', '직원01', 'STAFF', FALSE),
+       ('staff02', '$2a$10$OhUaODvgez2RlesuWWlyXeMzwWRNhYvTrNjgOy07//KxK8sdWaDFG', '직원02', 'STAFF', FALSE);
+-- admin01 / 1111 / ADMIN / TRUE
+-- admin02 / 2222 / ADMIN / FALSE
+-- super / 1234 / ADMIN / TRUE
+-- staff01 / 1111 / STAFF / TRUE
+-- staff02 / 2222 / STAFF / FALSE
 
 -- ============================================================
 -- 2. cafe_table (물리적 테이블 8개)
@@ -179,12 +185,13 @@ VALUES (1, 1, '아메리카노', 3000, 2),
 
 -- 게임을 menu 테이블에도 등록 (cart_item.menu_id FK 연결용, price=0)
 INSERT INTO `menu` (`category_id`, `name`, `price`, `description`, `is_available`)
-VALUES (5, '맞춤법 게임',  0, '맞춤법을 맞추는 파티 게임', TRUE),   -- 17
-       (6, '숫자 맞추기', 0, '숫자를 맞추는 게임', TRUE),           -- 18
-       (6, '동물 맞추기', 0, '동물 카드 게임', TRUE),               -- 19
-       (7, '색상 맞추기', 0, '색상을 맞추는 협력 게임', TRUE),      -- 20
-       (5, '스피드 게임',  0, '빠르게 반응하는 전략 게임', TRUE),   -- 21
-       (6, '퀴즈 게임',   0, '다양한 퀴즈 보드게임', TRUE);         -- 22
+VALUES (5, '맞춤법 게임', 0, '맞춤법을 맞추는 파티 게임', TRUE), -- 17
+       (6, '숫자 맞추기', 0, '숫자를 맞추는 게임', TRUE),     -- 18
+       (6, '동물 맞추기', 0, '동물 카드 게임', TRUE),       -- 19
+       (7, '색상 맞추기', 0, '색상을 맞추는 협력 게임', TRUE),  -- 20
+       (5, '스피드 게임', 0, '빠르게 반응하는 전략 게임', TRUE), -- 21
+       (6, '퀴즈 게임', 0, '다양한 퀴즈 보드게임', TRUE);
+-- 22
 
 -- ============================================================
 -- 10. game (보드게임 종목 — MenuService.getGameItems() 이름과 일치)

@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 
@@ -19,15 +20,17 @@ class ManagerServiceImplTest {
 
     @Autowired
     private ManagerService managerService;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Test
     void CreateAndFindAll() {
         // 1. 준비: 등록할 정보 생성
         ManagerRequest request = ManagerRequest.builder()
-                .loginId("service_test_01")
-                .password("1234")
+                .loginId("111a")
+                .password(passwordEncoder.encode("1234"))
                 .name("서비스테스터")
-                .role(RoleType.STAFF)
+                .role(RoleType.ADMIN)
                 .build();
 
         // 2. 실행: 서비스의 등록 메서드 호출
@@ -40,7 +43,7 @@ class ManagerServiceImplTest {
 
         // 4. 검증: 방금 넣은 데이터가 리스트에 있는지 확인
         boolean exists = list.stream()
-                .anyMatch(m -> m.getLoginId().equals("service_test_01"));
+                .anyMatch(m -> m.getLoginId().equals("111a"));
 
         log.info("등록된 아이디 존재 여부: {}", exists);
         Assertions.assertTrue(exists, "등록한 매니저가 목록에 존재해야 합니다.");

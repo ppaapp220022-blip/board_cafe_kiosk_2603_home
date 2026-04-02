@@ -25,14 +25,14 @@ class ManagerEncodingTest {
     @Test
     void passwordEncoderTest() {
         // 1. 준비
-        String rawPassword = "1212";
+        String rawPassword = "12345";
         String encodedPassword = passwordEncoder.encode(rawPassword);
 
         // VO 생성 (생성자 또는 빌더 사용)
         Manager newManager = Manager.builder()
                 .loginId("qwer")
                 .password(encodedPassword)
-                .name("테스터")
+                .name("테스트")
                 .role(RoleType.ADMIN)
                 .isActive(true)
                 .build();
