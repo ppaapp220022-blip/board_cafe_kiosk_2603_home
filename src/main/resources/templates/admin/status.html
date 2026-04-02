@@ -117,38 +117,43 @@
     - long   totalAmount: 총 매출액
 -->
 <th:block layout:fragment="content">
-  <h1 class="page-title">📈 매출 통계</h1>
-
-  <!-- 요약 통계 카드 -->
-  <div class="summary-grid">
-    <div class="summary-card">
-      <div class="summary-label">💰 총 매출 (7일)</div>
-      <div class="summary-value val-blue"
-           th:text="'₩' + ${#numbers.formatInteger(totalRevenue, 0, 'COMMA')}">₩0</div>
-    </div>
-    <div class="summary-card">
-      <div class="summary-label">📈 일평균 매출</div>
-      <div class="summary-value val-green"
-           th:text="'₩' + ${#numbers.formatInteger(dailyAvgRevenue, 0, 'COMMA')}">₩0</div>
-    </div>
-    <div class="summary-card">
-      <div class="summary-label">📋 총 주문</div>
-      <div class="summary-value val-orange" th:text="${totalOrders}">0</div>
-    </div>
-    <div class="summary-card">
-      <div class="summary-label">👥 총 방문자</div>
-      <div class="summary-value val-purple" th:text="${totalVisitors}">0</div>
-    </div>
-    <div class="summary-card">
-      <div class="summary-label">🕒 평균 이용시간</div>
-      <div class="summary-value val-blue" th:text="${avgUsageTime} + 'm'">0m</div>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+    <h1 class="page-title" style="margin-bottom: 0;">📈 매출 통계</h1>
+    <div class="date-picker-wrapper">
+      <label for="targetDate" style="font-weight: 600; margin-right: 10px;">기준 날짜:</label>
+      <input type="date" id="targetDate"
+             th:value="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}"
+             onchange="loadStatData(this.value)"
+             style="padding: 8px 12px; border-radius: 8px; border: 1px solid #ddd; font-family: inherit;">
     </div>
   </div>
 
-  <!-- 차트 영역 -->
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="summary-label">💰 선택일 매출</div>
+      <div class="summary-value val-blue" id="stat-total-revenue">₩0</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">📈 주간 일평균(추정)</div>
+      <div class="summary-value val-green" id="stat-daily-avg">₩0</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">📋 총 주문</div>
+      <div class="summary-value val-orange" id="stat-total-orders">0</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">👥 총 방문자</div>
+      <div class="summary-value val-purple" id="stat-total-visitors">0</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">🕒 평균 이용시간</div>
+      <div class="summary-value val-blue" id="stat-avg-time">0m</div>
+    </div>
+  </div>
+
   <div class="chart-row">
     <div class="chart-card">
-      <div class="chart-title">일별 매출 추이</div>
+      <div class="chart-title">최근 7일 매출 추이</div>
       <canvas id="dailySalesChart" height="200"></canvas>
     </div>
     <div class="chart-card">
@@ -157,79 +162,103 @@
     </div>
   </div>
 
-  <div class="chart-row full-row">
-    <div class="chart-card">
-      <div class="chart-title">일별 평균 이용 시간</div>
-      <canvas id="avgTimeChart" height="100"></canvas>
-    </div>
-  </div>
-
-  <!-- 베스트 셀러 -->
-  <div class="best-seller-card">
-    <div class="chart-title">베스트 셀러 (이번 주)</div>
-    <div th:each="item, stat : ${bestSellers}" class="seller-item">
-      <div class="rank-badge" th:text="${stat.count}">1</div>
-      <div class="item-name"  th:text="${item.productName}">상품명</div>
-      <div class="item-count" th:text="${item.soldCount} + '개 판매'">0개 판매</div>
-      <div class="item-price" th:text="'₩' + ${#numbers.formatInteger(item.totalAmount, 0, 'COMMA')}">₩0</div>
-    </div>
+  <div class="best-seller-card" id="best-seller-container">
+    <div class="chart-title">베스트 셀러 (TOP 5)</div>
+    <div class="text-center py-4">데이터를 불러오는 중...</div>
   </div>
 </th:block>
 
-<!-- 차트 스크립트: Thymeleaf inline 문법으로 서버 데이터 주입 -->
 <th:block layout:fragment="scripts">
   <script th:inline="javascript">
-    /*<![CDATA[*/
-    const dailyLabels    = /*[[${dailyLabels}]]*/ '["3/5","3/6","3/7","3/8","3/9","3/10","3/11"]';
-    const dailyData      = /*[[${dailyData}]]*/   '[450000,520000,380000,620000,580000,680000,720000]';
-    const categoryLabels = /*[[${categoryLabels}]]*/ '["음료","스낵","게임대여"]';
-    const categoryData   = /*[[${categoryData}]]*/ '[600000,420000,150000]';
-    const avgTimeData    = /*[[${avgTimeData}]]*/  '[65,72,58,85,78,92,88]';
-    /*]]>*/
+    let dailySalesChart, categorySalesChart;
 
-    // 일별 매출 추이 (Line)
-    new Chart(document.getElementById('dailySalesChart'), {
-      type: 'line',
-      data: {
-        labels: JSON.parse(dailyLabels),
-        datasets: [{
-          label: '매출액',
-          data: JSON.parse(dailyData),
-          borderColor: '#007bff',
-          backgroundColor: 'rgba(0,123,255,0.1)',
-          fill: true, tension: 0.4
-        }]
-      },
-      options: { plugins: { legend: { display: false } } }
+    document.addEventListener('DOMContentLoaded', function() {
+      initCharts();
+      const initialDate = document.getElementById('targetDate').value;
+      loadStatData(initialDate);
     });
 
-    // 카테고리별 매출 (Bar)
-    new Chart(document.getElementById('categorySalesChart'), {
-      type: 'bar',
-      data: {
-        labels: JSON.parse(categoryLabels),
-        datasets: [{
-          data: JSON.parse(categoryData),
-          backgroundColor: ['#007bff','#28a745','#fd7e14']
-        }]
-      },
-      options: { plugins: { legend: { display: false } } }
-    });
+    async function loadStatData(date) {
+      try {
+        console.log("요청 날짜:", date);
+        const response = await fetch(`/admin/api/statistics?targetDate=${date}`);
+        const data = await response.json();
+        console.log("받은 데이터:", data); // F12 콘솔에서 데이터가 보이는지 확인하세요!
 
-    // 일별 평균 이용 시간 (Line)
-    new Chart(document.getElementById('avgTimeChart'), {
-      type: 'line',
-      data: {
-        labels: JSON.parse(dailyLabels),
-        datasets: [{
-          label: '분(min)',
-          data: JSON.parse(avgTimeData),
-          borderColor: '#28a745',
-          tension: 0.3
-        }]
-      },
-      options: { plugins: { legend: { display: false } } }
-    });
+        // 1. 요약 카드 업데이트 (안전하게 처리)
+        const summary = data.summary || { totalRevenue: 0, orderCount: 0, visitCount: 0 };
+        document.getElementById('stat-total-revenue').innerText = '₩' + (summary.totalRevenue || 0).toLocaleString();
+        document.getElementById('stat-total-orders').innerText = (summary.orderCount || 0) + '건';
+        document.getElementById('stat-total-visitors').innerText = (summary.visitCount || 0) + '명';
+
+        // 2. 주간 매출 차트 업데이트
+        if (data.weeklySales && data.weeklySales.length > 0) {
+          dailySalesChart.data.labels = data.weeklySales.map(d => d.statDate);
+          dailySalesChart.data.datasets[0].data = data.weeklySales.map(d => d.totalRevenue);
+          dailySalesChart.update();
+        }
+
+        // 3. 카테고리 차트 업데이트
+        if (data.categoryStats && data.categoryStats.labels.length > 0) {
+          categorySalesChart.data.labels = data.categoryStats.labels;
+          categorySalesChart.data.datasets[0].data = data.categoryStats.values;
+          categorySalesChart.update();
+        } else {
+          // 데이터 없을 때 차트 비우기
+          categorySalesChart.data.labels = [];
+          categorySalesChart.data.datasets[0].data = [];
+          categorySalesChart.update();
+        }
+
+        // 4. 베스트 셀러 업데이트
+        updateBestSellers(data.topMenus);
+
+        // 1. 주간 일평균 (서버에서 계산한 값)
+        document.getElementById('stat-daily-avg').innerText = '₩' + (data.weeklyAvgRevenue || 0).toLocaleString();
+
+        // 2. 평균 이용시간 (DTO에 추가한 필드)
+        document.getElementById('stat-avg-time').innerText = (summary.avgUsageTime || 0) + 'm';
+
+      } catch (e) {
+        console.error("데이터 로드 중 에러 발생:", e);
+      }
+    }
+
+    function updateBestSellers(menus) {
+      const container = document.getElementById('best-seller-container');
+      let html = '<div class="chart-title">베스트 셀러 (TOP 5)</div>';
+
+      if (!menus || menus.length === 0) {
+        html += '<div style="text-align:center; padding:30px; color:#999;">판매 데이터가 없습니다.</div>';
+      } else {
+        menus.forEach((item, index) => {
+          html += `
+                  <div class="seller-item">
+                      <div class="rank-badge">${index + 1}</div>
+                      <div class="item-name">${item.menuName}</div>
+                      <div class="item-count">${item.salesQty}개 판매</div>
+                      <div class="item-price">₩${item.salesAmount.toLocaleString()}</div>
+                  </div>`;
+        });
+      }
+      container.innerHTML = html;
+    }
+
+    function initCharts() {
+      // 매출 차트 초기화
+      dailySalesChart = new Chart(document.getElementById('dailySalesChart'), {
+        type: 'line',
+        data: { labels: [], datasets: [{ label: '매출액', data: [], borderColor: '#007bff', fill: true, tension: 0.4 }] },
+        options: { responsive: true, plugins: { legend: { display: false } } }
+      });
+
+      // 카테고리 차트 초기화
+      categorySalesChart = new Chart(document.getElementById('categorySalesChart'), {
+        type: 'bar',
+        data: { labels: [], datasets: [{ data: [], backgroundColor: ['#007bff', '#28a745', '#fd7e14', '#ffc107', '#6f42c1'] }] },
+        options: { responsive: true, plugins: { legend: { display: false } } }
+      });
+    }
   </script>
 </th:block>
 </body>
