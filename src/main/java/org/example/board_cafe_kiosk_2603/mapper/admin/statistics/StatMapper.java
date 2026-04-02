@@ -2,9 +2,12 @@ package org.example.board_cafe_kiosk_2603.mapper.admin.statistics;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.example.board_cafe_kiosk_2603.dto.admin.statistics.DailySalesDTO;
+import org.example.board_cafe_kiosk_2603.dto.admin.statistics.ItemSalesDTO;
+import org.apache.ibatis.annotations.Param;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface StatMapper {
@@ -20,6 +23,14 @@ public interface StatMapper {
     /** [Batch용] 2-2. 특정 날짜의 메뉴별 판매 수량/금액을 집계하여 삽입 **/
     void insertItemSalesHistory(LocalDate targetDate);
 
-    /** [화면조회용] 최근 7일간의 매출 통계 조회 (DTO 사용) **/
-    List<DailySalesDTO> getWeeklyStats();
+    // 특정 날짜의 카테고리별 매출 합계 조회
+    List<Map<String, Object>> getCategoryStatsByDate(@Param("targetDate") LocalDate targetDate);
+
+    /** [화면조회용] 기준 날짜로부터 최근 7일간의 매출 통계 조회 **/
+    List<DailySalesDTO> getWeeklyStats(@Param("endDate") LocalDate endDate);
+
+    /** [화면조회용] 기준 날짜의 인기 메뉴 TOP N 조회 **/
+    List<ItemSalesDTO> getTopSellingMenuByDate(@Param("targetDate") LocalDate targetDate, @Param("limit") int limit);
+
+
 }

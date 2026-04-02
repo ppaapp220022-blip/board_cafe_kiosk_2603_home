@@ -11,4 +11,5 @@ public class DailySalesDTO {
     private Long totalRevenue;  // Y축: 매출액
     private Integer orderCount; // 주문 건수
     private Integer visitCount; // 방문자 수
+    private Integer avgUsageTime;
 }

@@ -52,39 +52,39 @@ public class AdminController {
         return "admin/point";
     }
 
-    @GetMapping("/status")
-    public String stats(Model model) {
-        // 1. 사이드바 하이라이트 설정
-        model.addAttribute("activePage", "salesStats");
-
-        // 2. 상단 요약 통계 (더미 데이터)
-        model.addAttribute("totalRevenue", 4350000L);      // 7일 총 매출
-        model.addAttribute("dailyAvgRevenue", 621400L);    // 일평균
-        model.addAttribute("totalOrders", 158);            // 총 주문 건수
-        model.addAttribute("totalVisitors", 342);          // 총 방문자
-        model.addAttribute("avgUsageTime", 85);            // 평균 이용시간(분)
-
-        // 3. 차트용 데이터 (JSON 문자열 형태로 전달)
-        // 실제 서비스에서는 ObjectMapper를 사용하거나 직접 포맷팅합니다.
-        model.addAttribute("dailyLabels", "[\"3/13\", \"3/14\", \"3/15\", \"3/16\", \"3/17\", \"3/18\", \"3/19\"]");
-        model.addAttribute("dailyData", "[450000, 520000, 380000, 620000, 580000, 680000, 720000]");
-
-        model.addAttribute("categoryLabels", "[\"음료\", \"스낵\", \"게임대여\", \"식사\"]");
-        model.addAttribute("categoryData", "[1200000, 850000, 1500000, 800000]");
-
-        model.addAttribute("avgTimeData", "[65, 72, 58, 85, 78, 92, 88]");
-
-        // 4. 베스트 셀러 리스트 (더미 데이터)
-        List<Map<String, Object>> bestSellers = new ArrayList<>();
-        bestSellers.add(Map.of("rank", 1, "productName", "아이스 아메리카노", "soldCount", 45, "totalAmount", 202500L));
-        bestSellers.add(Map.of("rank", 2, "productName", "나초 & 치즈딥", "soldCount", 32, "totalAmount", 192000L));
-        bestSellers.add(Map.of("rank", 3, "productName", "불닭볶음면", "soldCount", 28, "totalAmount", 112000L));
-        bestSellers.add(Map.of("rank", 4, "productName", "초코츄러스", "soldCount", 15, "totalAmount", 67500L));
-
-        model.addAttribute("bestSellers", bestSellers);
-
-        return "admin/status"; // 파일 위치: src/main/resources/templates/admin/status.html
-    }
+//    @GetMapping("/status")
+//    public String stats(Model model) {
+//        // 1. 사이드바 하이라이트 설정
+//        model.addAttribute("activePage", "salesStats");
+//
+//        // 2. 상단 요약 통계 (더미 데이터)
+//        model.addAttribute("totalRevenue", 4350000L);      // 7일 총 매출
+//        model.addAttribute("dailyAvgRevenue", 621400L);    // 일평균
+//        model.addAttribute("totalOrders", 158);            // 총 주문 건수
+//        model.addAttribute("totalVisitors", 342);          // 총 방문자
+//        model.addAttribute("avgUsageTime", 85);            // 평균 이용시간(분)
+//
+//        // 3. 차트용 데이터 (JSON 문자열 형태로 전달)
+//        // 실제 서비스에서는 ObjectMapper를 사용하거나 직접 포맷팅합니다.
+//        model.addAttribute("dailyLabels", "[\"3/13\", \"3/14\", \"3/15\", \"3/16\", \"3/17\", \"3/18\", \"3/19\"]");
+//        model.addAttribute("dailyData", "[450000, 520000, 380000, 620000, 580000, 680000, 720000]");
+//
+//        model.addAttribute("categoryLabels", "[\"음료\", \"스낵\", \"게임대여\", \"식사\"]");
+//        model.addAttribute("categoryData", "[1200000, 850000, 1500000, 800000]");
+//
+//        model.addAttribute("avgTimeData", "[65, 72, 58, 85, 78, 92, 88]");
+//
+//        // 4. 베스트 셀러 리스트 (더미 데이터)
+//        List<Map<String, Object>> bestSellers = new ArrayList<>();
+//        bestSellers.add(Map.of("rank", 1, "productName", "아이스 아메리카노", "soldCount", 45, "totalAmount", 202500L));
+//        bestSellers.add(Map.of("rank", 2, "productName", "나초 & 치즈딥", "soldCount", 32, "totalAmount", 192000L));
+//        bestSellers.add(Map.of("rank", 3, "productName", "불닭볶음면", "soldCount", 28, "totalAmount", 112000L));
+//        bestSellers.add(Map.of("rank", 4, "productName", "초코츄러스", "soldCount", 15, "totalAmount", 67500L));
+//
+//        model.addAttribute("bestSellers", bestSellers);
+//
+//        return "admin/status"; // 파일 위치: src/main/resources/templates/admin/status.html
+//    }
 
 
 //    // 상품 등록 처리
