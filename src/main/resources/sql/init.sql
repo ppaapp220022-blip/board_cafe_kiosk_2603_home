@@ -135,7 +135,7 @@ CREATE TABLE `orders`
     `session_id`     BIGINT                                                                                   NOT NULL COMMENT '방문 세션 ID (FK)',
     `table_id`       INT                                                                                      NOT NULL COMMENT '주문 테이블 (FK)',
     `customer_phone` VARCHAR(20)                                                                                       DEFAULT NULL COMMENT '주문자 연락처(포인트 적립용)',
-    `status`         ENUM ('PENDING', 'PAID', 'CONFIRMED', 'COOKING', 'DELIVERING', 'COMPLETED', 'CANCELLED') NOT NULL DEFAULT '주문 상태',
+    `status`         ENUM ('PENDING', 'PAID', 'CONFIRMED', 'COOKING', 'DELIVERING', 'COMPLETED', 'CANCELLED') NOT NULL DEFAULT 'PENDING' COMMENT '주문 상태',
     `total_amount`   INT                                                                                      NOT NULL DEFAULT 0 COMMENT '주문 총액',
     `ordered_at`     TIMESTAMP                                                                                NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '주문 일시',
     CONSTRAINT `fk_orders_session` FOREIGN KEY (`session_id`) REFERENCES `table_session` (`id`),
@@ -177,7 +177,7 @@ CREATE TABLE `game_item`
     `id`            INT                                       NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT '실물 개체 고유 번호',
     `game_id`       INT                                       NOT NULL COMMENT '게임 정보 연결',
     `serial_number` VARCHAR(50)                               NOT NULL UNIQUE COMMENT '관리 번호',
-    `status`        ENUM ('NORMAL','RENTED','DAMAGED','LOST') NOT NULL DEFAULT '현재 개체 상태',
+    `status`        ENUM ('NORMAL','RENTED','DAMAGED','LOST') NOT NULL DEFAULT 'NORMAL' COMMENT '현재 개체 상태',
     CONSTRAINT `fk_gameitem_game` FOREIGN KEY (`game_id`) REFERENCES `game` (`id`) ON DELETE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 COMMENT ='보드게임 실물 재고(박스 단위)';
@@ -214,7 +214,7 @@ CREATE TABLE `game_history`
     `game_item_id` INT                                          NOT NULL COMMENT '실물 게임 ID',
     `rented_at`    TIMESTAMP                                    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '대여 시각',
     `returned_at`  TIMESTAMP                                    NULL COMMENT '반납 시각',
-    `status`       ENUM ('RENTING','RETURNED','DAMAGED','LOST') NOT NULL DEFAULT '대여 진행 상태',
+    `status`       ENUM ('RENTING','RETURNED','DAMAGED','LOST') NOT NULL DEFAULT 'RENTING' COMMENT '대여 진행 상태',
     CONSTRAINT `fk_rental_session` FOREIGN KEY (`session_id`) REFERENCES `table_session` (`id`),
     CONSTRAINT `fk_rental_item` FOREIGN KEY (`game_item_id`) REFERENCES `game_item` (`id`)
 ) ENGINE = InnoDB
@@ -313,6 +313,6 @@ CREATE TABLE `daily_sales_summary`
 
 -- 사용자 생성 및 권한
 --
-CREATE USER IF NOT EXISTS `admin`@`%` IDENTIFIED BY '0331';
-GRANT ALL PRIVILEGES ON `board_cafe_kiosk_2603`.* TO `admin`@`%`;
-FLUSH PRIVILEGES;
+# CREATE USER IF NOT EXISTS `admin`@`%` IDENTIFIED BY '0331';
+# GRANT ALL PRIVILEGES ON `board_cafe_kiosk_2603`.* TO `admin`@`%`;
+# FLUSH PRIVILEGES;

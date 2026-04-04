@@ -25,7 +25,6 @@ import java.time.LocalDate;
 
 @Log4j2
 @Configuration
-@EnableScheduling
 @RequiredArgsConstructor
 public class BatchConfig {
     private final JobRepository jobRepository;
