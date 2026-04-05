@@ -182,7 +182,7 @@
           <div class="pkg-name">${pkg.name}</div>
           <div class="pkg-time">${pkg.displayTime ?? getDisplayTime(pkg.durationMinutes)}</div>
           <div class="pkg-type">${pkg.type}</div>
-          <div class="pkg-desc">${pkg.extraPricePerMin > 0 ? '초과 시 분당 ' + pkg.extraPricePerMin + '원' : '초과 요금 없음'}</div>
+          <div class="pkg-desc">${pkg.extraPricePerMin > 0 ? '초과 시 10분당 ' + pkg.extraPricePerMin + '원' : '초과 요금 없음'}</div>
           <div class="pkg-price">
             ${Number(pkg.basePrice).toLocaleString()}원
             <span class="pkg-unit">(1인)</span>

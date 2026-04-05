@@ -402,6 +402,10 @@
         <span>상품 합계</span>
         <span id="subtotal-amount">₩0</span>
       </div>
+      <div class="amount-row" id="over-charge-row" style="display:none;">
+        <span>초과 요금</span>
+        <span id="over-charge-amount" style="color:#f44336;font-weight:700;">₩0</span>
+      </div>
       <div class="amount-row discount" id="point-discount-row" style="display:none;">
         <span>포인트 할인</span>
         <span id="point-discount-amount">-₩0</span>
@@ -452,6 +456,8 @@
   const packageTotal  = [[${packageTotal}]];   // 서버에서 받은 패키지 금액
   const sessionStartTime = [[${sessionStartTime}]];
   const tossClientKey  = 'test_ck_YOUR_CLIENT_KEY_HERE'; // TODO: 실제 클라이언트 키로 교체
+  const durationMinutes  = [[${durationMinutes}]];   // 패키지 이용 시간(분)
+  const extraPricePerMin = [[${extraPricePerMin}]];  // 분당 초과 요금
 
   let menuSubtotal      = 0;  // 메뉴 합계
   let subtotalPrice = packageTotal; // 패키지 + 메뉴 합계 (초기값 = 패키지)
@@ -467,6 +473,22 @@
     const hours   = Math.floor(elapsed / 60);
     const minutes = elapsed % 60;
     document.getElementById('elapsed-time').innerText = `${hours}시간 ${minutes}분`;
+
+    // 초과 요금 계산
+    if (durationMinutes && extraPricePerMin > 0) {
+      const overMinutes = elapsed - durationMinutes;
+      if (overMinutes > 0) {
+        const overUnits   = Math.ceil(overMinutes / 10); // 10분 단위 올림
+        const overCharge  = overUnits * extraPricePerMin * partySize;
+        subtotalPrice     = packageTotal + menuSubtotal + overCharge;
+        updateAmounts();
+
+        // 초과 요금 표시
+        document.getElementById('over-charge-row').style.display = 'flex';
+        document.getElementById('over-charge-amount').innerText =
+                `₩${overCharge.toLocaleString()} (+${overMinutes}분 초과)`;
+      }
+    }
   }
   updateElapsedTime();
 
@@ -526,6 +548,7 @@
   </div>`;
 
     updateAmounts();
+    updateElapsedTime(); // 초과 요금 재계산 추가
     lucide.createIcons();
   }
 
