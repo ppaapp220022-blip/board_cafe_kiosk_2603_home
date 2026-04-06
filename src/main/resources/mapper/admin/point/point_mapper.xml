@@ -9,6 +9,7 @@
         SELECT id, phone, balance, updated_at
         FROM point
         ORDER BY updated_at DESC
+        LIMIT #{limit} OFFSET #{offset}
     </select>
 
     <select id="findByPhone" resultType="org.example.board_cafe_kiosk_2603.domain.admin.point.Point">

@@ -9,8 +9,20 @@ import java.util.Optional;
 
 @Mapper
 public interface ManagerMapper {
-    // 전체 목록 조회
-    List<Manager> findAll();
+    // 전체 목록 조회 (페이징)
+    List<Manager> findAll(@Param("offset") int offset,
+                          @Param("limit") int limit,
+                          @Param("filter") String filter);
+
+
+    // 전체 개수
+    int countAll(@Param("filter") String filter);
+
+    // 활성화 개수
+    int countActive();
+
+    // 비활성호 개수
+    int countInactive();
 
     // 로그인 ID로 단건 조회 (Security용)
     Optional<Manager> findByLoginId(String loginId);

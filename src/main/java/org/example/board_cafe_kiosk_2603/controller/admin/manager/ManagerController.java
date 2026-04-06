@@ -21,14 +21,30 @@ import java.util.List;
 public class ManagerController {
 
     private final ManagerService managerService;
+    private static final int PAGE_SIZE = 8;
 
     // 직원 목록 페이지
     @GetMapping
-    public String staffPage(Model model) {
-        log.info("--- 직원 목록 페이지 진입 ---");
-        List<ManagerResponse> staffList = managerService.findAll();
-        model.addAttribute("staffList", staffList);
-        return "admin/staff";  // templates/admin/staff.html
+    public String staffPage(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "all") String filter,
+            Model model) {
+
+        int totalCount = managerService.countAll(filter);
+        int totalPages = (int) Math.ceil((double) totalCount / PAGE_SIZE);
+
+        if (page < 1) page = 1;
+        if (totalPages > 0 && page > totalPages) page = totalPages;
+
+        model.addAttribute("staffList",   managerService.findAll(page, PAGE_SIZE, filter));
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages",  totalPages);
+        model.addAttribute("totalCount",  managerService.countAll("all"));
+        model.addAttribute("totalActive", managerService.countAll("active"));
+        model.addAttribute("totalInactive", managerService.countAll("inactive"));
+        model.addAttribute("filter",      filter);
+        model.addAttribute("activePage",  "staffManagement");
+        return "admin/staff";
     }
 
     // 직원 등록 (모달 폼 → Ajax)
