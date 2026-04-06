@@ -63,7 +63,7 @@ class PointMapperTest {
         pointMapper.insert(Point.builder().phone("010-9999-0003").balance(0).build());
         pointMapper.insert(Point.builder().phone("010-9999-0004").balance(0).build());
 
-        List<Point> list = pointMapper.findAll();
+        List<Point> list = pointMapper.findAll(0, 8);
         assertThat(list).hasSizeGreaterThanOrEqualTo(2);
     }
 

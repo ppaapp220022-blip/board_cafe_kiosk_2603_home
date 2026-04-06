@@ -1,6 +1,7 @@
 package org.example.board_cafe_kiosk_2603.mapper.admin.point;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.example.board_cafe_kiosk_2603.domain.admin.point.Point;
 import org.example.board_cafe_kiosk_2603.domain.admin.point.PointHistory;
 
@@ -12,7 +13,8 @@ public interface PointMapper {
     /* ===== point 테이블 ===== */
 
     // 전체 포인트 계좌 목록 조회 (관리자 화면)
-    List<Point> findAll();
+    // 페이징 조회
+    List<Point> findAll(@Param("offset") int offset, @Param("limit") int limit);
 
     // 전화번호로 포인트 계좌 조회
     Point findByPhone(String phone);

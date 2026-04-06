@@ -8,8 +8,19 @@ import java.util.Optional;
 
 public interface ManagerService {
 
-    // 전체 목록 조회
-    List<ManagerResponse> findAll();
+    // 전체 목록 조회 (페이징)
+    List<ManagerResponse> findAll(int page, int size, String filter);
+
+    // 전체 개수
+    int countAll(String filter);
+
+
+    // 활성화 개수
+    int countActive();
+
+    // 비활성화 개수
+    int countInactive();
+
 
     // 직원 등록
     void createManager(ManagerRequest request);

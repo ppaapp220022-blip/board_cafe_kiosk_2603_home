@@ -23,14 +23,29 @@ public class ManagerServiceImpl implements ManagerService {
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
 
-    // 전체 목록 조회 - VO → Response 변환
+    // 전체 목록 조회 (페이징)
     @Override
-    public List<ManagerResponse> findAll() {
-        return managerMapper.findAll()
+    public List<ManagerResponse> findAll(int page, int size, String filter) {
+        int offset = (page - 1) * size;
+        return managerMapper.findAll(offset, size, filter)
                 .stream()
                 .map(vo -> modelMapper.map(vo, ManagerResponse.class))
                 .collect(Collectors.toList());
     }
+
+    // 전체 개수
+    @Override
+    public int countAll(String filter) {
+        return managerMapper.countAll(filter);
+    }
+
+    // 활성화 개수
+    @Override
+    public int countActive() { return managerMapper.countActive(); }
+
+    // 비활성화 개수
+    @Override
+    public int countInactive() { return managerMapper.countInactive(); }
 
     // 직원 등록 - Request → VO 변환 후 insert
     @Override

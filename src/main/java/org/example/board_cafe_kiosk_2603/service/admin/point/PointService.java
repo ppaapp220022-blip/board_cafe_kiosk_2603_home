@@ -27,8 +27,9 @@ public class PointService {
     // ===================================================
 
     /** 전체 포인트 계좌 목록 (관리자 화면용) */
-    public List<PointAdminDTO> getAllPoints() {
-        return pointMapper.findAll().stream()
+    public List<PointAdminDTO> getAllPoints(int page, int size) {
+        int offset = (page - 1) * size;
+        return pointMapper.findAll(offset, size).stream()
                 .map(PointAdminDTO::from)
                 .collect(Collectors.toList());
     }

@@ -3,9 +3,11 @@ package org.example.board_cafe_kiosk_2603.service.kiosk;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.example.board_cafe_kiosk_2603.domain.common.cafeTableSession.CafeTableSession;
 import org.example.board_cafe_kiosk_2603.dto.admin.point.PointAdminDTO;
 import org.example.board_cafe_kiosk_2603.dto.kiosk.cafePackage.CafePackageDTO;
 import org.example.board_cafe_kiosk_2603.dto.kiosk.cart.CartDTO;
+import org.example.board_cafe_kiosk_2603.service.admin.cafeTable.TableSessionAdminService;
 import org.example.board_cafe_kiosk_2603.service.admin.point.PointService;
 import org.example.board_cafe_kiosk_2603.service.kiosk.cafePackage.CafePackageService;
 import org.example.board_cafe_kiosk_2603.service.kiosk.cart.CartService;
@@ -28,6 +30,7 @@ public class KioskPageService {
     private final CartService cartService;
     private final PointService pointService;
     private final CafePackageService cafePackageService;
+    private final TableSessionAdminService tableSessionAdminService;
 
     // ===================================================
     // 세션 헬퍼
@@ -117,37 +120,60 @@ public class KioskPageService {
     }
 
     public void buildCheckoutModel(Model model, int tableNumber, HttpSession session) {
+        Integer tableId = (Integer) session.getAttribute("tableId");
         CartDTO cartDTO = cartService.getCart(tableNumber);
         int sessionDuration = getSessionDuration(session);
         String customerPhone = (String) session.getAttribute("customerPhone");
         int pointBalance = resolvePointBalance(customerPhone);
-        int partySize         = getPartySize(session);
+        int partySize = getPartySize(session);
 
-        // 패키지 금액 계산
-        Integer packageId    = (Integer) session.getAttribute("selectedPackageId");
-        int packageTotal     = 0;
-        String packageName   = "";
+        // DB에서 활성 세션 먼저 조회
+        Integer packageId = null;
+        if (tableId != null) {
+            CafeTableSession activeSession = tableSessionAdminService.getActiveSession(tableId);
+            if (activeSession != null) {
+                packageId = activeSession.getPackageId();
+                long checkInMillis = activeSession.getCheckInTime()
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toInstant()
+                        .toEpochMilli();
+                model.addAttribute("sessionStartTime", checkInMillis);
+            } else {
+                model.addAttribute("sessionStartTime", session.getAttribute("sessionStartTime"));
+            }
+        } else {
+            model.addAttribute("sessionStartTime", session.getAttribute("sessionStartTime"));
+        }
+
+        // 패키지 금액 계산 (packageId가 확정된 후)
+        int packageTotal   = 0;
+        String packageName = "";
+        model.addAttribute("durationMinutes",  null);  // ← 기본값 먼저 설정
+        model.addAttribute("extraPricePerMin", 0.0);   // ← 기본값 먼저 설정
+
         if (packageId != null) {
             CafePackageDTO pkg = cafePackageService.getById(packageId);
             if (pkg != null) {
                 packageTotal = pkg.getBasePrice() * partySize;
                 packageName  = pkg.getName();
+                model.addAttribute("durationMinutes",  pkg.getDurationMinutes());
+                model.addAttribute("extraPricePerMin", pkg.getExtraPricePerMin() != null ? pkg.getExtraPricePerMin() : 0.0);
             }
         }
 
         int totalPrice = cartDTO.getTotalPrice() + packageTotal;
 
-        model.addAttribute("tableNumber", tableNumber);
-        model.addAttribute("partySize", partySize);
-        model.addAttribute("cartItems", cartDTO.getCartItems());
-        model.addAttribute("menuTotal", cartDTO.getTotalPrice());
-        model.addAttribute("packageName", packageName);
-        model.addAttribute("packageTotal", packageTotal);
-        model.addAttribute("totalPrice", totalPrice);
-        model.addAttribute("cartCount", cartDTO.getCartCount());
-        model.addAttribute("sessionHours", sessionDuration / 60);
-        model.addAttribute("sessionMinutes", sessionDuration % 60);
-        model.addAttribute("pointBalance", pointBalance);
+        model.addAttribute("tableNumber",   tableNumber);
+        model.addAttribute("partySize",     partySize);
+        model.addAttribute("cartItems",     cartDTO.getCartItems());
+        model.addAttribute("menuTotal",     cartDTO.getTotalPrice());
+        model.addAttribute("packageName",   packageName);
+        model.addAttribute("packageTotal",  packageTotal);
+        model.addAttribute("totalPrice",    totalPrice);
+        model.addAttribute("cartCount",     cartDTO.getCartCount());
+        model.addAttribute("sessionHours",  sessionDuration / 60);
+        model.addAttribute("sessionMinutes",sessionDuration % 60);
+        model.addAttribute("pointBalance",  pointBalance);
         model.addAttribute("customerPhone", customerPhone != null ? customerPhone : "");
 
         log.info("정산 화면 - 테이블: {}, 메뉴: ₩{}, 패키지: {} ₩{}, 합계: ₩{}, 포인트: {}P",

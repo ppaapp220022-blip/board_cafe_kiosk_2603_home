@@ -50,6 +50,21 @@
 
             /* 실시간 메시지 스타일 */
             .status-msg { font-size: 12px; margin-top: 6px; min-height: 18px; font-weight: 500; }
+
+            /* 페이징 */
+            .pagination {
+                display: flex; justify-content: center; align-items: center;
+                gap: 8px; margin-top: 24px;
+            }
+            .page-btn {
+                width: 40px; height: 40px; border-radius: 10px; border: 1px solid #E5E5EA;
+                background: white; font-size: 14px; font-weight: 600; cursor: pointer;
+                display: flex; align-items: center; justify-content: center;
+                color: var(--text-dark); transition: all 0.2s;
+            }
+            .page-btn:hover { background: #f1f3f4; }
+            .page-btn.active { background: var(--primary-blue); color: white; border-color: var(--primary-blue); }
+            .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
         </style>
     </th:block>
 </head>
@@ -62,9 +77,18 @@
     </div>
 
     <div class="tab-container">
-        <div class="tab-item active" onclick="filterTab('all', this)">전체 <span class="tab-count" id="count-all">0</span></div>
-        <div class="tab-item" onclick="filterTab('active', this)">활성화 <span class="tab-count" id="count-active">0</span></div>
-        <div class="tab-item" onclick="filterTab('inactive', this)">비활성화 <span class="tab-count" id="count-inactive">0</span></div>
+        <div class="tab-item" th:classappend="${filter == 'all'} ? 'active'"
+             onclick="filterTab('all')">
+            전체 <span class="tab-count" th:text="${totalCount}">0</span>
+        </div>
+        <div class="tab-item" th:classappend="${filter == 'active'} ? 'active'"
+             onclick="filterTab('active')">
+            활성화 <span class="tab-count" th:text="${totalActive}">0</span>
+        </div>
+        <div class="tab-item" th:classappend="${filter == 'inactive'} ? 'active'"
+             onclick="filterTab('inactive')">
+            비활성화 <span class="tab-count" th:text="${totalInactive}">0</span>
+        </div>
     </div>
 
     <div class="table-container">
@@ -99,6 +123,22 @@
             </tr>
             </tbody>
         </table>
+    </div>
+
+    <div class="pagination" th:if="${totalPages > 1}">
+        <button class="page-btn"
+                th:disabled="${currentPage == 1}"
+                th:onclick="'movePage(' + (${currentPage} - 1) + ')'">‹</button>
+
+        <button th:each="i : ${#numbers.sequence(1, totalPages)}"
+                class="page-btn"
+                th:classappend="${i == currentPage} ? 'active'"
+                th:text="${i}"
+                th:onclick="'movePage(' + ${i} + ')'"></button>
+
+        <button class="page-btn"
+                th:disabled="${currentPage == totalPages}"
+                th:onclick="'movePage(' + (${currentPage} + 1) + ')'">›</button>
     </div>
 
     <div id="staffModal" class="modal-overlay" onclick="closeStaffModal()">
@@ -138,9 +178,15 @@
 
 <th:block layout:fragment="scripts">
     <script>
-        const tableBody = document.getElementById('staffTableBody');
+        const tableBody     = document.getElementById('staffTableBody');
+        const currentFilter =  '[[${filter}]]';
+        const currentPage   = [[${currentPage}]];
         let isIdValid = false;
         let idCheckTimeout = null;
+
+        function movePage(page) {
+            window.location.href = `/admin/staff?page=${page}&filter=${currentFilter}`;
+        }
 
         /** [모달 제어] */
         function openStaffModal() {
@@ -251,25 +297,8 @@
         }
 
         /** [유틸리티: 필터, 정렬, 카운트] */
-        function filterTab(type, element) {
-            document.querySelectorAll('.tab-item').forEach(tab => tab.classList.remove('active'));
-            element.classList.add('active');
-            const rows = tableBody.querySelectorAll('tr');
-            rows.forEach(row => {
-                const isDisabled = row.classList.contains('is-disabled');
-                if (type === 'all') row.style.display = '';
-                else if (type === 'active') row.style.display = isDisabled ? 'none' : '';
-                else if (type === 'inactive') row.style.display = isDisabled ? '' : 'none';
-            });
-        }
-
-        function updateCounts() {
-            const rows = tableBody.querySelectorAll('tr');
-            const total = rows.length;
-            const inactive = tableBody.querySelectorAll('tr.is-disabled').length;
-            document.getElementById('count-all').textContent = total;
-            document.getElementById('count-active').textContent = total - inactive;
-            document.getElementById('count-inactive').textContent = inactive;
+        function filterTab(type) {
+            window.location.href = `/admin/staff?page=1&filter=${type}`;
         }
 
         window.onload = () => {
@@ -277,7 +306,6 @@
             const rows = Array.from(tableBody.querySelectorAll('tr'));
             rows.sort((a, b) => a.classList.contains('is-disabled') - b.classList.contains('is-disabled'));
             rows.forEach(row => tableBody.appendChild(row));
-            updateCounts();
         };
     </script>
 </th:block>
