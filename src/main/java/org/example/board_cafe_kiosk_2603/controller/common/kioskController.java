@@ -69,8 +69,8 @@ public class kioskController {
     }
 
     // ===========================================================
-// 세션 시작 (로그인 성공 후 → 인원수 입력 화면)
-// ===========================================================
+    // 세션 시작 (로그인 성공 후 → 인원수 입력 화면)
+    // ===========================================================
     @GetMapping("/session/start")
     public String sessionStart(HttpSession session, Model model) {
         log.info("--- [KioskController] 인원수 입력 화면 진입 | tableNumber: {} ---",
@@ -95,6 +95,7 @@ public class kioskController {
                         .build())
                 .toList();
         buildMenuModel(model, session, "games", "게임", items);
+        log.info("--- 게임 화면 진입 ---");
         return "layout/kiosk_layout";
     }
 
@@ -103,14 +104,18 @@ public class kioskController {
         initCart(session);
         List<kioskItem> items = menuService.getByType("DRINK").stream()
                 .filter(m -> m.isAvailable() && !m.isDeleted())
-                .map(m -> kioskItem.builder()
-                        .name(m.getName())
-                        .price(m.getPrice())
-                        .imageUrl(m.getImageUrl())
-                        .stock(-1)
-                        .build())
+                .map(m -> {
+                    log.info("변환 중인 메뉴: {}", m.getName()); // 로그를 찍어서 데이터가 도는지 확인
+                    return kioskItem.builder()
+                            .name(m.getName())
+                            .price(m.getPrice())
+                            .imageUrl(m.getImageUrl())
+                            .stock(-1)
+                            .build();
+                })
                 .toList();
         buildMenuModel(model, session, "drinks", "음료", items);
+        log.info("--- 음료 화면 진입 ---");
         return "layout/kiosk_layout";
     }
 
@@ -127,6 +132,7 @@ public class kioskController {
                         .build())
                 .toList();
         buildMenuModel(model, session, "food", "음식", items);
+        log.info("--- 음식 화면 진입 ---");
         return "layout/kiosk_layout";
     }
 
@@ -143,6 +149,7 @@ public class kioskController {
                         .build())
                 .toList();
         buildMenuModel(model, session, "members", "추가인원", items);
+        log.info("--- 추가인원 화면 진입 ---");
         return "layout/kiosk_layout";
     }
     // ===========================================================
@@ -204,8 +211,11 @@ public class kioskController {
 
     private void buildMenuModel(Model model, HttpSession session,
                                 String menuType, String title, List<kioskItem> items) {
+        log.info("--- buildMenuModel ---");
+        // 장바구니 개수 안전차게 처리
         Object cart = session.getAttribute("cart");
         int cartCount = cart instanceof List ? ((List<?>) cart).size() : 0;
+
         model.addAttribute("tableNumber", session.getAttribute("tableNumber"));
         model.addAttribute("partySize", getPartySize(session));
         model.addAttribute("currentMenu", menuType);
