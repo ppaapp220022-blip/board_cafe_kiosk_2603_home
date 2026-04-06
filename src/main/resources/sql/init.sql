@@ -1,10 +1,10 @@
- CREATE DATABASE IF NOT EXISTS `board_cafe_kiosk_2603`;
- USE `board_cafe_kiosk_2603`;
+CREATE DATABASE IF NOT EXISTS `board_cafe_kiosk_2603`;
+USE `board_cafe_kiosk_2603`;
 
 --  보드게임 카페 키오스크 시스템 — 최종 고도화 스키마
---  수정 사항: table_session 추가(22번), GUEST 카테고리 확장, 세션 기반 관계 재설정
+--  수정 사항: table_session 추가(21번), GUEST 카테고리 확장, 세션 기반 관계 재설정
 --
---  테이블 목록 (총 22개)
+--  테이블 목록 (총 21개)
 --  ┌─────┬─────────────────────┬────────────────────────────────────────────────┐
 --  │  #  │ 테이블명              │ 역할 (비고)                                     │
 --  ├─────┼─────────────────────┼────────────────────────────────────────────────┤
@@ -22,14 +22,13 @@
 --  │ 12  │ orders              │ 주문 헤더 (session_id 외래키 추가)                │
 --  │ 13  │ order_item          │ 주문 상세 항목 (메뉴·가격 스냅샷)                   │
 --  │ 14  │ payment             │ 결제 헤더 (세션 단위 정산으로 변경)                  │
---  │ 15  │ toss_payment        │ Toss Payments API 전용 데이터                  │
---  │ 16  │ point               │ 전화번호 기반 포인트 계좌                          │
---  │ 17  │ point_history       │ 포인트 적립·사용 이력                             │
---  │ 18  │ table_message       │ 통합 메시지 로그                                 │
---  │ 19  │ item_sales_history  │ 일일 상품별 판매 통계                             │
---  │ 20  │ daily_sales_summary │ 매장 전체 일별 매출 요약                          │
---  │ 21  │ cafe_package        │ 패키지 요금 정책                                 │
---  │ 22  │ game_history        │ 게임 대여 이력 (session_id 기반으로 변경)           │
+--  │ 15  │ point               │ 전화번호 기반 포인트 계좌                          │
+--  │ 16  │ point_history       │ 포인트 적립·사용 이력                             │
+--  │ 17  │ table_message       │ 통합 메시지 로그                                 │
+--  │ 18  │ item_sales_history  │ 일일 상품별 판매 통계                             │
+--  │ 19  │ daily_sales_summary │ 매장 전체 일별 매출 요약                          │
+--  │ 20  │ cafe_package        │ 패키지 요금 정책                                 │
+--  │ 21  │ game_history        │ 게임 대여 이력 (session_id 기반으로 변경)           │
 --  └─────┴─────────────────────┴────────────────────────────────────────────────┘
 
 -- 1. manager
@@ -80,7 +79,7 @@ CREATE TABLE `category`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 COMMENT ='메뉴·게임·인원 공통 대분류.';
 
--- 21. cafe_package (순서 조정: session 참조용)
+-- 20. cafe_package (순서 조정: session 참조용)
 CREATE TABLE `cafe_package`
 (
     `id`                  INT                                 NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -136,7 +135,7 @@ CREATE TABLE `orders`
     `session_id`     BIGINT                                                                                   NOT NULL COMMENT '방문 세션 ID (FK)',
     `table_id`       INT                                                                                      NOT NULL COMMENT '주문 테이블 (FK)',
     `customer_phone` VARCHAR(20)                                                                                       DEFAULT NULL,
-    `status`         ENUM ('PENDING', 'PAID', 'CONFIRMED', 'COOKING', 'DELIVERING', 'COMPLETED', 'CANCELLED') NOT NULL DEFAULT 'PAID',
+    `status`         ENUM ('PENDING', 'PAID', 'CONFIRMED', 'COOKING', 'DELIVERING', 'COMPLETED', 'CANCELLED') NOT NULL DEFAULT 'PENDING',
     `total_amount`   INT                                                                                      NOT NULL DEFAULT 0 COMMENT '주문 총액',
     `ordered_at`     TIMESTAMP                                                                                NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT `fk_orders_session` FOREIGN KEY (`session_id`) REFERENCES `table_session` (`id`),
@@ -204,45 +203,43 @@ CREATE TABLE `cart_item`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
--- 22. game_history
+-- 21. game_history
 -- 수정사항: table_id 대신 session_id를 사용하여 히스토리 추적성 강화
-CREATE TABLE `game_history` (
-                                `id`           BIGINT    NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                                `session_id`   BIGINT    NOT NULL COMMENT '방문 세션 ID (FK)',
-                                `game_item_id` INT       NOT NULL,
-                                `rented_at`    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                                `returned_at`  TIMESTAMP NULL,
-                                `status`       ENUM ('RENTING','RETURNED','DAMAGED','LOST') NOT NULL DEFAULT 'RENTING',
-                                CONSTRAINT `fk_rental_session` FOREIGN KEY (`session_id`) REFERENCES `table_session` (`id`),
-                                CONSTRAINT `fk_rental_item` FOREIGN KEY (`game_item_id`) REFERENCES `game_item` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='게임 대여 이력 로그.';
+CREATE TABLE `game_history`
+(
+    `id`           BIGINT                                       NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `session_id`   BIGINT                                       NOT NULL COMMENT '방문 세션 ID (FK)',
+    `game_item_id` INT                                          NOT NULL,
+    `rented_at`    TIMESTAMP                                    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `returned_at`  TIMESTAMP                                    NULL,
+    `status`       ENUM ('RENTING','RETURNED','DAMAGED','LOST') NOT NULL DEFAULT 'RENTING',
+    CONSTRAINT `fk_rental_session` FOREIGN KEY (`session_id`) REFERENCES `table_session` (`id`),
+    CONSTRAINT `fk_rental_item` FOREIGN KEY (`game_item_id`) REFERENCES `game_item` (`id`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4 COMMENT ='게임 대여 이력 로그.';
 
--- 14. payment / 15. toss_payment
+-- 14. payment (수정)
 CREATE TABLE `payment`
 (
-    `id`           INT                   NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `session_id`   BIGINT                NOT NULL UNIQUE COMMENT '세션당 최종 1회 결제',
-    `status`       ENUM ('READY','DONE') NOT NULL DEFAULT 'READY',
-    `final_amount` INT                   NOT NULL,
-    `paid_at`      TIMESTAMP                      DEFAULT NULL,
+    `id`            INT                   NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `session_id`    BIGINT                NOT NULL UNIQUE COMMENT '세션당 최종 1회 결제',
+    `table_number`  INT                   NULL COMMENT '테이블 번호 (조회 편의용)',
+    `status`        ENUM ('READY','DONE') NOT NULL                                DEFAULT 'READY',
+    `final_amount`  INT                   NOT NULL,
+    `payment_key`   VARCHAR(200) UNIQUE COMMENT '토스 결제 키 (중복 결제 방지)',
+    `order_id_toss` VARCHAR(64)                                                   DEFAULT NULL COMMENT '토스용 주문번호',
+    `method`        VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '결제 수단 (카드, 간편결제 등)',
+    `raw_response`  JSON                                                          DEFAULT NULL COMMENT '토스 API 응답 원문',
+    `approved_at`   TIMESTAMP                                                     DEFAULT NULL COMMENT '토스 승인 시각',
+    `paid_at`       TIMESTAMP                                                     DEFAULT NULL COMMENT '결제 완료 시각',
+    INDEX idx_table_number (table_number),
+    INDEX idx_method (method),
     CONSTRAINT `fk_payment_session` FOREIGN KEY (`session_id`) REFERENCES `table_session` (`id`)
 ) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4;
+  DEFAULT CHARSET = utf8mb4
+  COLLATE utf8mb4_unicode_ci;
 
-CREATE TABLE `toss_payment`
-(
-    `id`            INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `payment_id`    INT          NOT NULL UNIQUE,
-    `payment_key`   VARCHAR(200) NOT NULL UNIQUE,
-    `order_id_toss` VARCHAR(64)  NOT NULL,
-    `method`        ENUM ('간편결제','계좌이체') DEFAULT NULL,
-    `raw_response`  JSON                 DEFAULT NULL,
-    `approved_at`   TIMESTAMP            DEFAULT NULL,
-    CONSTRAINT `fk_toss_payment` FOREIGN KEY (`payment_id`) REFERENCES `payment` (`id`) ON DELETE CASCADE
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4;
-
--- 16. point / 17. point_history
+-- 15. point / 16. point_history
 CREATE TABLE `point`
 (
     `id`         INT         NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -266,7 +263,7 @@ CREATE TABLE `point_history`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
--- 10. macro_message / 18. table_message
+-- 10. macro_message / 17. table_message
 CREATE TABLE `macro_message`
 (
     `id`           INT                                      NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -289,7 +286,7 @@ CREATE TABLE `table_message`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
--- 19. item_sales_history / 20. daily_sales_summary
+-- 18. item_sales_history / 19. daily_sales_summary
 CREATE TABLE `item_sales_history`
 (
     `id`           INT                                     NOT NULL AUTO_INCREMENT PRIMARY KEY,
