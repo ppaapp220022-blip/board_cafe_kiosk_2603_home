@@ -1,10 +1,15 @@
 package org.example.board_cafe_kiosk_2603.controller.admin.manager;
 
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.example.board_cafe_kiosk_2603.config.OtpStore;
+import org.example.board_cafe_kiosk_2603.domain.admin.manager.Manager;
 import org.example.board_cafe_kiosk_2603.dto.admin.manager.ManagerRequest;
 import org.example.board_cafe_kiosk_2603.dto.admin.manager.ManagerResponse;
+import org.example.board_cafe_kiosk_2603.dto.admin.manager.ProfileUpdateRequest;
 import org.example.board_cafe_kiosk_2603.service.admin.manager.ManagerService;
+import org.example.board_cafe_kiosk_2603.service.admin.sms.MailSenderService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -20,44 +25,38 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ManagerController {
 
+    private final MailSenderService mailSenderService;
+    private final OtpStore otpStore;
     private final ManagerService managerService;
-    private static final int PAGE_SIZE = 8;
 
-    // 직원 목록 페이지
+    /* 직원 목록 페이지 */
     @GetMapping
-    public String staffPage(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "all") String filter,
-            Model model) {
+    public String staffPage(Model model) {
+        log.info("--- 직원 목록 페이지 진입 ---");
+        List<ManagerResponse> staffList = managerService.findAll();
 
-        int totalCount = managerService.countAll(filter);
-        int totalPages = (int) Math.ceil((double) totalCount / PAGE_SIZE);
-
-        if (page < 1) page = 1;
-        if (totalPages > 0 && page > totalPages) page = totalPages;
-
-        model.addAttribute("staffList",   managerService.findAll(page, PAGE_SIZE, filter));
-        model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages",  totalPages);
-        model.addAttribute("totalCount",  managerService.countAll("all"));
-        model.addAttribute("totalActive", managerService.countAll("active"));
-        model.addAttribute("totalInactive", managerService.countAll("inactive"));
-        model.addAttribute("filter",      filter);
-        model.addAttribute("activePage",  "staffManagement");
+        log.info("--- 조회된 직원: {}명 ---", staffList);
+        model.addAttribute("staffList", staffList);
         return "admin/staff";
     }
 
-    // 직원 등록 (모달 폼 → Ajax)
+    /* 신규 직원 등록 (모달 폼 → Ajax) */
     @PostMapping
     @ResponseBody
     public ResponseEntity<String> createStaff(@RequestBody ManagerRequest managerRequest) {
-        log.info("--- 새 직원 등록 요청: {} ---", managerRequest);
-        managerService.createManager(managerRequest);
-        return ResponseEntity.ok("success");
+        log.info("--- [직원 등록 시작] 입력 정보: {} ---", managerRequest);
+
+        try {
+            managerService.createManager(managerRequest);
+            log.info("--- [직원 등록 완료] ID: {} 등록 성공 ---", managerRequest.getLoginId());
+            return ResponseEntity.ok("success");
+        } catch (Exception e) {
+            log.error("--- [직원 등록 실패] 사유: {} ---", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fail");
+        }
     }
 
-    // 업데이트 API 만들기
-    // 서버에서 상태를 변경해줄 메서드
+    /* 직원 활성화/비활성화 상태 토글 (모달 -> Ajax 처리) */
     @PostMapping("/toggle-status")
     @ResponseBody // JSON 또는 성공 메시지를 반환하기 위해 필요
     public ResponseEntity<String> toggleStaffStatus(@RequestParam("id") Integer id,
@@ -67,55 +66,102 @@ public class ManagerController {
         log.info("요청 ID: {}, 변경할 상태: {}", id, isActive);
 
         try {
-            // 서비스 계층을 통해 DB 업데이트
             managerService.updateActive(id, isActive);
-            log.info("--- DB 업데이트 성공 ---");
+            log.info("--- [상태 변경 성공] ID {}번 직원의 활성화 상태가 {}로 변경됨 ---", id, isActive);
             return ResponseEntity.ok("success");
         } catch (Exception e) {
-            log.error("--- DB 업데이트 실패: {} ---", e.getMessage());
+            log.error("--- [상태 변경 실패] ID {}번 처리 중 에러: {} ---", id, e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fail");
         }
     }
 
-    // 아이디 중복 확인
+    /* 아이디 중복 확인 */
     @GetMapping("/check-id")
     @ResponseBody
     public ResponseEntity<Boolean> checkId(@RequestParam("loginId") String loginId) {
-        // findByLoginId 결과가 있으면(present) 중복된 것이므로 false 반환 또는 존재 여부 반환
+        log.info("--- [아이디 중복 확인] 요청 ID: {} ---", loginId);
         boolean isDuplicate = managerService.isLoginIdDuplicate(loginId);
-        log.info("--- 아이디 중복 체크 - ID: {}, 사용가능여부: {} ---", loginId, isDuplicate);
+
+        // 결과가 true면 중복, false면 사용 가능
+        log.info("중복 여부 결과: {}", isDuplicate ? "중복됨(사용불가)" : "미중복(사용가능)");
         return ResponseEntity.ok(isDuplicate);
     }
 
-    // 내 정보 수정 페이지 이동
-    // 실제 URL: localhost:8080/admin/staff/profile
+    /* 내 프로필 수정 페이지 이동 */
     @GetMapping("/profile")
     public String profilePage(Model model, Principal principal) {
 
         if (principal == null) {
-            log.error("--- 로그인 정보가 없습니다. ---");
-            return "redirect:/login"; // 로그인 안 되어 있으면 리다이렉트
+            log.warn("[접근 제한] 로그인 정보가 없어 로그인 페이지로 리다이렉트합니다.");
+            return "redirect:/login";
         }
 
-        // 1. 현재 로그인한 ID 추출
-        String loginId = principal.getName();
+        String loginId = principal.getName();  // 현재 로그인한 ID
+        log.info("[프로필 조회] 로그인 사용자 ID: {}", loginId);
 
-        // 2. 서비스 호출 (서비스에서 이미 ManagerResponse로 변환해서 줌)
         ManagerResponse manager = managerService.findByLoginId(loginId)
-                .orElseThrow(() -> new RuntimeException("--- 사용자를 찾을 수 없습니다. ---"));
+                .orElseThrow(() -> {
+                    log.error("[조회 에러] 로그인한 ID({})를 DB에서 찾을 수 없음", loginId);
+                    return new RuntimeException("사용자를 찾을 수 없습니다.");
+                });
 
-        // 3. 모델에 담기
         model.addAttribute("manager", manager);
-
         return "admin/staff_profile";
     }
 
-    // 내 정보 수정 처리 (Ajax)
+    /* OTP 인증 번호 메일 발송 */
+    @PostMapping("/profile/send-otp")
+    @ResponseBody
+    public ResponseEntity<String> sendOtp(Principal principal) {
+        // 세션에서 현재 로그인한 관리자 이메일 가져오기
+        String loginId = principal.getName();
+        log.info("--- [OTP 발송 요청] 사용자: {} ---", loginId);
+
+        // 서비스 레이어 통해 조회
+        ManagerResponse manager = managerService.findByLoginId(loginId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        String email = manager.getEmail();
+        log.info("--- [OTP 발송 대상 이메일] {} ---", email);
+
+        // 번호 생성 및 메모리(OtpStore) 임시 저장
+        String code = mailSenderService.generateVerificationCode();
+        otpStore.save(email, code);
+
+        try {
+            mailSenderService.sendMailForAlarm(email, code);
+            log.info("--- [OTP 메일 전송 성공] 이메일: {}, 번호: {} ---", email, code);
+            return ResponseEntity.ok("OTP 발송 완료");
+        } catch (Exception e) {
+            log.error("--- [OTP 메일 전송 실패] 에러: {} ---", e.getMessage());
+            return ResponseEntity.status(500).body("메일 발송 실패");
+        }
+    }
+
+    /* 프로필 수정 (OTP 검증 포함) */
     @PostMapping("/profile/update")
     @ResponseBody
-    public ResponseEntity<String> updateProfile(@RequestBody ManagerRequest request, Principal principal) {
-        // 보안을 위해 세션의 ID와 요청 ID가 일치하는지 확인하거나, 세션 ID를 우선 사용
-        managerService.updateProfile(principal.getName(), request);
-        return ResponseEntity.ok("success");
+    public ResponseEntity<String> updateProfile(
+            @RequestBody ProfileUpdateRequest request,
+            Principal principal) {
+
+        String loginId = principal.getName();
+        log.info("[프로필 업데이트 시작] 사용자: {}", loginId);
+
+        ManagerResponse manager = managerService.findByLoginId(loginId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        String email = manager.getEmail();
+
+        // OTP 검증
+        log.info("--- [OTP 검증 시도] 이메일: {}, 입력코드: {} ---", email, request.getOtp());
+        if (!otpStore.verify(email, request.getOtp())) {
+            log.warn("--- [OTP 검증 실패] 올바르지 않은 코드이거나 시간이 만료됨 - 이메일: {} ---", email);
+            return ResponseEntity.status(401).body("OTP가 올바르지 않거나 만료되었습니다.");
+        }
+
+        log.info("--- [OTP 검증 성공] 프로필 DB 업데이트 진행 ---");
+        managerService.updateProfile(loginId, request);
+
+        log.info("[프로필 업데이트 완료] 사용자: {}", loginId);
+        return ResponseEntity.ok("수정 완료");
     }
 }

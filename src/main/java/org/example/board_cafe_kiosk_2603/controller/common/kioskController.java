@@ -79,29 +79,37 @@ public class kioskController {
         return "kiosk/screensaver";
     }
 
+    // ===========================================================
+    // 메뉴 화면 - 실제 DB 데이터
+    // ===========================================================
 
-    // ===========================================================
-    // [주연] -> 메뉴 화면 - 실제 DB 데이터
-    // ===========================================================
+    // 게임 목록 조회
     @GetMapping("/games")
     public String games(HttpSession session, Model model) {
         initCart(session);
+
+        // 활성화된 게임만 가져와서 키오스크용 DTO(kioskItem)로 변환
         List<kioskItem> items = gameService.getByIsActive(true).stream()
                 .map(g -> kioskItem.builder()
                         .name(g.getName())
-                        .price(0)
+                        .price(0)  // 게임은 대여료가 0원
                         .imageUrl(g.getImageUrl())
                         .stock(g.getGameItemCount())
                         .build())
                 .toList();
+
+        log.info("--- [메뉴 -> 게임] 조회 완료 - 데이터 개수: {}개 ---", items.size());
+
         buildMenuModel(model, session, "games", "게임", items);
-        log.info("--- 게임 화면 진입 ---");
         return "layout/kiosk_layout";
     }
 
+    // 음료 목록 조회
     @GetMapping("/drinks")
     public String drinks(HttpSession session, Model model) {
         initCart(session);
+
+        // 판매 가능(Available)하고 삭제되지 않은 음료만 필터링
         List<kioskItem> items = menuService.getByType("DRINK").stream()
                 .filter(m -> m.isAvailable() && !m.isDeleted())
                 .map(m -> {
@@ -110,130 +118,104 @@ public class kioskController {
                             .name(m.getName())
                             .price(m.getPrice())
                             .imageUrl(m.getImageUrl())
-                            .stock(-1)
+                            .stock(-1)  // 음식/음료는 무제한 재고로 표시
                             .build();
                 })
                 .toList();
+
+        log.info("--- [메뉴 -> 음료] 조회 완료 - 데이터 개수: {}개 ---", items.size());
+
         buildMenuModel(model, session, "drinks", "음료", items);
-        log.info("--- 음료 화면 진입 ---");
         return "layout/kiosk_layout";
     }
 
+    // 음식 목록 조회
     @GetMapping("/food")
     public String food(HttpSession session, Model model) {
         initCart(session);
+
+        // 판매 가능(Available)하고 삭제되지 않은 음료만 필터링
         List<kioskItem> items = menuService.getByType("FOOD").stream()
                 .filter(m -> m.isAvailable() && !m.isDeleted())
                 .map(m -> kioskItem.builder()
                         .name(m.getName())
                         .price(m.getPrice())
                         .imageUrl(m.getImageUrl())
-                        .stock(-1)
+                        .stock(-1)  // 음식/음료는 무제한 재고로 표시
                         .build())
                 .toList();
+
+        log.info("--- [메뉴 -> 음식] 조회 완료 - 데이터 개수: {}개 ---", items.size());
+
         buildMenuModel(model, session, "food", "음식", items);
-        log.info("--- 음식 화면 진입 ---");
         return "layout/kiosk_layout";
     }
 
+    // 추가인원 목록 조회
     @GetMapping("/members")
     public String members(HttpSession session, Model model) {
         initCart(session);
+
+        // 판매 가능(Available)하고 삭제되지 않은 음료만 필터링
         List<kioskItem> items = menuService.getByType("GUEST").stream()
                 .filter(m -> m.isAvailable() && !m.isDeleted())
                 .map(m -> kioskItem.builder()
                         .name(m.getName())
                         .price(m.getPrice())
                         .imageUrl(m.getImageUrl())
-                        .stock(-1)
+                        .stock(-1)  // 무제한 재고로 표시
                         .build())
                 .toList();
         buildMenuModel(model, session, "members", "추가인원", items);
-        log.info("--- 추가인원 화면 진입 ---");
+
+        log.info("--- [메뉴 -> 추가인원] 조회 완료 - 데이터 개수: {}개 ---", items.size());
         return "layout/kiosk_layout";
     }
-    // ===========================================================
-    // [/주연]
-    // ===========================================================
 
-    // ===========================================================
-    // 메뉴 화면 (kiosk_layout.html + MenuService 더미 데이터)
-    // ===========================================================
-
-//    @GetMapping("/drinks")
-//    public String drinks(
-//            @RequestParam(required = false, defaultValue = "1") Integer tableNumber,
-//            HttpSession session, Model model) {
-//        initSession(session, tableNumber);
-//        buildMenuModel(model, tableNumber, session, "drinks", menuService.getByType("DRINK"));
-//        return "layout/kiosk_layout";
-//    }
-//
-//    @GetMapping("/food")
-//    public String food(
-//            @RequestParam(required = false, defaultValue = "1") Integer tableNumber,
-//            HttpSession session, Model model) {
-//        initSession(session, tableNumber);
-//        buildMenuModel(model, tableNumber, session, "food", menuService.getByType("DRINK"), "음식");
-//        return "layout/kiosk_layout";
-//    }
-//
-//    @GetMapping("/games")
-//    public String games(
-//            @RequestParam(required = false, defaultValue = "1") Integer tableNumber,
-//            HttpSession session, Model model) {
-//        initSession(session, tableNumber);
-//        buildMenuModel(model, tableNumber, session, "games", menuService.getGameItems(), "게임");
-//        return "layout/kiosk_layout";
-//    }
-
-    // ===========================================================
-    // 헬퍼
-    // ===========================================================
-
-    // 기존 - 파라미터로 받아서 세션에 억지로 넣음
-//    private void initSession(HttpSession session, Integer tableNumber) {
-//        if (session.getAttribute("tableNumber") == null) {
-//            session.setAttribute("tableNumber",      tableNumber);
-//            session.setAttribute("partySize",        2);
-//            session.setAttribute("sessionStartTime", System.currentTimeMillis());
-//        }
-//        if (session.getAttribute("cart") == null) {
-//            session.setAttribute("cart", new ArrayList<>());
-//        }
-//    }
-    // 수정 - 세션에 이미 로그인 정보가 있으므로 cart만 초기화 (✅)
-//    private void initSession(HttpSession session) {
-//        if (session.getAttribute("cart") == null) {
-//            session.setAttribute("cart", new ArrayList<>());
-//        }
-//    }
-
+    // 화면에 필요한 공통 데이터(테이블 번호, 장바구니 수 등)을 모델에 담음
     private void buildMenuModel(Model model, HttpSession session,
                                 String menuType, String title, List<kioskItem> items) {
         log.info("--- buildMenuModel ---");
-        // 장바구니 개수 안전차게 처리
+        // 장바구니 개수 안전하게 처리
         Object cart = session.getAttribute("cart");
         int cartCount = cart instanceof List ? ((List<?>) cart).size() : 0;
 
+        // 세션 유지 시간 정보 로그
+        log.debug("세션 정보 - 시작시간: {}, 인원수: {}",
+                session.getAttribute("sessionStartTime"), getPartySize(session));
+
         model.addAttribute("tableNumber", session.getAttribute("tableNumber"));
         model.addAttribute("partySize", getPartySize(session));
-        model.addAttribute("currentMenu", menuType);
-        model.addAttribute("pageTitle", title);
-        model.addAttribute("menuItems", items);
-        model.addAttribute("cartCount", cartCount);
+        model.addAttribute("currentMenu", menuType);  // 현재 탭 강조용
+        model.addAttribute("pageTitle", title);  // 상단 제목용
+        model.addAttribute("menuItems", items);  // 실제 메뉴 리스트
+        model.addAttribute("cartCount", cartCount);  // 우측 하단 장바구니 숫자
         model.addAttribute("sessionStartTime", session.getAttribute("sessionStartTime"));
         model.addAttribute("durationMinutes", session.getAttribute("durationMinutes"));
     }
 
 
+    // 인원수 기본값 처리
+//    private int getPartySize(HttpSession session) {
+//        Object val = session.getAttribute("partySize");
+//        return val instanceof Integer ? (Integer) val : 2;
+//    }
+
+    // 인원수 미선택 시 다음 단계로 넘어가지 못하게 제어
     private int getPartySize(HttpSession session) {
         Object val = session.getAttribute("partySize");
-        return val instanceof Integer ? (Integer) val : 2;
+
+        if (!(val instanceof Integer)) {
+            log.error("[세션 에러] 인원수 데이터가 세션에 존재하지 않습니다.");
+            throw new IllegalStateException("인원수 선택이 완료되지 않았습니다.");
+        }
+        return (Integer) val;
     }
 
+    // 장바구니가 세션에 없으면 빈 리스트로 초기화 (null 방지)
     private void initCart(HttpSession session) {
         if (session.getAttribute("cart") == null) {
+            log.info("--- HttpSession, 새로운 장바구니(Cart) 생성 ---");
             session.setAttribute("cart", new ArrayList<>());
         }
     }

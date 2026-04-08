@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2차 인증 - OTP 확인</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Pretendard', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .auth-card {
+            background: white;
+            width: 460px;
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            text-align: center;
+        }
+
+        .icon-box {
+            width: 60px;
+            height: 60px;
+            background-color: #2471a3;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+        }
+
+        h2 {
+            margin: 0;
+            font-size: 1.6rem;
+            color: #111;
+        }
+
+        .subtitle {
+            color: #888;
+            margin: 10px 0 24px;
+            font-size: 0.9rem;
+        }
+
+        .role-badge {
+            display: inline-block;
+            background: #eaf3fb;
+            color: #185fa5;
+            border: 1px solid #b5d4f4;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            padding: 3px 12px;
+            margin-bottom: 16px;
+        }
+
+        .info-box {
+            background: #eaf3fb;
+            border: 1px solid #b5d4f4;
+            color: #185fa5;
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 0.85rem;
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        /* ── 상태 메시지 (JS로 제어) ── */
+        #statusMsg {
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.85rem;
+            margin-bottom: 16px;
+            display: none;
+            text-align: left;
+        }
+
+        #statusMsg.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        #statusMsg.error {
+            background: #fdf2f2;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .input-group {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .label {
+            display: block;
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        /* 이메일 + 인증 요청 버튼 한 줄 */
+        .email-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .email-row input {
+            flex: 1;
+        }
+
+        input[type="email"],
+        input[type="text"] {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #e1e4e8;
+            border-radius: 12px;
+            background-color: #f8f9fa;
+            font-size: 1rem;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            border-color: #2471a3;
+            background-color: #fff;
+        }
+
+        input[readonly] {
+            background: #f0f2f5;
+            color: #888;
+            cursor: not-allowed;
+        }
+
+        input.input-error {
+            border-color: #e74c3c;
+        }
+
+        .field-hint {
+            font-size: 0.78rem;
+            color: #aaa;
+            margin-top: 5px;
+        }
+
+        .field-error {
+            font-size: 0.78rem;
+            color: #e74c3c;
+            margin-top: 5px;
+            display: none;
+        }
+
+        /* 타이머 */
+        .timer {
+            font-size: 0.85rem;
+            color: #e74c3c;
+            font-weight: 600;
+            margin-top: 6px;
+            display: none;
+        }
+
+        /* OTP 입력 섹션 — 인증 요청 성공 후 노출 */
+        #otpSection {
+            display: none;
+        }
+
+        .btn-send {
+            padding: 14px 16px;
+            background-color: #2471a3;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background-color 0.2s;
+        }
+
+        .btn-send:hover:not(:disabled) {
+            background-color: #1a5c85;
+        }
+
+        .btn-send:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            background-color: #2471a3;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background-color: #1a5c85;
+        }
+
+        .btn-primary:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            width: 100%;
+            padding: 14px;
+            background-color: #f0f2f5;
+            color: #555;
+            border: none;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e2e6ea;
+        }
+    </style>
+</head>
+<body>
+<div class="auth-card">
+    <div class="icon-box">
+        <i data-lucide="shield-check" style="width:28px;height:28px;"></i>
+    </div>
+    <h2>2차 인증</h2>
+    <div class="role-badge">최고 관리자 (ADMIN)</div>
+    <p class="subtitle">이메일 확인 후 OTP 번호를 입력해 주세요</p>
+
+    <div class="info-box">
+        등록된 이메일 주소로 인증번호를 발송합니다.<br>
+        인증번호는 <strong>3분간</strong> 유효합니다.
+    </div>
+
+    <!-- JS로 제어하는 상태 메시지 (성공/오류 공용) -->
+    <div id="statusMsg"></div>
+
+    <!--
+        action/method 는 JS fetch 가 담당하므로 폼 제출 방지용으로만 유지.
+        th:action 을 쓰면 Thymeleaf 가 쓸데없는 hidden _csrf 를 추가할 수 있으므로
+        CSRF disabled 환경에서는 일반 action 으로 명시.
+    -->
+    <form id="otpForm" action="#" onsubmit="return false;">
+
+        <!-- 이메일 입력 + 인증 요청 -->
+        <div class="input-group">
+            <label class="label" for="email">이메일 주소</label>
+            <div class="email-row">
+                <input type="email" id="email" name="email"
+                       placeholder="example@email.com"
+                       required autofocus>
+                <button type="button" id="sendOtpBtn" class="btn-send">인증 요청</button>
+            </div>
+            <div class="field-hint">데이터베이스에 등록된 이메일 주소를 입력하세요</div>
+            <div class="field-error" id="emailError">올바른 이메일 형식을 입력해 주세요.</div>
+        </div>
+
+        <!-- OTP 입력 — 인증 요청 성공 후 노출 -->
+        <div id="otpSection">
+            <div class="input-group">
+                <label class="label" for="otp">인증번호</label>
+                <input type="text" id="otp" name="otp"
+                       maxlength="6"
+                       placeholder="6자리 인증번호"
+                       autocomplete="off"
+                       inputmode="numeric">
+                <div class="field-hint">이메일로 전송된 6자리 인증번호를 입력하세요</div>
+                <div class="timer" id="timer">남은 시간: <span id="timeLeft">03:00</span></div>
+                <div class="field-error" id="otpError">인증번호 6자리를 입력해 주세요.</div>
+            </div>
+            <button type="button" class="btn-primary" id="submitBtn">로그인</button>
+        </div>
+
+        <button type="button" class="btn-secondary" id="cancelBtn" style="margin-top:10px;">
+            취소
+        </button>
+    </form>
+</div>
+
+<script>
+    lucide.createIcons();
+
+    /* ── DOM 참조 ─────────────────────────────────── */
+    const emailInput = document.getElementById('email');
+    const emailError = document.getElementById('emailError');
+    const sendOtpBtn = document.getElementById('sendOtpBtn');
+    const otpSection = document.getElementById('otpSection');
+    const otpInput = document.getElementById('otp');
+    const otpError = document.getElementById('otpError');
+    const timerEl = document.getElementById('timer');
+    const timeLeftEl = document.getElementById('timeLeft');
+    const submitBtn = document.getElementById('submitBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const statusMsg = document.getElementById('statusMsg');
+
+    let timerInterval = null;
+    let otpSent = false;   // 인증 요청 성공 여부
+
+    /* ── 유틸 ─────────────────────────────────────── */
+    function showStatus(msg, type /* 'success' | 'error' */) {
+        statusMsg.textContent = msg;
+        statusMsg.className = type;
+        statusMsg.style.display = 'block';
+    }
+
+    function hideStatus() {
+        statusMsg.style.display = 'none';
+    }
+
+    function validateEmail() {
+        const v = emailInput.value.trim();
+        const ok = v.length > 0 && /^[A-Za-z0-9+_.-]+@(.+)$/.test(v);
+        emailInput.classList.toggle('input-error', !ok);
+        emailError.style.display = ok ? 'none' : 'block';
+        return ok;
+    }
+
+    /* ── 타이머 (3분) ─────────────────────────────── */
+    function startTimer() {
+        clearInterval(timerInterval);
+        let remaining = 180;          // OtpStore 유효시간(3분)과 동기화
+        timerEl.style.display = 'block';
+        updateTimer(remaining);
+
+        timerInterval = setInterval(() => {
+            remaining--;
+            updateTimer(remaining);
+            if (remaining <= 0) {
+                clearInterval(timerInterval);
+                showStatus('인증 시간이 만료되었습니다. 인증번호를 다시 요청해 주세요.', 'error');
+                resetOtpSection();
+            }
+        }, 1000);
+    }
+
+    function updateTimer(sec) {
+        const m = String(Math.floor(sec / 60)).padStart(2, '0');
+        const s = String(sec % 60).padStart(2, '0');
+        timeLeftEl.textContent = `${m}:${s}`;
+    }
+
+    function resetOtpSection() {
+        clearInterval(timerInterval);
+        otpInput.value = '';
+        otpSent = false;
+        emailInput.readOnly = false;
+        timerEl.style.display = 'none';
+        otpSection.style.display = 'none';
+        sendOtpBtn.textContent = '인증 요청';
+        sendOtpBtn.disabled = false;
+    }
+
+    /* ── 인증 요청 버튼 ───────────────────────────── */
+    sendOtpBtn.addEventListener('click', async () => {
+        if (!validateEmail()) {
+            emailInput.focus();
+            return;
+        }
+
+        sendOtpBtn.disabled = true;
+        sendOtpBtn.textContent = '발송 중...';
+        hideStatus();
+
+        try {
+            // POST /login/sendOtp — 이메일 대조 후 OTP 생성·발송
+            const res = await fetch('/login/sendOtp', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: new URLSearchParams({email: emailInput.value.trim()})
+            });
+            const text = await res.text();
+
+            if (res.ok) {
+                // 성공: OTP 섹션 노출 + 타이머 시작
+                showStatus(text, 'success');
+                emailInput.readOnly = true;
+                otpSection.style.display = 'block';
+                otpInput.focus();
+                otpSent = true;
+                startTimer();
+                sendOtpBtn.textContent = '재발송';
+                sendOtpBtn.disabled = false;
+            } else {
+                // 실패: 400(이메일 불일치) / 401(세션 만료) / 500(메일 오류)
+                showStatus(text, 'error');
+                sendOtpBtn.textContent = '인증 요청';
+                sendOtpBtn.disabled = false;
+
+                // 세션 만료(401)이면 로그인 페이지로
+                if (res.status === 401) {
+                    setTimeout(() => {
+                        window.location.href = '/common/login';
+                    }, 1500);
+                }
+            }
+        } catch {
+            showStatus('네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.', 'error');
+            sendOtpBtn.textContent = '인증 요청';
+            sendOtpBtn.disabled = false;
+        }
+    });
+
+    /* ── 숫자만 입력 ───────────────────────────────── */
+    otpInput.addEventListener('input', function () {
+        this.value = this.value.replace(/[^0-9]/g, '');
+        if (this.value.length > 0) otpError.style.display = 'none';
+    });
+
+    /* ── 로그인 버튼 ───────────────────────────────── */
+    submitBtn.addEventListener('click', async () => {
+        // 클라이언트 사전 검증
+        if (!otpSent) {
+            showStatus('먼저 이메일 인증을 요청해 주세요.', 'error');
+            return;
+        }
+        if (otpInput.value.length !== 6) {
+            otpError.style.display = 'block';
+            otpInput.focus();
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = '로그인 중...';
+        hideStatus();
+
+        try {
+            // POST /login/verifyEmailOtp — 이메일 + OTP 최종 검증
+            const res = await fetch('/login/verifyEmailOtp', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: new URLSearchParams({
+                    email: emailInput.value.trim(),
+                    otp: otpInput.value.trim()
+                })
+            });
+            const text = await res.text();
+
+            if (res.ok) {
+                // 서버가 내려준 경로로 이동 (현재: "/admin/dashboard")
+                window.location.href = text;
+            } else {
+                // 실패: 오류 메시지 표시 + 버튼 복원
+                showStatus(text, 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = '로그인';
+
+                // 세션 만료(401)이면 로그인 페이지로
+                if (res.status === 401) {
+                    setTimeout(() => {
+                        window.location.href = '/common/login';
+                    }, 1500);
+                }
+            }
+        } catch {
+            showStatus('네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.', 'error');
+            submitBtn.disabled = false;
+            submitBtn.textContent = '로그인';
+        }
+    });
+
+    /* ── 취소 버튼 ─────────────────────────────────── */
+    cancelBtn.addEventListener('click', () => {
+        if (confirm('로그인을 취소하시겠습니까?')) {
+            clearInterval(timerInterval);
+            window.location.href = '/common/login';
+        }
+    });
+
+    emailInput.addEventListener('blur', validateEmail);
+</script>
+</body>
+</html>

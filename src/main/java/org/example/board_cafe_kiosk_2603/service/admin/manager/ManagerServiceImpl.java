@@ -5,11 +5,13 @@ import lombok.extern.log4j.Log4j2;
 import org.example.board_cafe_kiosk_2603.domain.admin.manager.Manager;
 import org.example.board_cafe_kiosk_2603.dto.admin.manager.ManagerRequest;
 import org.example.board_cafe_kiosk_2603.dto.admin.manager.ManagerResponse;
+import org.example.board_cafe_kiosk_2603.dto.admin.manager.ProfileUpdateRequest;
 import org.example.board_cafe_kiosk_2603.mapper.admin.manager.ManagerMapper;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -23,29 +25,14 @@ public class ManagerServiceImpl implements ManagerService {
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
 
-    // 전체 목록 조회 (페이징)
+    // 전체 목록 조회 - VO → Response 변환
     @Override
-    public List<ManagerResponse> findAll(int page, int size, String filter) {
-        int offset = (page - 1) * size;
-        return managerMapper.findAll(offset, size, filter)
+    public List<ManagerResponse> findAll() {
+        return managerMapper.findAll()
                 .stream()
                 .map(vo -> modelMapper.map(vo, ManagerResponse.class))
                 .collect(Collectors.toList());
     }
-
-    // 전체 개수
-    @Override
-    public int countAll(String filter) {
-        return managerMapper.countAll(filter);
-    }
-
-    // 활성화 개수
-    @Override
-    public int countActive() { return managerMapper.countActive(); }
-
-    // 비활성화 개수
-    @Override
-    public int countInactive() { return managerMapper.countInactive(); }
 
     // 직원 등록 - Request → VO 변환 후 insert
     @Override
@@ -61,6 +48,7 @@ public class ManagerServiceImpl implements ManagerService {
                 .loginId(request.getLoginId())
                 .password(passwordEncoder.encode(request.getPassword())) // BCrypt 암호화
                 .name(request.getName())
+                .email(request.getEmail())
                 .role(request.getRole())
                 .isActive(true) // 등록 시 기본값 활성
                 .build();
@@ -91,7 +79,7 @@ public class ManagerServiceImpl implements ManagerService {
 
     // 내 정보 수정 처리
     @Override
-    public void updateProfile(String loginId, ManagerRequest request) {
+    public void updateProfile(String loginId, ProfileUpdateRequest request) {
         // 1. 기존 사용자 정보 조회 (없으면 예외 발생)
         Manager manager = managerMapper.findByLoginId(loginId)
                 .orElseThrow(() -> new RuntimeException("수정할 사용자 정보를 찾을 수 없습니다."));
@@ -112,5 +100,72 @@ public class ManagerServiceImpl implements ManagerService {
         managerMapper.updateProfileInfo(loginId, newName, finalPassword);
 
         log.info("사용자 프로필 업데이트 완료: {}", loginId);
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // ✅ [추가] 임시 비밀번호 생성 + BCrypt 암호화 + DB 저장
+    //
+    // 임시 비밀번호 구성: 영문 대소문자 + 숫자 + 특수문자 10자리
+    // SecureRandom 사용 — Math.random() 보다 예측 불가
+    // 반환값: 평문 (컨트롤러 → 메일 발송용)
+    // DB 저장:  BCrypt 암호화된 값만 저장 — 평문은 DB에 절대 저장하지 않음
+    // ──────────────────────────────────────────────────────────────
+    @Override
+    public String resetPassword(String loginId) {
+        // 1. 사용자 존재 확인
+        managerMapper.findByLoginId(loginId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + loginId));
+
+        // 2. 임시 비밀번호 생성
+        String tempPassword = generateTempPassword();
+        log.info("--- [resetPassword] 임시 비밀번호 생성 완료 | loginId: {} ---", loginId);
+
+        // 3. BCrypt 암호화 후 DB 저장 (이름은 기존값 유지 → name=null 이면 XML에서 기존값 사용)
+        //    기존 updateProfileInfo(loginId, name, password) 재활용:
+        //    이름을 DB에서 다시 조회하여 그대로 유지
+        String currentName = managerMapper.findByLoginId(loginId)
+                .map(Manager::getName)
+                .orElse("");
+        managerMapper.updateProfileInfo(loginId, currentName, passwordEncoder.encode(tempPassword));
+        log.info("--- [resetPassword] DB 비밀번호 업데이트 완료 | loginId: {} ---", loginId);
+
+        return tempPassword; // 평문 반환 → 컨트롤러에서 메일 발송에 사용
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // 임시 비밀번호 생성 헬퍼
+    // 영문 대소문자 + 숫자 + 특수문자 조합 10자리
+    // 각 문자 종류에서 최소 1개씩 포함 보장
+    // ──────────────────────────────────────────────────────────────
+    private String generateTempPassword() {
+        final String upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        final String lower = "abcdefghijklmnopqrstuvwxyz";
+        final String digits = "0123456789";
+        final String special = "!@#$%^&*";
+        final String all = upper + lower + digits + special;
+
+        SecureRandom random = new SecureRandom();
+        StringBuilder sb = new StringBuilder(10);
+
+        // 각 종류에서 최소 1개 보장
+        sb.append(upper.charAt(random.nextInt(upper.length())));
+        sb.append(lower.charAt(random.nextInt(lower.length())));
+        sb.append(digits.charAt(random.nextInt(digits.length())));
+        sb.append(special.charAt(random.nextInt(special.length())));
+
+        // 나머지 6자리는 전체 풀에서 랜덤
+        for (int i = 0; i < 6; i++) {
+            sb.append(all.charAt(random.nextInt(all.length())));
+        }
+
+        // 순서 섞기 (앞 4자리가 항상 대/소/숫자/특수 순서가 되는 패턴 방지)
+        char[] chars = sb.toString().toCharArray();
+        for (int i = chars.length - 1; i > 0; i--) {
+            int j = random.nextInt(i + 1);
+            char tmp = chars[i];
+            chars[i] = chars[j];
+            chars[j] = tmp;
+        }
+        return new String(chars);
     }
 }

@@ -14,7 +14,8 @@ public class Manager {
     private String loginId;
     private String password;
     private String name;
-    private RoleType role;  // Enum 타입 사용 (ADMIN, STAFF)
+    private String email;  // OTP 발송 대상
+    private RoleType role;  // Enum 타입 사용 (ADMIN, STAFF, SUPER)
     private boolean isActive;
     private LocalDateTime createdAt;
 }

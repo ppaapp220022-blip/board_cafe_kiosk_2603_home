@@ -211,4 +211,10 @@ public class MainController {
 //        log.info("관리자 로그인 처리 중... 대시보드로 이동합니다.");
 //        return "redirect:/admin/dashboard";
 //    }
+    @GetMapping("/admin/find_pw")
+    public String findPwPage() {
+        log.info("--- 비밀번호 찾기 진입 ---");
+        return "login/find_pw"; // templates/login/find_pw.html 을 호출
+    }
+
 }

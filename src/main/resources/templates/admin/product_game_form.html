@@ -421,7 +421,8 @@
                         <!--
                             상태 select
                             name="items[i].status" 로 서버에 전달됨.
-                            DAMAGED / LOST 는 삭제 버튼 비활성화.
+                            NORMAL / RENTED 상태에서는 삭제 버튼 비활성화.
+                            DAMAGED / LOST 상태에서만 삭제 가능.
                         -->
                         <select class="status-select"
                                 th:name="'items[' + ${stat.index} + '].status'"
@@ -438,13 +439,14 @@
 
                         <!--
                             삭제 버튼
-                            DAMAGED / LOST 는 disabled (삭제 불가, 상태로만 관리)
+                            NORMAL / RENTED → disabled (대여 가능·대여 중은 삭제 불가)
+                            DAMAGED / LOST  → 삭제 가능 (이력 관리 목적)
                         -->
                         <button type="button" class="btn-remove-item"
-                                th:disabled="${item.status.name() == 'DAMAGED' or item.status.name() == 'LOST'}"
-                                th:title="${item.status.name() == 'DAMAGED'} ? '손상 항목은 삭제할 수 없습니다'
-                                         : (${item.status.name() == 'LOST'} ? '분실 항목은 삭제할 수 없습니다' : '')"
-                                th:onclick="${item.status.name() != 'DAMAGED' and item.status.name() != 'LOST'}
+                                th:disabled="${item.status.name() == 'NORMAL' or item.status.name() == 'RENTED'}"
+                                th:title="${item.status.name() == 'NORMAL'} ? '대여 가능 항목은 삭제할 수 없습니다'
+                                         : (${item.status.name() == 'RENTED'} ? '대여 중인 항목은 삭제할 수 없습니다' : '아이템을 삭제합니다')"
+                                th:onclick="${item.status.name() == 'DAMAGED' or item.status.name() == 'LOST'}
                                             ? 'markDeleted(' + ${item.id} + ', this)' : ''">
                             🗑 삭제
                         </button>
@@ -499,19 +501,26 @@
             row.classList.remove('status-NORMAL', 'status-RENTED', 'status-DAMAGED', 'status-LOST');
             row.classList.add('status-' + status);
 
-            // DAMAGED / LOST → 삭제 버튼 비활성
-            if (status === 'DAMAGED' || status === 'LOST') {
+            // NORMAL / RENTED → 삭제 버튼 비활성 (대여 가능·대여 중은 삭제 불가)
+            // DAMAGED / LOST  → 삭제 버튼 활성
+            if (status === 'NORMAL' || status === 'RENTED') {
                 delBtn.disabled = true;
-                delBtn.title    = status === 'DAMAGED' ? '손상 항목은 삭제할 수 없습니다'
-                    : '분실 항목은 삭제할 수 없습니다';
+                delBtn.title    = status === 'NORMAL'
+                    ? '대여 가능 항목은 삭제할 수 없습니다'
+                    : '대여 중인 항목은 삭제할 수 없습니다';
+                delBtn.onclick  = null;
             } else {
                 delBtn.disabled = false;
-                delBtn.title    = '';
+                delBtn.title    = '아이템을 삭제합니다';
+                delBtn.onclick  = function() { markDeleted(itemId, delBtn); };
             }
         }
 
         /* ── 기존 item 삭제 표시 ── */
         function markDeleted(itemId, btn) {
+            // disabled 상태에서 JS 강제 호출 방어
+            if (btn.disabled) return;
+
             const hidden = document.getElementById('deletedItemIds');
             hidden.value = hidden.value ? hidden.value + ',' + itemId : String(itemId);
             btn.closest('.item-row').style.display = 'none';

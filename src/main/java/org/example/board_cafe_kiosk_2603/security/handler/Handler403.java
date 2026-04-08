@@ -22,9 +22,9 @@ public class Handler403 implements AccessDeniedHandler {
                        HttpServletResponse response,
                        AccessDeniedException accessDeniedException)
             throws IOException, ServletException {
-        log.info("--- ACCESS DENIED ---");
+        log.info("--- [Handler403] ACCESS DENIED ---");
 
-        response.setStatus(HttpStatus.FORBIDDEN.value());  // 응답 코드에 403
+        response.setStatus(HttpStatus.FORBIDDEN.value());  // 응답 상태를 403으로 명시
 
         // JSON(ajax) 요청이었는지 확인
         String contentType = request.getHeader("Content-Type");

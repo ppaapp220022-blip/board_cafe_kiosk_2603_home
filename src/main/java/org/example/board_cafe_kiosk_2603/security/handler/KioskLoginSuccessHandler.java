@@ -17,9 +17,13 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 @Log4j2
-@Component
+@Component  //SecurityConfig에서 생성자 주입을 받기 위해 빈 등록
 @RequiredArgsConstructor
 public class KioskLoginSuccessHandler implements AuthenticationSuccessHandler {
+    // instanceof 분기가 생기는 순간 단일 책임 원칙(SRP) 위반되므로,
+    // Kiosk, Admin - LoginSuccessHandler 2EA의 파일로 관리
+
+    // 목적 - 테이블 세션 관리, access_token 갱신, DB 동기화
 
     private final CafeTableService cafeTableService;
 

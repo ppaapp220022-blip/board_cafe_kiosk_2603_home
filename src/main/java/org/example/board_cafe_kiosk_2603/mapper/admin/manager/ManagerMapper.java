@@ -9,20 +9,8 @@ import java.util.Optional;
 
 @Mapper
 public interface ManagerMapper {
-    // 전체 목록 조회 (페이징)
-    List<Manager> findAll(@Param("offset") int offset,
-                          @Param("limit") int limit,
-                          @Param("filter") String filter);
-
-
-    // 전체 개수
-    int countAll(@Param("filter") String filter);
-
-    // 활성화 개수
-    int countActive();
-
-    // 비활성호 개수
-    int countInactive();
+    // 전체 목록 조회
+    List<Manager> findAll();
 
     // 로그인 ID로 단건 조회 (Security용)
     Optional<Manager> findByLoginId(String loginId);
@@ -37,4 +25,10 @@ public interface ManagerMapper {
     void updateProfileInfo(@Param("loginId") String loginId,
                            @Param("name") String name,
                            @Param("password") String password);
+
+    // 2차 인증용 이메일 단건 조회
+    // - LoginController에서 loginId → email 변환에 사용
+    // - Manager 전체 조회(findByLoginId)를 재사용해도 되지만,
+    //   비밀번호 등 민감 필드를 불필요하게 로드하지 않기 위해 분리
+    Optional<String> findEmailByLoginId(String loginId);
 }

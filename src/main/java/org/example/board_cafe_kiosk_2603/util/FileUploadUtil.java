@@ -18,7 +18,7 @@ import java.util.UUID;
 public class FileUploadUtil {
 
     // 파일 삭제를 위해서 추가
-    @Value("${my.upload.path}")
+    @Value("${my.upload.path}")  // MAC 설정 되어있음
     private String uploadPath;  // 파일의 저장 경로
 
     /**

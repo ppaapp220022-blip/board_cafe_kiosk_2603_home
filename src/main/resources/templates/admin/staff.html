@@ -154,6 +154,12 @@
                     <input type="text" id="staffId" placeholder="사용할 아이디를 입력하세요" autocomplete="off">
                     <div id="idStatusMsg" class="status-msg"></div>
                 </div>
+
+                <div class="form-group">
+                    <label>이메일 (OTP 및 본인 인증용)</label>
+                    <input type="email" id="staffEmail" placeholder="example@email.com">
+                </div>
+
                 <div class="form-row">
                     <div class="form-group" style="flex:1">
                         <label>권한</label>
@@ -177,7 +183,7 @@
 </th:block>
 
 <th:block layout:fragment="scripts">
-    <script>
+    <script th:inline="javascript">
         const tableBody     = document.getElementById('staffTableBody');
         const currentFilter =  '[[${filter}]]';
         const currentPage   = [[${currentPage}]];
@@ -202,7 +208,7 @@
             isIdValid = false;
         }
 
-        /** [실시간 아이디 중복 체크 - 디바운싱] */
+        /** [실시간 아이디 중복 체크] */
         document.getElementById('staffId').addEventListener('input', function() {
             const loginId = this.value.trim();
             const msgElement = document.getElementById('idStatusMsg');
@@ -222,12 +228,12 @@
             idCheckTimeout = setTimeout(() => {
                 fetch(`/admin/staff/check-id?loginId=${loginId}`)
                     .then(res => res.json())
-                    .then(isDuplicate => { // 변수명을 이해하기 쉽게 isDuplicate로 생각하세요!
-                        if (!isDuplicate) { // 중복이 아니라면 (false라면)
+                    .then(isDuplicate => {
+                        if (!isDuplicate) {
                             msgElement.textContent = "사용 가능한 아이디입니다. ✅";
                             msgElement.style.color = "#34C759";
                             isIdValid = true;
-                        } else { // 중복이라면 (true라면)
+                        } else {
                             msgElement.textContent = "이미 사용 중인 아이디입니다. ❌";
                             msgElement.style.color = "#FF3B30";
                             isIdValid = false;
@@ -240,10 +246,11 @@
             }, 350);
         });
 
-        /** [직원 등록 저장] */
+        /** [직원 등록 저장 - ManagerRequest 필드와 매핑] */
         function saveStaff() {
             const name = document.getElementById('staffName').value.trim();
             const loginId = document.getElementById('staffId').value.trim();
+            const email = document.getElementById('staffEmail').value.trim(); // 이메일 값 추출
             const role = document.getElementById('staffRole').value;
             const password = document.getElementById('tempPw').value;
 
@@ -251,12 +258,27 @@
                 alert("사용 가능한 아이디를 확인해주세요.");
                 return;
             }
+
+            // 이메일 유효성 검사
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email || !emailRegex.test(email)) {
+                alert("유효한 이메일 주소를 입력해주세요.");
+                return;
+            }
+
             if (!name || !password) {
                 alert("모든 정보를 입력해주세요.");
                 return;
             }
 
-            const staffData = { name, loginId, role, password };
+            // DTO 구조와 일치하도록 데이터 구성
+            const staffData = {
+                name: name,
+                loginId: loginId,
+                email: email,
+                role: role,
+                password: password
+            };
 
             fetch('/admin/staff', {
                 method: 'POST',
@@ -268,8 +290,12 @@
                         alert("성공적으로 등록되었습니다.");
                         location.reload();
                     } else {
-                        alert("등록에 실패했습니다.");
+                        res.text().then(msg => alert(msg || "등록에 실패했습니다."));
                     }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("서버 통신 중 오류가 발생했습니다.");
                 });
         }
 
@@ -296,13 +322,11 @@
                 });
         }
 
-        /** [유틸리티: 필터, 정렬, 카운트] */
         function filterTab(type) {
             window.location.href = `/admin/staff?page=1&filter=${type}`;
         }
 
         window.onload = () => {
-            // 초기 정렬 (비활성 아래로)
             const rows = Array.from(tableBody.querySelectorAll('tr'));
             rows.sort((a, b) => a.classList.contains('is-disabled') - b.classList.contains('is-disabled'));
             rows.forEach(row => tableBody.appendChild(row));

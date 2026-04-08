@@ -16,79 +16,74 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 
-/**
- * 게임 CRUD 컨트롤러 (Admin 전용)
- * 기본 경로: /admin/product/game
- */
 @Log4j2
 @Controller
 @RequestMapping("/admin/product/game")
 @RequiredArgsConstructor
 public class GameController {
+    /* 게임 CRUD 컨트롤러 */
+    // 게임 목록 조회 (필터 포함)
+    // 등록/수정/삭제
+    // 재고(GameItem) 연동관리
+    // 화면 노출(활성/비활성) 상태 변경
 
-    private final GameService gameService;
     private final CategoryService categoryService;
+    private final GameService gameService;
     private final GameItemService gameItemService;
     private final FileUploadUtil fileUploadUtil;
 
-    /**
-     * 게임 전체 목록 조회 → 뷰 반환
-     * GET /admin/product/game
-     */
-    // 카테고리 필터
-    // GET /admin/product/game?categoryId=5
+    /* 게임 전체 목록 조회 */
+    // 카테고리별 필터링 기능 포함
     @GetMapping
     public String getAll(@RequestParam(required = false) Integer categoryId, Model model) {
-        log.debug("GET /admin/product/game 요청 - categoryId: {}", categoryId);
+        log.info("--- 게임 목록 조회 : (categoryId Filter: {}) ---", categoryId);
 
-        // 카테고리 필터 적용: categoryId 있으면 해당 카테고리만, 없으면 전체
-        List<GameResponseDTO> gameList = (categoryId != null)
-                ? gameService.getByCategoryId(categoryId)
-                : gameService.getAll();
+        try {
+            // 카테고리 필터 적용: categoryId 있으면 해당 카테고리만, 없으면 전체
+            List<GameResponseDTO> gameList = (categoryId != null)
+                    ? gameService.getByCategoryId(categoryId)
+                    : gameService.getAll();
 
-        // 게임 탭에서 사용할 카테고리 목록 (GAME 타입만)
-        List<CategoryResponseDTO> categoryList = categoryService.getByType(CategoryType.GAME);
+            // 게임 탭에서 사용할 카테고리 목록 (GAME 타입만)
+            List<CategoryResponseDTO> categoryList = categoryService.getByType(CategoryType.GAME);
 
-        model.addAttribute("gameList", gameList);
-        model.addAttribute("categoryList", categoryList);
-        model.addAttribute("selectedCategoryId", categoryId);   // 뷰에서 활성 버튼 판단에 사용
-        model.addAttribute("activePage", "productReg");
-        model.addAttribute("activeTab", "game");
+            model.addAttribute("gameList", gameList);
+            model.addAttribute("categoryList", categoryList);
+            model.addAttribute("selectedCategoryId", categoryId);   // 뷰에서 활성 버튼 판단에 사용
+            model.addAttribute("activePage", "productReg");
+            model.addAttribute("activeTab", "game");
 
-        log.debug("게임 목록 조회 완료 - 건수: {}", gameList.size());
+            log.info("게임 목록 조회 성공 - 건수: {}", gameList.size());
+        } catch (Exception e) {
+            log.error("--- 게임 목록 조회 중 오류 발생: {} ---", e.getMessage());
+        }
         return "admin/product_game";
     }
 
-    /**
-     * 게임 등록 폼 페이지
-     * GET /admin/product/game/add
-     */
+    /* 게임 등록 페이지 */
     @GetMapping("/add")
     public String addForm(Model model) {
-        log.debug("GET /admin/product/game/add 요청");
+        log.info("--- 게임 등록 폼 요청 ---");
         List<CategoryResponseDTO> categoryList = categoryService.getByType(CategoryType.GAME);
         model.addAttribute("categoryList", categoryList);
         model.addAttribute("activePage", "productReg");
         return "admin/product_game_form";
     }
 
-    /**
-     * 게임 등록 처리
-     * POST /admin/product/game/add
-     */
     // 이미지 업로드 + 신규 game_item 등록
+    /* 게임 및 개별 재고(Item) 등록 처리 */
     @PostMapping("/add")
     public String register(@ModelAttribute GameRequestDTO gameRequestDTO,
                            @RequestParam(value = "imageFile", required = false) MultipartFile imageFile)
             throws IOException {
-        log.debug("POST /admin/product/game/add 요청 - gameRequestDTO: {}", gameRequestDTO);
+        log.info("--- 게임 신규 등록 시작, gameRequestDTO: {} ---", gameRequestDTO);
 
         // 이미지 저장
         // 새 이미지 파일이 있으면 저장 후 imageUrl 세팅
         // 없으면 hidden name="imageUrl"로 넘어온 기존 값 유지
         if (imageFile != null && !imageFile.isEmpty()) {
             gameRequestDTO.setImageUrl(fileUploadUtil.save(imageFile));
-            log.debug("게임 이미지 저장 완료: {}", gameRequestDTO.getImageUrl());
+            log.debug("--- 게임 이미지 저장 완료: {} ---", gameRequestDTO.getImageUrl());
         }
 
         // 게임 등록 (insert 후 gameRequestDTO.getId()에 생성된 PK 세팅됨)
@@ -106,18 +101,15 @@ public class GameController {
                 }
             }
         }
-
+        log.info("--- 전체 게임 등록 프로세스 완료 ---");
         return "redirect:/admin/product/game";
     }
 
-    /**
-     * 게임 수정 폼 페이지
-     * GET /admin/product/game/edit/{id}
-     */
+    /* 게임 수정 페이지 이동 */
     // 기존 이미지 및 game_item 목록 포함
     @GetMapping("/edit/{id}")
     public String editForm(@PathVariable int id, Model model) {
-        log.debug("GET /admin/product/game/edit/{} 요청", id);
+        log.info("--- 게임 수정 폼 요청 (ID: {}) ---", id);
 
         GameResponseDTO game = gameService.getById(id);
         List<CategoryResponseDTO> categoryList = categoryService.getByType(CategoryType.GAME);
@@ -128,22 +120,18 @@ public class GameController {
         model.addAttribute("gameItemList", gameItemList);
         model.addAttribute("activePage", "productReg");
 
-        log.info("게임 수정 폼 조회 완료 - gameId: {}, 재고수: {}", id, gameItemList.size());
+        log.info("게임 수정 폼 로드 완료 - gameId: {}, 재고수: {}", id, gameItemList.size());
         return "admin/product_game_form";
     }
 
-    /**
-     * 게임 수정 처리
-     * POST /admin/product/game/edit/{id}
-     */
-    // 이미지 교체 + game_item 수정/추가/삭제
+    /* 게임 정보 수정(이미지 교체) 및 재고(game_item) 변경/삭제 처리 */
     @PostMapping("/edit/{id}")
     public String modify(@PathVariable int id,
                          @ModelAttribute GameRequestDTO gameRequestDTO,
                          @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
                          @RequestParam(value = "deletedItemIds", required = false, defaultValue = "") String deletedItemIds)
             throws IOException {
-        log.debug("POST /admin/product/game/edit/{} 요청 - gameRequestDTO: {}", id, gameRequestDTO);
+        log.info("--- 게임 정보 수정 시작 (ID: {}, gameRequestDTO: {}) ---", id, gameRequestDTO);
 
         // 새 이미지 업로드 시 기존 이미지 삭제 후 교체
         // 없으면 hidden name="imageUrl"로 넘어온 기존 값이 dto에 자동 바인딩
@@ -154,14 +142,9 @@ public class GameController {
             log.debug("게임 이미지 교체 완료: {}", gameRequestDTO.getImageUrl());
         }  // 새파일 없음 → hidden name="imageUrl" 값이 DTO에 이미 바인딩되어 있으므로 그대로 사용
 
-//        String imageUrl = fileUploadUtil.save(imageFile);
-//        if (imageUrl != null) {
-//            gameRequestDTO.setImageUrl(imageUrl);
-//        }
-
         // 게임 기본 정보 수정
         gameService.modify(id, gameRequestDTO);
-        log.debug("게임 수정 완료 - id: {}", id);
+        log.info("게임 수정 완료 - id: {}", id);
 
         // 기존 game_item 수정
         if (gameRequestDTO.getItems() != null) {
@@ -192,15 +175,17 @@ public class GameController {
                 log.debug("game_item 삭제 완료 - itemId: {}", itemId);
             }
         }
-
         return "redirect:/admin/product/game";
     }
+
+    // ==========
 
     /**
      * 게임 삭제 처리
      * POST /admin/product/game/delete/{id}
      */
     // 이미지 파일도 함께 삭제
+    /* 게임 데이터 완전 삭제 */
     @PostMapping("/delete/{id}")
     public String remove(@PathVariable int id) {
         log.debug("POST /admin/product/game/delete/{} 요청", id);
@@ -209,19 +194,17 @@ public class GameController {
         log.debug("게임 삭제 완료 - id: {}", id);
         return "redirect:/admin/product/game";
     }
+    // ==========
 
-    /**
-     * 게임 활성 상태 토글
-     * POST /admin/product/game/{id}/toggle-active
-     */
-    // 카테고리 필터 유지하며 리다리엑트
+    /* 게임 활성/비활성 상태 토글 (키오스크 노출 여부) */
+    // 카테고리 필터 유지하며 리다리렉트
     @PostMapping("/{id}/toggle-active")
     public String toggleActive(@PathVariable int id,
                                @RequestParam(required = false) Integer categoryId) {
-        log.debug("POST /admin/product/game/{}/toggle-active 요청", id);
+        log.info("--- 게임 활성 상태 토글 (ID: {}) ---", id);
         gameService.toggleActive(id);
-        log.debug("게임 활성 상태 토글 완료 - id: {}", id);
-//        return "redirect:/admin/product/game";
+
+        // 필터링 상태 유지를 위해 categoryId와 함께 리다이렉트
         return categoryId != null
                 ? "redirect:/admin/product/game?categoryId=" + categoryId
                 : "redirect:/admin/product/game";

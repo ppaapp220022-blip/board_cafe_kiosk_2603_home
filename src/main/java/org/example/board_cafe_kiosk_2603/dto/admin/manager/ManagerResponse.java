@@ -16,6 +16,7 @@ public class ManagerResponse {
     private Integer id;
     private String loginId;
     private String name;
+    private String email;  // 화면 표시 및 OTP 발송 참조용
     private RoleType role;
     private Boolean isActive;
     private LocalDateTime createdAt;
