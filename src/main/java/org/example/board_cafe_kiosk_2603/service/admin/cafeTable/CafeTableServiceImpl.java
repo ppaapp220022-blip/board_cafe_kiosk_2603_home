@@ -191,6 +191,7 @@ public class CafeTableServiceImpl implements CafeTableService {
      */
     @Override
     public List<String> getUnreadMessages(Integer tableId) {
+        log.info("손님 요청 메시지 조회 - 테이블 ID: {}", tableId);
         return cafeTableMapper.selectUnreadMessageContents(tableId);
     }
 
@@ -200,7 +201,7 @@ public class CafeTableServiceImpl implements CafeTableService {
     @Override
     @Transactional
     public void markMessagesAsRead(Integer tableId) {
-        // Mapper에 작성하신 updateMessagesReadStatus 호출
+        log.info("손님 요청 읽음 처리 - 테이블 ID: {}", tableId);
         cafeTableMapper.updateMessagesReadStatus(tableId);
     }
 

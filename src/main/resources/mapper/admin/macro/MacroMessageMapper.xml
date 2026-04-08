@@ -15,4 +15,14 @@
         ORDER BY direction DESC, id ASC
     </select>
 
+    <select id="findById" resultType="org.example.board_cafe_kiosk_2603.domain.admin.macro.MacroMessage">
+        SELECT
+            id,
+            message_text AS messageText,
+            direction,
+            is_active AS isActive
+        FROM macro_message
+        WHERE id = #{id}
+    </select>
+
 </mapper>

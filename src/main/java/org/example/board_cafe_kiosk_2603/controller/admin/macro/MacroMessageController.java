@@ -3,11 +3,12 @@ package org.example.board_cafe_kiosk_2603.controller.admin.macro;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.example.board_cafe_kiosk_2603.dto.admin.macro.MacroMessageResponseDTO;
+import org.example.board_cafe_kiosk_2603.dto.admin.macro.MacroSendRequestDTO;
 import org.example.board_cafe_kiosk_2603.service.admin.macro.MacroMessageService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
@@ -18,7 +19,6 @@ import java.util.stream.Collectors;
 @RequestMapping("/admin/macro")
 @RequiredArgsConstructor
 public class MacroMessageController {
-
     private final MacroMessageService macroMessageService;
 
     @GetMapping
@@ -32,5 +32,54 @@ public class MacroMessageController {
 
         model.addAttribute("macroGroups", macroGroups);
         return "admin/macro";
+    }
+
+    // ==========================================
+    // 2. API 기능 (JSON 데이터 반환) -> @ResponseBody 추가
+    // ==========================================
+
+    // 모달창 열 때 매크로 목록 가져오기 API
+    @ResponseBody // HTML이 아닌 JSON 데이터로 반환하겠다는 의미
+    @GetMapping("/api")
+    public ResponseEntity<List<MacroMessageResponseDTO>> getStaffToTableMacros(
+            @RequestParam(required = false, defaultValue = "STAFF_TO_TABLE") String direction) {
+
+        List<MacroMessageResponseDTO> allMessages = macroMessageService.getAllActiveMessages();
+        List<MacroMessageResponseDTO> filtered = allMessages.stream()
+                .filter(msg -> msg.getDirection().equals(direction))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(filtered);
+    }
+
+    // 메세지 전송 API
+    @PostMapping("/api/send")
+    public ResponseEntity<?> send(@RequestBody Map<String, Object> data) {
+        // 1. 우선 Object로 꺼낸 뒤 문자열로 변환
+        Object tableIdObj = data.get("tableId");
+        Integer macroId = Integer.parseInt(data.get("macroMessageId").toString());
+
+        if (tableIdObj == null) {
+            return ResponseEntity.badRequest().body("테이블 정보가 없습니다.");
+        }
+
+        String tableIdStr = tableIdObj.toString();
+
+        // 2. "ALL"인지 체크
+        if ("ALL".equals(tableIdStr)) {
+            log.info("📢 전체 테이블 메세지 전송 요청 (매크로 ID: {})", macroId);
+            macroMessageService.sendToAllActiveTables(macroId);
+        } else {
+            // 3. 숫자인 경우 기존처럼 단일 전송
+            try {
+                Integer tableId = Integer.parseInt(tableIdStr);
+                log.info("✅ 단일 테이블 메세지 전송 요청 (테이블: {}, 매크로: {})", tableId, macroId);
+                macroMessageService.sendMessage(tableId, macroId);
+            } catch (NumberFormatException e) {
+                return ResponseEntity.badRequest().body("잘못된 테이블 형식입니다.");
+            }
+        }
+
+        return ResponseEntity.ok().build();
     }
 }

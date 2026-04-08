@@ -37,6 +37,7 @@ CREATE TABLE `manager`
     `login_id`   VARCHAR(50)            NOT NULL COMMENT '로그인 아이디 (중복 불가)',
     `password`   VARCHAR(255)           NOT NULL COMMENT 'BCrypt 암호화 비밀번호',
     `name`       VARCHAR(30)            NOT NULL COMMENT '실명',
+    `email`      VARCHAR(50)            NOT NULL COMMENT '2차 인증용 이메일',
     `role`       ENUM ('ADMIN','STAFF') NOT NULL DEFAULT 'STAFF' COMMENT '권한: ADMIN(사장), STAFF(직원)',
     `is_active`  BOOLEAN                NOT NULL DEFAULT TRUE COMMENT '활성 상태 (FALSE=비활성)',
     `created_at` TIMESTAMP              NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '계정 생성 일시',
@@ -86,7 +87,7 @@ CREATE TABLE `cafe_package`
     `type`                ENUM ('HOURLY','FREE') NOT NULL COMMENT '요금제 유형',
     `duration_minutes`    INT                             DEFAULT NULL COMMENT ' 기본 제공 시간',
     `base_price`          INT                    NOT NULL DEFAULT 0 COMMENT '1인당 기본 요금',
-    `extra_price_per_min` INT                    DEFAULT NULL COMMENT '추가 10분당 요금',
+    `extra_price_per_min` INT                             DEFAULT NULL COMMENT '추가 10분당 요금',
     `is_active`           BOOLEAN                NOT NULL DEFAULT TRUE COMMENT '판매 상태',
     `updated_at`          TIMESTAMP              NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '정책 수정일'
 ) ENGINE = InnoDB
@@ -130,13 +131,13 @@ CREATE TABLE `menu`
 -- 수정사항: session_id를 추가하여 '어느 방문 건'의 주문인지 명확히 식별
 CREATE TABLE `orders`
 (
-    `id`             INT                                                                                      NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT '주문 고유 번호',
-    `session_id`     BIGINT                                                                                   NOT NULL COMMENT '방문 세션 ID (FK)',
-    `table_id`       INT                                                                                      NOT NULL COMMENT '주문 테이블 (FK)',
-    `customer_phone` VARCHAR(20)                                                                                       DEFAULT NULL COMMENT '주문자 연락처(포인트 적립용)',
+    `id`             INT                                                                              NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT '주문 고유 번호',
+    `session_id`     BIGINT                                                                           NOT NULL COMMENT '방문 세션 ID (FK)',
+    `table_id`       INT                                                                              NOT NULL COMMENT '주문 테이블 (FK)',
+    `customer_phone` VARCHAR(20)                                                                               DEFAULT NULL COMMENT '주문자 연락처(포인트 적립용)',
     `status`         ENUM ('ORDERED', 'CONFIRMED', 'COOKING', 'DELIVERING', 'COMPLETED', 'CANCELLED') NOT NULL DEFAULT 'ORDERED' COMMENT '주문 상태',
-    `total_amount`   INT                                                                                      NOT NULL DEFAULT 0 COMMENT '주문 총액',
-    `ordered_at`     TIMESTAMP                                                                                NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '주문 일시',
+    `total_amount`   INT                                                                              NOT NULL DEFAULT 0 COMMENT '주문 총액',
+    `ordered_at`     TIMESTAMP                                                                        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '주문 일시',
     CONSTRAINT `fk_orders_session` FOREIGN KEY (`session_id`) REFERENCES `table_session` (`id`),
     CONSTRAINT `fk_orders_table` FOREIGN KEY (`table_id`) REFERENCES `cafe_table` (`id`)
 ) ENGINE = InnoDB
@@ -222,17 +223,17 @@ CREATE TABLE `game_history`
 -- 15. payment (토스페이먼츠 결제 정보 통합)
 CREATE TABLE `payment`
 (
-    `id`             INT                   NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT '결제 고유 번호',
-    `session_id`     BIGINT                NOT NULL UNIQUE COMMENT '세션당 최종 1회 결제',
-    `table_number`   INT                   NULL COMMENT '결제 당시 테이블 번호',
-    `status`         ENUM ('READY','DONE') NOT NULL DEFAULT 'READY' COMMENT '결제 상태',
-    `final_amount`   INT                   NOT NULL COMMENT '최종 실결제 금액',
-    `payment_key`    VARCHAR(200)                   UNIQUE COMMENT '토스 결제 키 (중복 결제 방지)',
-    `order_id_toss`  VARCHAR(64)                    DEFAULT NULL COMMENT '토스용 주문번호',
-    `method`         VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '결제 수단 (카드, 간편결제 등)',
-    `raw_response`   JSON                           DEFAULT NULL COMMENT '토스 API 응답 원문',
-    `approved_at`    TIMESTAMP                      DEFAULT NULL COMMENT '토스 승인 시각',
-    `paid_at`        TIMESTAMP                      DEFAULT NULL COMMENT '결제 완료 시각',
+    `id`            INT                   NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT '결제 고유 번호',
+    `session_id`    BIGINT                NOT NULL UNIQUE COMMENT '세션당 최종 1회 결제',
+    `table_number`  INT                   NULL COMMENT '결제 당시 테이블 번호',
+    `status`        ENUM ('READY','DONE') NOT NULL                                DEFAULT 'READY' COMMENT '결제 상태',
+    `final_amount`  INT                   NOT NULL COMMENT '최종 실결제 금액',
+    `payment_key`   VARCHAR(200) UNIQUE COMMENT '토스 결제 키 (중복 결제 방지)',
+    `order_id_toss` VARCHAR(64)                                                   DEFAULT NULL COMMENT '토스용 주문번호',
+    `method`        VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '결제 수단 (카드, 간편결제 등)',
+    `raw_response`  JSON                                                          DEFAULT NULL COMMENT '토스 API 응답 원문',
+    `approved_at`   TIMESTAMP                                                     DEFAULT NULL COMMENT '토스 승인 시각',
+    `paid_at`       TIMESTAMP                                                     DEFAULT NULL COMMENT '결제 완료 시각',
     INDEX `idx_table_number` (`table_number`),
     INDEX `idx_method` (`method`),
     CONSTRAINT `fk_payment_session` FOREIGN KEY (`session_id`) REFERENCES `table_session` (`id`)
@@ -281,10 +282,12 @@ CREATE TABLE `table_message`
 (
     `id`         BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT '메세지 로그 고유 번호',
     `table_id`   INT          NOT NULL COMMENT '발생 테이블',
-    `macro_id`   INT                   DEFAULT NULL COMMENT '사용된 매크로 번호',
+    `macro_id`   INT                   DEFAULT NULL COMMENT '사용된 매크로 번호 (직접 입력 시 NULL)',
+    `direction`  ENUM ('STAFF_TO_TABLE', 'TABLE_TO_STAFF') NOT NULL COMMENT '전송 방향',
     `content`    VARCHAR(255) NOT NULL COMMENT '실제 메세지 본문',
     `is_read`    BOOLEAN      NOT NULL DEFAULT FALSE COMMENT '읽음 상태',
     `created_at` TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '전송 시각',
+
     CONSTRAINT `fk_tablemsg_table` FOREIGN KEY (`table_id`) REFERENCES `cafe_table` (`id`),
     CONSTRAINT `fk_tablemsg_macro` FOREIGN KEY (`macro_id`) REFERENCES `macro_message` (`id`)
 ) ENGINE = InnoDB
@@ -318,10 +321,10 @@ CREATE TABLE `daily_sales_summary`
 -- 22. persistent_logins
 CREATE TABLE persistent_logins
 (
-    series    VARCHAR(64)  NOT NULL,
-    username  VARCHAR(64)  NOT NULL,
-    token     VARCHAR(64)  NOT NULL,
-    last_used TIMESTAMP    NOT NULL,
+    series    VARCHAR(64) NOT NULL,
+    username  VARCHAR(64) NOT NULL,
+    token     VARCHAR(64) NOT NULL,
+    last_used TIMESTAMP   NOT NULL,
     PRIMARY KEY (series)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4

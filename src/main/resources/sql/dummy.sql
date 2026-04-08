@@ -9,16 +9,16 @@ USE `board_cafe_kiosk_2603`;
 -- ============================================================
 -- 1. manager (관리자·직원)
 -- ============================================================
-INSERT INTO `manager` (`login_id`, `password`, `name`, `role`, `is_active`)
-VALUES ('admin', '$2a$10$I/U.nHfsL/6wBqXAJV1A3u0KwyHn9wiOVRK7ZVI6rAptphEgRW1Qi', '관리자01', 'ADMIN', TRUE),
-       ('admin02', '$2a$10$RySZbh.V/f9khlbVamY3O.Mg8uY9qbwNTbykKep1SqqtbZ9OMB4xe', '관리자02', 'ADMIN', FALSE),
-       ('super', '$2a$10$BTMMVv2aPEqCnTF4aWn7u.Tyuh.yruDyPVk1buElSdgCwbMUWOFRi', '사장님', 'ADMIN', TRUE),
-       ('staff01', '$2a$10$VW29gAYZYxDRdWhNP.KYUOVAkPeS1DZYSrcxywKGdjGpx4z0QitDa', '직원01', 'STAFF', FALSE),
-       ('staff02', '$2a$10$OhUaODvgez2RlesuWWlyXeMzwWRNhYvTrNjgOy07//KxK8sdWaDFG', '직원02', 'STAFF', FALSE),
-        ('staff03', '$2a$10$VW29gAYZYxgRdWhNP.KYUOVAkPeS1DZYSrcxywKGdjGpx4z0QitDa', '직원01', 'STAFF', FALSE),
-        ('staff04', '$2a$10$OhUaODvgez3RlesuWWlyXeMzwWRNhYvTrNjgOy07//KxK8sdWaDFG', '직원02', 'STAFF', FALSE),
-        ('staff05', '$2a$10$VW29gAYZYxfRdWhNP.KYUOVAkPeS1DZYSrcxywKGdjGpx4z0QitDa', '직원01', 'STAFF', FALSE),
-        ('staff06', '$2a$10$OhUaODvgez4RlesuWWlyXeMzwWRNhYvTrNjgOy07//KxK8sdWaDFG', '직원02', 'STAFF', FALSE);
+INSERT INTO `manager` (`login_id`, `password`, `name`, `role`, `is_active`, email)
+VALUES ('admin', '$2a$10$I/U.nHfsL/6wBqXAJV1A3u0KwyHn9wiOVRK7ZVI6rAptphEgRW1Qi', '관리자01', 'ADMIN', TRUE, 'abccc@email.com'),
+       ('admin02', '$2a$10$RySZbh.V/f9khlbVamY3O.Mg8uY9qbwNTbykKep1SqqtbZ9OMB4xe', '관리자02', 'ADMIN', FALSE, 'abccc@email.com'),
+       ('super', '$2a$10$BTMMVv2aPEqCnTF4aWn7u.Tyuh.yruDyPVk1buElSdgCwbMUWOFRi', '사장님', 'ADMIN', TRUE, 'abccc@email.com'),
+       ('staff01', '$2a$10$VW29gAYZYxDRdWhNP.KYUOVAkPeS1DZYSrcxywKGdjGpx4z0QitDa', '직원01', 'STAFF', FALSE, 'abccc@email.com'),
+       ('staff02', '$2a$10$OhUaODvgez2RlesuWWlyXeMzwWRNhYvTrNjgOy07//KxK8sdWaDFG', '직원02', 'STAFF', FALSE, 'abccc@email.com'),
+        ('staff03', '$2a$10$VW29gAYZYxgRdWhNP.KYUOVAkPeS1DZYSrcxywKGdjGpx4z0QitDa', '직원01', 'STAFF', FALSE, 'abccc@email.com'),
+        ('staff04', '$2a$10$OhUaODvgez3RlesuWWlyXeMzwWRNhYvTrNjgOy07//KxK8sdWaDFG', '직원02', 'STAFF', FALSE, 'abccc@email.com'),
+        ('staff05', '$2a$10$VW29gAYZYxfRdWhNP.KYUOVAkPeS1DZYSrcxywKGdjGpx4z0QitDa', '직원01', 'STAFF', FALSE, 'abccc@email.com'),
+        ('staff06', '$2a$10$OhUaODvgez4RlesuWWlyXeMzwWRNhYvTrNjgOy07//KxK8sdWaDFG', '직원02', 'STAFF', FALSE, 'abccc@email.com');
 -- admin01 / 1111 / ADMIN / TRUE
 -- admin02 / 2222 / ADMIN / FALSE
 -- super / 1234 / ADMIN / TRUE
@@ -311,20 +311,20 @@ VALUES
 -- ============================================================
 
 -- 1번 테이블에 '물 좀 주세요' 요청 (미확인)
-INSERT INTO table_message (table_id, content, is_read)
-VALUES (1, '물 좀 주세요!', false);
+INSERT INTO table_message (table_id, direction ,content, is_read)
+VALUES (1, 'STAFF_TO_TABLE','물 좀 주세요!', false);
 
 -- 1번 테이블에 '물티슈 좀 주세요' 요청 (미확인)
-INSERT INTO table_message (table_id, content, is_read)
-VALUES (1, '물티슈 좀 주세요!', false);
+INSERT INTO table_message (table_id, direction ,content, is_read)
+VALUES (1, 'STAFF_TO_TABLE','물티슈 좀 주세요!', false);
 
 -- 2번 테이블에 '보드게임 추천해주세요' 요청 (미확인)
-INSERT INTO table_message (table_id, content, is_read)
-VALUES (2, '2인용 보드게임 추천 부탁드려요.', false);
+INSERT INTO table_message (table_id, direction ,content, is_read)
+VALUES (2, 'STAFF_TO_TABLE','2인용 보드게임 추천 부탁드려요.', false);
 
 -- 3번 테이블에 '결제 요청' (이미 확인 완료된 데이터 - 점 안나옴)
-INSERT INTO table_message (table_id, content, is_read)
-VALUES (5, '결제할게요~', true);
+INSERT INTO table_message (table_id, direction ,content, is_read)
+VALUES (5, 'STAFF_TO_TABLE','결제할게요~', true);
 
 -- ============================================================
 -- 통계용 3월달(3/01 - 3/31) 데이터 생성

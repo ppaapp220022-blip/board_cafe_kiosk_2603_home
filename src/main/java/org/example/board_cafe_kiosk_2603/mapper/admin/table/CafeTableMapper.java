@@ -22,6 +22,11 @@ public interface CafeTableMapper {
     List<CafeTable> selectAllTables();
 
     /**
+     * [Select] 현재 이용 중인(OCCUPIED) 테이블의 ID 리스트만 조회
+     */
+    List<Integer> selectOccupiedTableIds();
+
+    /**
      * [Insert] 신규 세션 생성 (입장 시)
      * 주 설명: table_session 테이블에 신규 행을 추가하고, 생성된 PK(id)를 session 객체에 채워줌
      */
