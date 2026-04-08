@@ -64,4 +64,43 @@ class MacroMessageServiceImplTest {
 
         log.info("부적절한 ID 처리 완료");
     }
+
+    @Test
+    public void createMacroTest() {
+        // 1. 준비
+        String direction = "STAFF_TO_TABLE";
+        String content = "테스트: 서비스에서 등록한 메시지입니다.";
+
+        // 2. 실행
+        macroMessageService.createMacro(direction, content);
+
+        // 3. 검증 (전체 활성 목록 조회 시 포함되어 있는지 확인)
+        List<MacroMessageResponseDTO> messages = macroMessageService.getAllActiveMessages();
+
+        boolean isPresent = messages.stream()
+                .anyMatch(m -> m.getMessageText().equals(content));
+
+        log.info("새 매크로 등록 여부: {}", isPresent);
+    }
+
+    @Test
+    public void deleteMacroTest() {
+        // 1. 준비: 삭제할 대상을 먼저 하나 찾음 (목록이 비어있지 않다고 가정)
+        List<MacroMessageResponseDTO> beforeList = macroMessageService.getAllActiveMessages();
+
+        Integer targetId = beforeList.get(0).getId();
+        String targetText = beforeList.get(0).getMessageText();
+
+        // 2. 실행: 삭제(is_active = false)
+        macroMessageService.deleteMacro(targetId);
+        log.info("삭제 요청 ID: {} (내용: {})", targetId, targetText);
+
+        // 3. 검증: 활성 목록 재조회 시 해당 ID가 없어야 함
+        List<MacroMessageResponseDTO> afterList = macroMessageService.getAllActiveMessages();
+
+        boolean stillExists = afterList.stream()
+                .anyMatch(m -> m.getId().equals(targetId));
+
+        log.info("삭제 후 목록에 존재 여부: {}", stillExists);
+    }
 }
