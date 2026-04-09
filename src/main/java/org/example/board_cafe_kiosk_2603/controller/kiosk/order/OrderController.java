@@ -34,7 +34,6 @@ import java.util.Map;
 @RequestMapping("/kiosk/order")
 @RequiredArgsConstructor
 public class OrderController {
-
     private final OrderService orderService;
     private final KioskPageService kioskPageService;
 

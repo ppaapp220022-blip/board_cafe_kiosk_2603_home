@@ -4,7 +4,8 @@
  */
 
 let stompClient = null;
-let currentTableId = null;
+// let currentTableId = null;
+currentTableId = null;
 
 // ===================================================
 // 1. 웹소켓 연결 (자동 실행)
