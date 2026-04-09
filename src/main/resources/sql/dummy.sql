@@ -13,9 +13,10 @@ INSERT INTO `manager` (`login_id`, `password`, `name`, `email`,`role`, `is_activ
 VALUES ('admin', '$2a$10$I/U.nHfsL/6wBqXAJV1A3u0KwyHn9wiOVRK7ZVI6rAptphEgRW1Qi', '관리자01', 'wndus6110@naver.com', 'ADMIN', TRUE),
        ('admin02', '$2a$10$RySZbh.V/f9khlbVamY3O.Mg8uY9qbwNTbykKep1SqqtbZ9OMB4xe', '관리자02','wndus6110@naver.com', 'ADMIN', FALSE),
        ('super', '$2a$10$BTMMVv2aPEqCnTF4aWn7u.Tyuh.yruDyPVk1buElSdgCwbMUWOFRi', '사장님', 'wndus6110@naver.com','ADMIN', TRUE),
-       ('staff01', '$2a$10$VW29gAYZYxDRdWhNP.KYUOVAkPeS1DZYSrcxywKGdjGpx4z0QitDa', '직원01','wndus6110@naver.com', 'STAFF', FALSE),
-       ('staff02', '$2a$10$OhUaODvgez2RlesuWWlyXeMzwWRNhYvTrNjgOy07//KxK8sdWaDFG', '직원02', 'wndus6110@naver.com','STAFF', FALSE),
-        ('staff03', '$2a$10$VW29gAYZYxgRdWhNP.KYUOVAkPeS1DZYSrcxywKGdjGpx4z0QitDa', '직원01','wndus6110@naver.com', 'STAFF', FALSE),
+       ('pass', '$2a$10$BTMMVv2aPEqCnTF4aWn7u.Tyuh.yruDyPVk1buElSdgCwbMUWOFRi', '포트폴리오', 'example@naver.com','SUPER', TRUE),
+       ('staff01', '$2a$10$VW29gAYZYxDRdWhNP.KYUOVAkPeS1DZYSrcxywKGdjGpx4z0QitDa', '직원01','wndus6110@naver.com', 'STAFF', TRUE),
+       ('staff02', '$2a$10$OhUaODvgez2RlesuWWlyXeMzwWRNhYvTrNjgOy07//KxK8sdWaDFG', '직원02', 'wndus6110@naver.com','STAFF', TRUE),
+        ('staff03', '$2a$10$VW29gAYZYxgRdWhNP.KYUOVAkPeS1DZYSrcxywKGdjGpx4z0QitDa', '직원01','wndus6110@naver.com', 'STAFF', TRUE),
         ('staff04', '$2a$10$OhUaODvgez3RlesuWWlyXeMzwWRNhYvTrNjgOy07//KxK8sdWaDFG', '직원02', 'wndus6110@naver.com','STAFF', FALSE),
         ('staff05', '$2a$10$VW29gAYZYxfRdWhNP.KYUOVAkPeS1DZYSrcxywKGdjGpx4z0QitDa', '직원01','wndus6110@naver.com', 'STAFF', FALSE),
         ('staff06', '$2a$10$OhUaODvgez4RlesuWWlyXeMzwWRNhYvTrNjgOy07//KxK8sdWaDFG', '직원02','wndus6110@naver.com', 'STAFF', FALSE);

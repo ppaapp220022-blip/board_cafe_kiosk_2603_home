@@ -179,21 +179,20 @@ public class GameController {
     }
 
     // ==========
-
     /**
      * 게임 삭제 처리
      * POST /admin/product/game/delete/{id}
      */
     // 이미지 파일도 함께 삭제
     /* 게임 데이터 완전 삭제 */
-    @PostMapping("/delete/{id}")
-    public String remove(@PathVariable int id) {
-        log.debug("POST /admin/product/game/delete/{} 요청", id);
-        fileUploadUtil.delete(gameService.getById(id).getImageUrl());
-        gameService.remove(id);
-        log.debug("게임 삭제 완료 - id: {}", id);
-        return "redirect:/admin/product/game";
-    }
+//    @PostMapping("/delete/{id}")
+//    public String remove(@PathVariable int id) {
+//        log.debug("POST /admin/product/game/delete/{} 요청", id);
+//        fileUploadUtil.delete(gameService.getById(id).getImageUrl());
+//        gameService.remove(id);
+//        log.debug("게임 삭제 완료 - id: {}", id);
+//        return "redirect:/admin/product/game";
+//    }
     // ==========
 
     /* 게임 활성/비활성 상태 토글 (키오스크 노출 여부) */

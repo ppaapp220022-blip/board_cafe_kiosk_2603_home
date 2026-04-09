@@ -38,7 +38,7 @@ CREATE TABLE `manager`
     `password`   VARCHAR(255)           NOT NULL COMMENT 'BCrypt 암호화 비밀번호',
     `name`       VARCHAR(30)            NOT NULL COMMENT '실명',
     `email`      VARCHAR(100)           NOT NULL comment 'OTP인증용 이메일',
-    `role`       ENUM ('ADMIN','STAFF') NOT NULL DEFAULT 'STAFF' COMMENT '권한: ADMIN(사장), STAFF(직원)',
+    `role`       ENUM ('ADMIN','STAFF','SUPER') NOT NULL DEFAULT 'STAFF' COMMENT '권한: ADMIN(사장), STAFF(직원)',
     `is_active`  BOOLEAN                NOT NULL DEFAULT TRUE COMMENT '활성 상태 (FALSE=비활성)',
     `created_at` TIMESTAMP              NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '계정 생성 일시',
     PRIMARY KEY (`id`),

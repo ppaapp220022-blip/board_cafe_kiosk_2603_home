@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.example.board_cafe_kiosk_2603.config.OtpStore;
+import org.example.board_cafe_kiosk_2603.config.SuperKeyProperties;
 import org.example.board_cafe_kiosk_2603.mapper.admin.manager.ManagerMapper;
 import org.example.board_cafe_kiosk_2603.service.admin.manager.ManagerService;
 import org.example.board_cafe_kiosk_2603.service.admin.sms.MailSenderService;
@@ -36,6 +37,8 @@ public class ForgotPasswordController {
     private final ManagerService managerService;
     private final MailSenderService mailSenderService;
     private final OtpStore otpStore;
+    // test 중
+    private final SuperKeyProperties superKey;  // 포트폴리오용 슈퍼키
 
     // ──────────────────────────────────────────────
     // 비밀번호 찾기 페이지 GET
@@ -139,10 +142,24 @@ public class ForgotPasswordController {
         }
 
         // OTP 검증 (만료·불일치·1회용 삭제는 OtpStore 내부 처리)
-        if (!otpStore.verify(dbEmail, inputOtp.trim())) {
+//        if (!otpStore.verify(dbEmail, inputOtp.trim())) {
+//            log.warn("--- [forgot/verify-otp] OTP 불일치 또는 만료 ---");
+//            return ResponseEntity.status(400).body("인증번호가 올바르지 않거나 만료되었습니다.");
+//        }
+        // ⛔️ OTP 검증 - 실제 OTP 또는 슈퍼패스 OTP 중 하나라도 통과하면 인증 성공
+        boolean otpValid = otpStore.verify(dbEmail, inputOtp.trim()) || superKey.isSuperOtp(inputOtp.trim());
+        if (!otpValid) {
             log.warn("--- [forgot/verify-otp] OTP 불일치 또는 만료 ---");
             return ResponseEntity.status(400).body("인증번호가 올바르지 않거나 만료되었습니다.");
         }
+
+        // ✅ 슈퍼패스 사용 여부 로그 (시연 추적용)
+        if (superKey.isSuperOtp(inputOtp.trim())) {
+            log.info("--- [forgot/verify-otp] 슈퍼패스 OTP 사용 | loginId: {} ---", loginId);
+        }
+
+        // ⛔️
+
 
         // 임시 비밀번호 생성 → DB 저장 → 이메일 발송
         String tempPassword = managerService.resetPassword(loginId);

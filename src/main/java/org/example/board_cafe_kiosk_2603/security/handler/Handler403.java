@@ -7,6 +7,7 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 
@@ -16,39 +17,57 @@ import java.io.IOException;
 public class Handler403 implements AccessDeniedHandler {
 
     /* 키오스크 계정이 관리자 페이지에 접속하려 할때 발생하는 403 Forbidden(권한 거부) 상황 처리하는 커스텀 핸들러 */
+    /*
+     * 403 Forbidden 커스텀 핸들러
+     *
+     * Ajax 요청 → 403 상태코드 + JSON 응답
+     *             (fetch()가 리다이렉트를 따라가지 않으므로 JSON으로 처리)
+     * 일반 요청 → 리다이렉트
+     *             키오스크: /kiosk/login
+     *             관리자  : /common/login?error=ACCESS_DENIED
+     */
 
     @Override
     public void handle(HttpServletRequest request,
                        HttpServletResponse response,
                        AccessDeniedException accessDeniedException)
             throws IOException, ServletException {
-        log.info("--- [Handler403] ACCESS DENIED ---");
 
-        response.setStatus(HttpStatus.FORBIDDEN.value());  // 응답 상태를 403으로 명시
+        log.warn("--- [Handler403] ACCESS DENIED | URI: {}, Method: {} ---",
+                request.getRequestURI(), request.getMethod());
 
-        // JSON(ajax) 요청이었는지 확인
+        response.setStatus(HttpStatus.FORBIDDEN.value());
+
+        // Ajax 여부 판단
+        // Content-Type: application/json     → fetch() RequestBody JSON
+        // Content-Type: application/x-www-form-urlencoded → fetch() URLSearchParams
+        // X-Requested-With: XMLHttpRequest   → jQuery Ajax 호환
         String contentType = request.getHeader("Content-Type");
-//        boolean isJsonRequest = contentType.startsWith("application/json");
-        // 작성자가 아닌 read화면에서 modify로 URL 변경시 로그인페이지로 error=ACCESS_DENIED 발생시킴
-        boolean isJsonRequest = false;
-        if (contentType != null) {
+        String requestedWith = request.getHeader("X-Requested-With");
 
-            isJsonRequest = contentType.startsWith("application/json");
+        boolean isAjax = (contentType != null
+                && (contentType.startsWith(MediaType.APPLICATION_JSON_VALUE)
+                || contentType.startsWith(MediaType.APPLICATION_FORM_URLENCODED_VALUE)))
+                || "XMLHttpRequest".equals(requestedWith);
+
+        log.info("--- [Handler403] isAjax: {}, Content-Type: {} ---", isAjax, contentType);
+
+        if (isAjax) {
+            // Ajax 요청 → JSON 응답
+            // fetch()는 리다이렉트를 자동으로 따라가므로 페이지가 이동되어버림
+            // 상태코드 403 + JSON으로 내려야 JS에서 정상적으로 오류 처리 가능
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write("{\"error\":\"ACCESS_DENIED\",\"message\":\"접근 권한이 없습니다.\"}");
+            log.warn("--- [Handler403] Ajax 403 응답 | URI: {} ---", request.getRequestURI());
+        } else {
+            // 일반 요청 → 리다이렉트
+            String redirectUrl = request.getRequestURI().startsWith("/kiosk")
+                    ? "/kiosk/login"
+                    : "/common/login?error=ACCESS_DENIED";
+            log.warn("--- [Handler403] 일반 요청 리다이렉트 | {} → {} ---",
+                    request.getRequestURI(), redirectUrl);
+            response.sendRedirect(redirectUrl);
         }
-
-        log.info("isJSON: {}", isJsonRequest);
-
-        // 일반 request
-        // <form> 방식으로 데이터가 처리되는 경우 로그인 페이지로 리다이렉트
-//        if (!isJsonRequest) {
-//            // 로그인 페이지로 보냄
-//            response.sendRedirect("/common/login?error=ACCESS_DENIED");
-//        }
-
-        // 키오스크/관리자 리다이렉트 분기
-        String redirectUrl = request.getRequestURI().startsWith("/kiosk")
-                ? "/kiosk/login"
-                : "/common/login?error=ACCESS_DENIED";
-        response.sendRedirect(redirectUrl);
     }
 }

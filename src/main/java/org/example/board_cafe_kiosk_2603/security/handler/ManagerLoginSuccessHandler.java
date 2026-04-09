@@ -27,24 +27,26 @@ public class ManagerLoginSuccessHandler implements AuthenticationSuccessHandler 
                                         Authentication authentication)
             throws IOException, ServletException {
 
-        // ✅ Role 확인
+        // Role 확인
+        // 포트폴리오 시연용 계정 추가
         boolean isAdmin = authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")
+                        || a.getAuthority().equals("ROLE_SUPER"));
 
-        // ✅ 세션에 임시 저장 (2차 인증 전까지 loginId 보관)
+        // 세션에 임시 저장 (2차 인증 전까지 loginId 보관)
         HttpSession session = request.getSession();
         session.setAttribute("PRE_AUTH_USER", authentication.getName());
 
         log.info("--- [AdminLoginSuccess] 1차 인증 성공 | loginId: {}, isAdmin: {} ---",
                 authentication.getName(), isAdmin);
 
-        // ✅ SecurityContext 제거 - 2차 인증 전까지 완전 로그인 차단
+        // SecurityContext 제거 - 2차 인증 전까지 완전 로그인 차단
         SecurityContextHolder.clearContext();
         session.removeAttribute(
                 HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY
         );
 
-        // ✅ Role에 따라 2차 인증 페이지로 분기
+        // Role에 따라 2차 인증 페이지로 분기
         if (isAdmin) {
             // ADMIN → OTP 인증 페이지
             response.sendRedirect("/login/verifyEmailOtp");

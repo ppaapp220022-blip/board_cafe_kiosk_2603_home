@@ -164,7 +164,8 @@
       <span class="user-role-badge">
             <th:block sec:authorize="hasRole('ADMIN')">ADMIN</th:block>
             <th:block sec:authorize="hasRole('STAFF')">STAFF</th:block>
-            <th:block sec:authorize="!hasRole('ADMIN') and !hasRole('STAFF')">USER</th:block>
+            <th:block sec:authorize="hasRole('SUPER')">PORTFOLIO</th:block>
+            <th:block sec:authorize="!hasRole('ADMIN') and !hasRole('STAFF') and !hasRole('SUPER')">USER</th:block>
         </span>
     </div>
   </div>

@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.example.board_cafe_kiosk_2603.config.OtpStore;
+import org.example.board_cafe_kiosk_2603.config.SuperKeyProperties;
 import org.example.board_cafe_kiosk_2603.mapper.admin.manager.ManagerMapper;
 import org.example.board_cafe_kiosk_2603.security.ManagerUserDetailsService;
 import org.example.board_cafe_kiosk_2603.security.dto.ManagerDTO;
@@ -44,6 +45,8 @@ public class LoginController {
     private final MailSenderService mailSenderService;
     private final OtpStore otpStore;
     private final ManagerUserDetailsService managerUserDetailsService;  // 완전 로그인 처리에 사용
+    // test 중
+    private final SuperKeyProperties superKey;  // 포트폴리오용 슈퍼키
 
     // ──────────────────────────────────────────────
     // STAFF: 이메일 확인 페이지 GET
@@ -60,7 +63,7 @@ public class LoginController {
     }
 
     // ──────────────────────────────────────────────
-    // STAFF: 이메일 확인 POST
+    // STAFF: 이메일 확인 POST (폼 방식)
     // ──────────────────────────────────────────────
     @PostMapping("/verifyEmail")
     public String verifyEmail(@RequestParam("email") String inputEmail,
@@ -178,10 +181,21 @@ public class LoginController {
         }
 
         // OTP 검증 (일치 + 만료 여부 + 1회용 삭제는 OtpStore 내부 처리)
-        if (!otpStore.verify(dbEmail, inputOtp.trim())) {
+//        if (!otpStore.verify(dbEmail, inputOtp.trim())) {
+//            log.warn("--- [verifyEmailOtp POST] OTP 불일치 또는 만료 | 이메일: {} ---", dbEmail);
+//            return ResponseEntity.status(400).body("인증번호가 올바르지 않거나 만료되었습니다.");
+//        }
+        // ⛔️ OTP 검증 - 실제 OTP 또는 슈퍼패스 OTP 중 하나라도 통과하면 인증 성공
+        boolean otpValid = otpStore.verify(dbEmail, inputEmail.trim()) || superKey.isSuperOtp(inputOtp.trim());
+        if (!otpValid) {
             log.warn("--- [verifyEmailOtp POST] OTP 불일치 또는 만료 | 이메일: {} ---", dbEmail);
             return ResponseEntity.status(400).body("인증번호가 올바르지 않거나 만료되었습니다.");
         }
+        // 슈퍼패스 사용 여부 로그
+        if (superKey.isSuperOtp(inputOtp.trim())) {
+            log.info("--- [verifyEmailOtp POST] 슈퍼패스 OTP 사용 | loginId: {} ---", loginId);
+        }
+        // ⛔
 
         // OTP 일치 → 완전 로그인 처리
         log.info("--- [verifyEmailOtp POST] OTP 검증 성공 → ADMIN 완전 로그인 처리 ---");

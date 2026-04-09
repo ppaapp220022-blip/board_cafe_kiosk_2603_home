@@ -58,12 +58,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> {
                     log.info("  [kioskChain] 권한 규칙 설정: 정적리소스·로그인 URL → permitAll, 나머지 → ROLE_TABLE");
                     auth
-                            // ✅ 로그인 관련 URL 허용
+                            // 로그인 관련 URL 허용
                             .requestMatchers("/kiosk/login", "/kiosk/login-process").permitAll()
-                            // ✅ 나머지 키오스크 영역 → TABLE 권한 필요
+                            // 나머지 키오스크 영역 → TABLE 권한 필요
                             .anyRequest().hasRole("TABLE");
                 })
-                // ✅ userDetailsService는 authorizeHttpRequests 이후에 설정
+                // userDetailsService는 authorizeHttpRequests 이후에 설정
                 .userDetailsService(kioskUserDetailsService)
                 .formLogin(config -> {
                     log.info("  [kioskChain] formLogin 설정: loginPage=/kiosk/login, processUrl=/kiosk/login-process");
@@ -119,7 +119,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> {
                     log.info("  [adminChain] 권한 규칙 설정 시작");
                     auth
-                            // ✅ 공개 허용 URL
+                            // 공개 허용 URL
                             .requestMatchers(
                                     "/common/login",
                                     "/common/logout",
@@ -132,9 +132,9 @@ public class SecurityConfig {
                                     "/login/verifyEmailOtp",
                                     "/login/sendOtp"
                             ).permitAll()
-                            // ✅ 관리자 영역 → ADMIN 또는 STAFF 권한 필요
-                            .requestMatchers("/admin/**").hasAnyRole("ADMIN", "STAFF")
-                            // ✅ 나머지 인증 필요
+                            // 관리자 영역 → ADMIN 또는 STAFF 권한 필요
+                            .requestMatchers("/admin/**").hasAnyRole("ADMIN", "STAFF", "SUPER")
+                            // 나머지 인증 필요
                             .anyRequest().authenticated();
                     log.info("  [adminChain] 권한 규칙 설정 완료");
                 })
@@ -162,7 +162,7 @@ public class SecurityConfig {
                     log.info("  [adminChain] exceptionHandling 설정");
                     config
                             .accessDeniedHandler(accessDeniedHandler())
-                            // ✅ 미인증 접근 시 관리자 로그인 페이지로 이동 (기본값 override)
+                            // 미인증 접근 시 관리자 로그인 페이지로 이동 (기본값 override)
                             .authenticationEntryPoint((request, response, authException) -> {
                                 log.warn("  [adminChain][AuthEntryPoint] 미인증 접근 감지 → URI: {}, 예외: {}",
                                         request.getRequestURI(), authException.getMessage());
