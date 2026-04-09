@@ -284,6 +284,7 @@ CREATE TABLE `table_message`
     `table_id`   INT          NOT NULL COMMENT '발생 테이블',
     `macro_id`   INT                   DEFAULT NULL COMMENT '사용된 매크로 번호',
     `content`    VARCHAR(255) NOT NULL COMMENT '실제 메세지 본문',
+    `direction`  ENUM ('STAFF_TO_TABLE', 'TABLE_TO_STAFF') NOT NULL COMMENT '전송 방향',
     `is_read`    BOOLEAN      NOT NULL DEFAULT FALSE COMMENT '읽음 상태',
     `created_at` TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '전송 시각',
     CONSTRAINT `fk_tablemsg_table` FOREIGN KEY (`table_id`) REFERENCES `cafe_table` (`id`),

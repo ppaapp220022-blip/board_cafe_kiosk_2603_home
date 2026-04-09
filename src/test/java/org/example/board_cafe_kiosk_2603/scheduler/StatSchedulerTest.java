@@ -28,6 +28,4 @@ class StatSchedulerTest {
 
         log.info(">>>>>> 통합 테스트 종료. DB의 BATCH_JOB_EXECUTION 테이블을 확인하세요.");
     }
-
-
 }

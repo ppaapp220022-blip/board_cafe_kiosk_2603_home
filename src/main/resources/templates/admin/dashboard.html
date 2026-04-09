@@ -144,6 +144,10 @@
     <div class="header-container">
         <h1 class="page-title">📊 테이블 현황</h1>
         <div style="display: flex; align-items: center; gap: 20px;">
+            <button class="btn btn-msg" style="padding: 10px 18px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;" onclick="openMessageModal()">
+                📨 메세지 전송
+            </button>
+
             <button class="btn btn-reset" onclick="handleTotalReset()">
                 🔄 전체 리셋 (마감)
             </button>
@@ -218,6 +222,35 @@
                     <button class="btn btn-status" onclick="handleStatusUpdate()">🔄 상태변경</button>
                     <button class="btn btn-msg" id="readBtn" onclick="handleReadMessage()" style="display:none;">✉️ 요청확인</button>
                     <button class="btn btn-close" onclick="closeTableModal()">닫기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="messageModal" class="modal-overlay" onclick="closeMessageModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <span>📨 테이블 메세지 전송</span>
+                <button class="close-btn" onclick="closeMessageModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 15px;">
+                    <label style="font-weight: 600; display: block; margin-bottom: 8px; color: #3c4043;">대상 테이블</label>
+                    <select id="targetTableSelect" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; outline: none;">
+                        <option value="">테이블을 선택하세요</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 25px;">
+                    <label style="font-weight: 600; display: block; margin-bottom: 8px; color: #3c4043;">전송할 메세지 (매크로)</label>
+                    <select id="macroMessageSelect" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; outline: none;">
+                        <option value="">메세지를 선택하세요</option>
+                    </select>
+                </div>
+
+                <div class="action-group" style="margin-top: 0;">
+                    <button class="btn btn-msg" style="flex: 1;" onclick="submitMessage()">전송하기</button>
+                    <button class="btn btn-close" style="flex: 1;" onclick="closeMessageModal()">취소</button>
                 </div>
             </div>
         </div>
@@ -459,7 +492,7 @@
                     alert("이용 중인 테이블만 결제가 가능합니다.");
                     return;
                 }
-                if(confirm("결제를 완료하시겠습니까?\n확인 시 퇴실 및 청소 단계로 전환됩니다.")) {
+                if(confirm("결제를 완료하시겠습니까?\n확인 시 퇴실 처리와 함께 미확인 요청도 모두 읽음 처리됩니다.")) {
                     callUpdateStatus('CLEANING');
                 }
             }
@@ -492,6 +525,122 @@
                     const response = await fetch('/admin/dashboard/reset', { method: 'DELETE' });
                     if (response.ok) { location.reload(); }
                 } catch (err) { console.error(err); }
+            }
+
+            /* =======================================
+             * 메세지 전송 모달 관련 로직 추가
+             * ======================================= */
+
+            function openMessageModal() {
+                const targetSelect = document.getElementById('targetTableSelect');
+                targetSelect.innerHTML = '<option value="">테이블을 선택하세요</option>';
+
+                // --- [추가] 전체 전송 옵션 삽입 ---
+                targetSelect.innerHTML += '<option value="ALL" style="font-weight:bold; color:#4285f4;">📢 이용 중인 전체 테이블</option>';
+
+                document.querySelectorAll('.table-card.status-occupied').forEach(card => {
+                    const tableId = card.getAttribute('data-id');
+                    const tableNum = card.getAttribute('data-num');
+                    targetSelect.innerHTML += `<option value="${tableId}">Table ${tableNum}</option>`;
+                });
+
+                fetchMacroMessagesForAdmin();
+
+                const modal = document.getElementById('messageModal');
+                if (modal) {
+                    modal.style.display = 'flex';
+                    setTimeout(() => {
+                        const content = modal.querySelector('.modal-content');
+                        if (content) content.style.transform = 'translateY(0)';
+                    }, 10);
+                }
+            }
+
+            function closeMessageModal() {
+                const modal = document.getElementById('messageModal');
+                if (modal) {
+                    modal.style.display = 'none';
+                    const content = modal.querySelector('.modal-content');
+                    if (content) content.style.transform = 'translateY(-20px)';
+                }
+                // 선택 값 초기화
+                document.getElementById('targetTableSelect').value = '';
+                document.getElementById('macroMessageSelect').value = '';
+            }
+
+            // REST API로 매크로 메세지 목록(STAFF_TO_TABLE) 가져오기
+            async function fetchMacroMessagesForAdmin() {
+                try {
+                    const response = await fetch('/admin/macro/api?direction=STAFF_TO_TABLE');
+                    if (!response.ok) {
+                        throw new Error("HTTP error! status: " + response.status);
+                    }
+
+                    // 변수명을 dataList로 변경하여 외부/내부 변수 충돌 방지
+                    const dataList = await response.json();
+
+                    const msgSelect = document.getElementById('macroMessageSelect');
+                    if (!msgSelect) return;
+
+                    // 초기화
+                    msgSelect.innerHTML = '<option value="">전송할 메세지를 선택하세요</option>';
+
+                    if (dataList && dataList.length > 0) {
+                        dataList.forEach(msg => {
+                            // 서버 DTO 필드명이 'id'인지 'macroMessageId'인지 로그 보고 맞춰야 함
+                            // 둘 다 대응할 수 있도록 처리
+                            const realId = msg.id || msg.macroMessageId;
+                            const text = msg.messageText || "내용 없음";
+
+                            if (realId) {
+                                msgSelect.innerHTML += `<option value="${realId}">${text}</option>`;
+                            }
+                        });
+                    }
+                } catch (err) {
+                    console.error("매크로 메세지 로딩 실패:", err);
+                }
+            }
+
+            // 메세지 전송 실행
+            async function submitMessage() {
+                const tableSelect = document.getElementById('targetTableSelect');
+                const messageSelect = document.getElementById('macroMessageSelect');
+
+                const tableId = tableSelect.value;
+                const messageId = messageSelect.value;
+
+                if (!tableId || !messageId) {
+                    return alert('테이블과 메세지를 선택해주세요.');
+                }
+
+                // --- [수정] 전송 데이터 구성 로직 ---
+                const sendData = {
+                    macroMessageId: Number(messageId),
+                    // tableId가 "ALL"이면 문자열 그대로, 아니면 숫자로 변환
+                    tableId: (tableId === "ALL") ? "ALL" : Number(tableId)
+                };
+
+                try {
+                    const response = await fetch('/admin/macro/api/send', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(sendData) // 수정된 객체 전송
+                    });
+
+                    if (response.ok) {
+                        alert(tableId === "ALL" ? '📢 전체 메세지가 전송되었습니다.' : '✅ 메세지가 전송되었습니다.');
+                        closeMessageModal();
+                        // 전체 전송 시 화면 갱신을 위해 reload (선택사항)
+                        if(tableId === "ALL") location.reload();
+                    } else {
+                        const errorData = await response.text();
+                        alert('❌ 전송 실패: ' + errorData);
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('서버와 통신 중 오류가 발생했습니다.');
+                }
             }
         </script>
     </th:block>

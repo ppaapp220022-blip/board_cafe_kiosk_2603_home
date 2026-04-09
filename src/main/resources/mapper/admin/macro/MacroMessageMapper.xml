@@ -15,4 +15,25 @@
         ORDER BY direction DESC, id ASC
     </select>
 
+    <select id="findById" resultType="org.example.board_cafe_kiosk_2603.domain.admin.macro.MacroMessage">
+        SELECT
+            id,
+            message_text AS messageText,
+            direction,
+            is_active AS isActive
+        FROM macro_message
+        WHERE id = #{id}
+    </select>
+
+    <insert id="insertMacro">
+        INSERT INTO macro_message (direction, message_text, is_active)
+        VALUES (#{direction}, #{messageText}, TRUE)
+    </insert>
+
+    <update id="deactivateMacro">
+        UPDATE macro_message
+        SET is_active = FALSE
+        WHERE id = #{id}
+    </update>
+
 </mapper>

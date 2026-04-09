@@ -21,15 +21,16 @@ public class StatScheduler {
     private final Job dailyRevenueJob; // BatchConfig의 @Bean 메서드 명과 동일해야 함
 
     /**
-     * 매일 오후 14:00:00에 Spring Batch Job 실행
+     * 매일 새벽 03:00:00에 Spring Batch Job 실행
      */
-    @Scheduled(cron = "0 6 14 * * *") // 초 분 시 일 월 요일
+    @Scheduled(cron = "0 0 3 * * *")
     public void runDailyStatJob() {
         try {
-            // 1. 어제 날짜를 문자열로 준비
+            // 1. 어제 날짜를 문자열로 준비 (Tasklet의 @Value와 매칭)
             String yesterday = LocalDate.now().minusDays(1).toString();
 
             // 2. 배치 실행을 위한 파라미터 생성
+            // (time 파라미터는 동일한 파라미터로 재실행이 안 되는 Batch 특성상 매번 다르게 주기 위함입니다)
             JobParameters jobParameters = new JobParametersBuilder()
                     .addString("targetDate", yesterday)
                     .addLong("time", System.currentTimeMillis())
@@ -47,7 +48,6 @@ public class StatScheduler {
             e.printStackTrace();
         }
     }
-
 
     /**
      * 수동 실행을 위한 메서드 - 테스트 코드에서 호출
