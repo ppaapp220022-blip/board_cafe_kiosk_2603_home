@@ -1,6 +1,7 @@
 package org.example.board_cafe_kiosk_2603.mapper.admin.macro;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.example.board_cafe_kiosk_2603.domain.admin.macro.MacroMessage;
 
 import java.util.List;
@@ -18,4 +19,12 @@ public interface MacroMessageMapper {
 
     // Soft Delete 용도
     void deactivateMacro(Integer id);
+
+    // direction별 페이징 목록 조회 <페이징>
+    List<MacroMessage> selectList(@Param("direction") String direction,
+                                  @Param("skip") int skip,
+                                  @Param("size") int size);
+
+    // direction별 전체 개수 조회 <페이징>
+    int selectCount(@Param("direction") String direction);
 }

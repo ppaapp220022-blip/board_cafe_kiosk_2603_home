@@ -8,6 +8,8 @@ import org.example.board_cafe_kiosk_2603.domain.admin.manager.Manager;
 import org.example.board_cafe_kiosk_2603.dto.admin.manager.ManagerRequest;
 import org.example.board_cafe_kiosk_2603.dto.admin.manager.ManagerResponse;
 import org.example.board_cafe_kiosk_2603.dto.admin.manager.ProfileUpdateRequest;
+import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageRequestDTO;
+import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageResponseDTO;
 import org.example.board_cafe_kiosk_2603.service.admin.manager.ManagerService;
 import org.example.board_cafe_kiosk_2603.service.admin.sms.MailSenderService;
 import org.springframework.http.HttpStatus;
@@ -30,15 +32,15 @@ public class ManagerController {
     private final ManagerService managerService;
 
     /* 직원 목록 페이지 */
-    @GetMapping
-    public String staffPage(Model model) {
-        log.info("--- 직원 목록 페이지 진입 ---");
-        List<ManagerResponse> staffList = managerService.findAll();
-
-        log.info("--- 조회된 직원: {}명 ---", staffList);
-        model.addAttribute("staffList", staffList);
-        return "admin/staff";
-    }
+//    @GetMapping
+//    public String staffPage(Model model) {
+//        log.info("--- 직원 목록 페이지 진입 ---");
+//        List<ManagerResponse> staffList = managerService.findAll();
+//
+//        log.info("--- 조회된 직원: {}명 ---", staffList);
+//        model.addAttribute("staffList", staffList);
+//        return "admin/staff";
+//    }
 
     /* 신규 직원 등록 (모달 폼 → Ajax) */
     @PostMapping
@@ -163,5 +165,30 @@ public class ManagerController {
 
         log.info("[프로필 업데이트 완료] 사용자: {}", loginId);
         return ResponseEntity.ok("수정 완료");
+    }
+
+    /*================페이징============== */
+    // 직원 목록 페이지
+    @GetMapping
+    public String staffPage(PageRequestDTO pageRequestDTO, Model model) {
+        log.info("--- 직원 목록 페이지 진입 ---");
+
+        PageResponseDTO<ManagerResponse> responseDTO = managerService.getPagedManagers(pageRequestDTO);
+
+        // 각 탭별 개수 조회
+        PageRequestDTO allReq      = PageRequestDTO.builder().page(1).size(1).build();
+        PageRequestDTO activeReq   = PageRequestDTO.builder().page(1).size(1).filter("active").build();
+        PageRequestDTO inactiveReq = PageRequestDTO.builder().page(1).size(1).filter("inactive").build();
+
+        model.addAttribute("responseDTO", responseDTO);
+        model.addAttribute("pageRequestDTO", pageRequestDTO);
+        // filter가 null이면 "all"로 기본값 설정
+        model.addAttribute("filter", pageRequestDTO.getFilter() != null ? pageRequestDTO.getFilter() : "all");
+        model.addAttribute("countAll",      managerService.getCount(allReq));
+        model.addAttribute("countActive",   managerService.getCount(activeReq));
+        model.addAttribute("countInactive", managerService.getCount(inactiveReq));
+        model.addAttribute("activePage", "staffManagement");
+
+        return "admin/staff";  // templates/admin/staff.html
     }
 }

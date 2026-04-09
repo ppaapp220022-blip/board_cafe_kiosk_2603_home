@@ -4,10 +4,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.example.board_cafe_kiosk_2603.dto.admin.macro.MacroMessageResponseDTO;
 import org.example.board_cafe_kiosk_2603.dto.admin.macro.MacroSendRequestDTO;
+import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageRequestDTO;
+import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageResponseDTO;
 import org.example.board_cafe_kiosk_2603.service.admin.macro.MacroMessageService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -104,5 +110,14 @@ public class MacroMessageController {
     public ResponseEntity<?> deleteMacro(@PathVariable Integer id) {
         macroMessageService.deleteMacro(id);
         return ResponseEntity.ok(Map.of("message", "삭제 처리되었습니다."));
+    }
+
+    // 탭별 페이징 AJAX
+    @GetMapping("/list")
+    @ResponseBody
+    public PageResponseDTO<MacroMessageResponseDTO> getPagedList(
+            @RequestParam String direction,
+            PageRequestDTO pageRequestDTO) {
+        return macroMessageService.getPagedMessage(direction, pageRequestDTO);
     }
 }

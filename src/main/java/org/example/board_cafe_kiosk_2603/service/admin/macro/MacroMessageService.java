@@ -1,6 +1,8 @@
 package org.example.board_cafe_kiosk_2603.service.admin.macro;
 
 import org.example.board_cafe_kiosk_2603.dto.admin.macro.MacroMessageResponseDTO;
+import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageRequestDTO;
+import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageResponseDTO;
 
 import java.util.List;
 
@@ -15,4 +17,7 @@ public interface MacroMessageService {
     void createMacro(String direction, String messageText);
     // 메세지 비활성화 처리
     void deleteMacro(Integer id);
+
+    // direction별 페이징 조회
+    PageResponseDTO<MacroMessageResponseDTO> getPagedMessage(String direction, PageRequestDTO pageRequestDTO);
 }

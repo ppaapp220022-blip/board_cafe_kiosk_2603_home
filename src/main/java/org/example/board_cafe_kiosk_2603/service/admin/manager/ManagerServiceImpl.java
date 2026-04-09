@@ -6,6 +6,8 @@ import org.example.board_cafe_kiosk_2603.domain.admin.manager.Manager;
 import org.example.board_cafe_kiosk_2603.dto.admin.manager.ManagerRequest;
 import org.example.board_cafe_kiosk_2603.dto.admin.manager.ManagerResponse;
 import org.example.board_cafe_kiosk_2603.dto.admin.manager.ProfileUpdateRequest;
+import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageRequestDTO;
+import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageResponseDTO;
 import org.example.board_cafe_kiosk_2603.mapper.admin.manager.ManagerMapper;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,6 +35,7 @@ public class ManagerServiceImpl implements ManagerService {
                 .map(vo -> modelMapper.map(vo, ManagerResponse.class))
                 .collect(Collectors.toList());
     }
+
 
     // 직원 등록 - Request → VO 변환 후 insert
     @Override
@@ -167,5 +170,26 @@ public class ManagerServiceImpl implements ManagerService {
             chars[j] = tmp;
         }
         return new String(chars);
+    }
+
+    /*================페이징============== */
+    @Override
+    public PageResponseDTO<ManagerResponse> getPagedManagers(PageRequestDTO pageRequestDTO) {
+        List<ManagerResponse> dtoList = managerMapper.selectList(pageRequestDTO).stream()
+                .map(vo -> modelMapper.map(vo, ManagerResponse.class))
+                .collect(Collectors.toList());
+
+        int total = managerMapper.selectCount(pageRequestDTO);
+
+        return PageResponseDTO.<ManagerResponse>withAll()
+                .pageRequestDTO(pageRequestDTO)
+                .dtoList(dtoList)
+                .total(total)
+                .build();
+    }
+
+    @Override
+    public int getCount(PageRequestDTO pageRequestDTO) {
+        return managerMapper.selectCount(pageRequestDTO);
     }
 }
