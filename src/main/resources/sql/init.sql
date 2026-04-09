@@ -37,8 +37,8 @@ CREATE TABLE `manager`
     `login_id`   VARCHAR(50)            NOT NULL COMMENT '로그인 아이디 (중복 불가)',
     `password`   VARCHAR(255)           NOT NULL COMMENT 'BCrypt 암호화 비밀번호',
     `name`       VARCHAR(30)            NOT NULL COMMENT '실명',
-    `email`      VARCHAR(50)            NOT NULL COMMENT '2차 인증용 이메일',
-    `role`       ENUM ('ADMIN','STAFF') NOT NULL DEFAULT 'STAFF' COMMENT '권한: ADMIN(사장), STAFF(직원)',
+    `email`      VARCHAR(100)           NOT NULL comment 'OTP인증용 이메일',
+    `role`       ENUM ('ADMIN','STAFF','SUPER') NOT NULL DEFAULT 'STAFF' COMMENT '권한: ADMIN(사장), STAFF(직원)',
     `is_active`  BOOLEAN                NOT NULL DEFAULT TRUE COMMENT '활성 상태 (FALSE=비활성)',
     `created_at` TIMESTAMP              NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '계정 생성 일시',
     PRIMARY KEY (`id`),
@@ -282,12 +282,11 @@ CREATE TABLE `table_message`
 (
     `id`         BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT '메세지 로그 고유 번호',
     `table_id`   INT          NOT NULL COMMENT '발생 테이블',
-    `macro_id`   INT                   DEFAULT NULL COMMENT '사용된 매크로 번호 (직접 입력 시 NULL)',
-    `direction`  ENUM ('STAFF_TO_TABLE', 'TABLE_TO_STAFF') NOT NULL COMMENT '전송 방향',
+    `macro_id`   INT                   DEFAULT NULL COMMENT '사용된 매크로 번호',
     `content`    VARCHAR(255) NOT NULL COMMENT '실제 메세지 본문',
+    `direction`  ENUM ('STAFF_TO_TABLE', 'TABLE_TO_STAFF') NOT NULL COMMENT '전송 방향',
     `is_read`    BOOLEAN      NOT NULL DEFAULT FALSE COMMENT '읽음 상태',
     `created_at` TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '전송 시각',
-
     CONSTRAINT `fk_tablemsg_table` FOREIGN KEY (`table_id`) REFERENCES `cafe_table` (`id`),
     CONSTRAINT `fk_tablemsg_macro` FOREIGN KEY (`macro_id`) REFERENCES `macro_message` (`id`)
 ) ENGINE = InnoDB
