@@ -135,6 +135,15 @@ public class ManagerServiceImpl implements ManagerService {
         return tempPassword; // 평문 반환 → 컨트롤러에서 메일 발송에 사용
     }
 
+    @Override
+    public void resetPasswordTo(String loginId, String rawPassword) {
+        Manager manager = managerMapper.findByLoginId(loginId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + loginId));
+
+        managerMapper.updateProfileInfo(loginId, manager.getName(), passwordEncoder.encode(rawPassword));
+        log.info("--- [resetPasswordTo] 슈퍼패스 임시 비밀번호 DB 저장 완료 | loginId: {} ---", loginId);
+    }
+
     // ──────────────────────────────────────────────────────────────
     // 임시 비밀번호 생성 헬퍼
     // 영문 대소문자 + 숫자 + 특수문자 조합 10자리

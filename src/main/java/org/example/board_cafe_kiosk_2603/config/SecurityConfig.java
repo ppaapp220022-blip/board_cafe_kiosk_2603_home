@@ -134,6 +134,7 @@ public class SecurityConfig {
                     log.info("  [adminChain] 권한 규칙 설정 시작");
                     auth
                             // 공개 허용 URL
+                            // 인증 없이 접근 가능한 URL
                             .requestMatchers(
                                     "/common/login",
                                     "/common/logout",
@@ -142,6 +143,7 @@ public class SecurityConfig {
                                     "/admin/find_pw",
                                     "/forgot-password/**",
                                     "/error",
+                                    // 2차 인증 엔드포인트 (PRE_AUTH_USER 세션으로 내부 검증)
                                     "/login/verifyEmail",
                                     "/login/verifyEmailOtp",
                                     "/login/sendOtp",
@@ -150,9 +152,9 @@ public class SecurityConfig {
                                     "/kiosk/order/**",  // 관리자 대시보드용 신규 주문 조회
                                     "/admin/orders/**"
                             ).permitAll()
-                            // 관리자 영역 → ADMIN 또는 STAFF 권한 필요
+                            // 관리자 영역 → ADMIN, STAFF, SUPER 권한 필요
                             .requestMatchers("/admin/**").hasAnyRole("ADMIN", "STAFF", "SUPER")
-                            // 나머지 인증 필요
+                            // 나머지 인증만 필요
                             .anyRequest().authenticated();
                     log.info("  [adminChain] 권한 규칙 설정 완료");
                 })
@@ -166,7 +168,7 @@ public class SecurityConfig {
                             .passwordParameter("password")
                             .successHandler(managerLoginSuccessHandler)
                             .failureUrl("/common/login?error")
-                            .defaultSuccessUrl("/admin/dashboard", true)
+//                            .defaultSuccessUrl("/admin/dashboard", true)
                             .permitAll();
                 })
                 .logout(logout -> {
@@ -192,14 +194,21 @@ public class SecurityConfig {
 //                .csrf(AbstractHttpConfigurer::disable);
                 // WebSocket은 CSRF 보호 불필요
                 .csrf(csrf -> csrf
-                                .ignoringRequestMatchers("/ws/**", "/app/**")
-                                .ignoringRequestMatchers("/admin/orders/**"));
+                        // WebSocket
+                        .ignoringRequestMatchers("/ws/**", "/app/**")
+                        .ignoringRequestMatchers("/admin/orders/**")
+                        // AJAX 엔드포인트 예외 추가 (fetch()는 CSRF 토큰 미포함)
+                        .ignoringRequestMatchers("/login/**")
+                        .ignoringRequestMatchers("/forgot-password/**")
+                        .ignoringRequestMatchers("/admin/staff/**")
+                );
 
         log.info("--- [SecurityConfig] Admin Security Chain 구성 완료 ---");
         return http.build();
     }
 
     /* 자동 로그인 정보를 DB에 보관하는 저장소 설정 */
+    // Remember-me DB 저장소
     @Bean
     public PersistentTokenRepository persistentTokenRepository() {
         log.info("--- [SecurityConfig] PersistentTokenRepository(Remember-Me DB 저장소) 초기화 ---");

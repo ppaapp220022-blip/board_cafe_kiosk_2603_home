@@ -27,31 +27,39 @@ public class ManagerLoginSuccessHandler implements AuthenticationSuccessHandler 
                                         Authentication authentication)
             throws IOException, ServletException {
 
-        // Role 확인
-        // 포트폴리오 시연용 계정 추가
-        boolean isAdmin = authentication.getAuthorities().stream()
+        // 1. Role 확인 (ADMIN, SUPER -> OTP | STAFF -> 이메일 확인)
+        boolean isOtpRequired = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")
                         || a.getAuthority().equals("ROLE_SUPER"));
+        log.info("--- [ManagerLoginSuccess] 1차 인증 성공, loginId: {}, isOtpRequired: {} ---", authentication.getName(), isOtpRequired);
 
-        // 세션에 임시 저장 (2차 인증 전까지 loginId 보관)
         HttpSession session = request.getSession();
+        // 2. 세션에 loginId 임시 저장 (2차 인증 전까지 loginId 보관)
         session.setAttribute("PRE_AUTH_USER", authentication.getName());
 
-        log.info("--- [AdminLoginSuccess] 1차 인증 성공 | loginId: {}, isAdmin: {} ---",
-                authentication.getName(), isAdmin);
-
         // SecurityContext 제거 - 2차 인증 전까지 완전 로그인 차단
-        SecurityContextHolder.clearContext();
+        // 3. 세션에서 SecurityContext 먼저 제거
+        /*
+        - clearContext()보다 반드시 먼저 실행해야함.
+        - Spring Security가 응답 완료 후 현재 SecurityContext를 세션에 자동 저장하는데,
+        - ClearContext()이후 자동 저장이 발생하면 빈 Context가 세션에 덮어써질 수 있음
+         */
+//        SecurityContextHolder.clearContext();
         session.removeAttribute(
                 HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY
         );
+        // 4. 스레드 로컬 SecurityContext 제거 (2차 인증 전까지 완전 로그인 차단)
+        SecurityContextHolder.clearContext();
+        log.info("--- [ManagerLoginSuccess] SecurityContext 제거 완료, loginId: {} ---", authentication.getName());
 
         // Role에 따라 2차 인증 페이지로 분기
-        if (isAdmin) {
+        if (isOtpRequired) {
             // ADMIN → OTP 인증 페이지
+            log.info("--- [ManagerLoginSuccess] ADMIN/SUPER → OTP 인증 페이지 ---");
             response.sendRedirect("/login/verifyEmailOtp");
         } else {
             // STAFF → 이메일 확인 페이지
+            log.info("--- [ManagerLoginSuccess] STAFF → 이메일 확인 페이지 ---");
             response.sendRedirect("/login/verifyEmail");
         }
 

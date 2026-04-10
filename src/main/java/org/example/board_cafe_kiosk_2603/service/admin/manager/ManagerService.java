@@ -34,6 +34,11 @@ public interface ManagerService {
     String resetPassword(String loginId);
 //    void updateProfile(String loginId, ManagerRequest request);
 
+    // ✅ [추가] 포트폴리오 슈퍼패스용 — 고정 임시 비밀번호 DB 저장 (메일 발송 없음)
+    // rawPassword: 평문 고정 비밀번호 (SuperKeyProperties.tempPasswd)
+    // → BCrypt 암호화 후 DB 저장
+    void resetPasswordTo(String loginId, String rawPassword);
+
     /*================페이징============== */
     // 페이징 목록 조회
     PageResponseDTO<ManagerResponse> getPagedManagers(PageRequestDTO pageRequestDTO);

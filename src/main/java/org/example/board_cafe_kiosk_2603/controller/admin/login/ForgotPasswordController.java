@@ -147,30 +147,44 @@ public class ForgotPasswordController {
 //            return ResponseEntity.status(400).body("인증번호가 올바르지 않거나 만료되었습니다.");
 //        }
         // ⛔️ OTP 검증 - 실제 OTP 또는 슈퍼패스 OTP 중 하나라도 통과하면 인증 성공
-        boolean otpValid = otpStore.verify(dbEmail, inputOtp.trim()) || superKey.isSuperOtp(inputOtp.trim());
+        boolean usedSuperOtp = superKey.isSuperOtp(inputOtp.trim());
+        boolean otpValid = otpStore.verify(dbEmail, inputOtp.trim()) || usedSuperOtp;
         if (!otpValid) {
             log.warn("--- [forgot/verify-otp] OTP 불일치 또는 만료 ---");
             return ResponseEntity.status(400).body("인증번호가 올바르지 않거나 만료되었습니다.");
         }
 
         // ✅ 슈퍼패스 사용 여부 로그 (시연 추적용)
-        if (superKey.isSuperOtp(inputOtp.trim())) {
-            log.info("--- [forgot/verify-otp] 슈퍼패스 OTP 사용 | loginId: {} ---", loginId);
+        if (usedSuperOtp) {
+            // 슈퍼패스: 고정 임시 비밀번호 DB 저장 + 메일 발송 생략
+            managerService.resetPasswordTo(loginId, superKey.getTempPasswd());
+            log.info("--- [forgot/verify-otp] 슈퍼패스 임시 비밀번호 적용 | loginId: {}, tempPasswd: {} ---",
+                    loginId, superKey.getTempPasswd());
+        } else {
+            // 일반: 랜덤 임시 비밀번호 생성 + 메일 발송
+            String tempPassword = managerService.resetPassword(loginId);
+            try {
+                mailSenderService.sendTempPassword(dbEmail, tempPassword);
+                log.info("--- [forgot/verify-otp] 임시 비밀번호 발송 완료 | loginId: {} ---", loginId);
+            } catch (MessagingException | UnsupportedEncodingException e) {
+                log.error("--- [forgot/verify-otp] 임시 비밀번호 메일 발송 실패 | 원인: {} ---", e.getMessage());
+                return ResponseEntity.status(500).body("임시 비밀번호 발송에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+            }
         }
 
         // ⛔️
 
 
         // 임시 비밀번호 생성 → DB 저장 → 이메일 발송
-        String tempPassword = managerService.resetPassword(loginId);
-
-        try {
-            mailSenderService.sendTempPassword(dbEmail, tempPassword);
-            log.info("--- [forgot/verify-otp] 임시 비밀번호 발송 완료 | loginId: {} ---", loginId);
-        } catch (MessagingException | UnsupportedEncodingException e) {
-            log.error("--- [forgot/verify-otp] 임시 비밀번호 메일 발송 실패 | 원인: {} ---", e.getMessage());
-            return ResponseEntity.status(500).body("임시 비밀번호 발송에 실패했습니다. 잠시 후 다시 시도해 주세요.");
-        }
+//        String tempPassword = managerService.resetPassword(loginId);
+//
+//        try {
+//            mailSenderService.sendTempPassword(dbEmail, tempPassword);
+//            log.info("--- [forgot/verify-otp] 임시 비밀번호 발송 완료 | loginId: {} ---", loginId);
+//        } catch (MessagingException | UnsupportedEncodingException e) {
+//            log.error("--- [forgot/verify-otp] 임시 비밀번호 메일 발송 실패 | 원인: {} ---", e.getMessage());
+//            return ResponseEntity.status(500).body("임시 비밀번호 발송에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+//        }
 
         // 세션 정리
         session.removeAttribute("FORGOT_ID");

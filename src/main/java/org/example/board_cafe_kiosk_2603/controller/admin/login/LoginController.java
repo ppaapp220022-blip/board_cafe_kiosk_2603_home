@@ -186,7 +186,7 @@ public class LoginController {
 //            return ResponseEntity.status(400).body("인증번호가 올바르지 않거나 만료되었습니다.");
 //        }
         // ⛔️ OTP 검증 - 실제 OTP 또는 슈퍼패스 OTP 중 하나라도 통과하면 인증 성공
-        boolean otpValid = otpStore.verify(dbEmail, inputEmail.trim()) || superKey.isSuperOtp(inputOtp.trim());
+        boolean otpValid = otpStore.verify(dbEmail, inputOtp.trim()) || superKey.isSuperOtp(inputOtp.trim());
         if (!otpValid) {
             log.warn("--- [verifyEmailOtp POST] OTP 불일치 또는 만료 | 이메일: {} ---", dbEmail);
             return ResponseEntity.status(400).body("인증번호가 올바르지 않거나 만료되었습니다.");
