@@ -79,6 +79,17 @@ public class PointService {
 
     @Transactional
     public void earnPoint(String phone, int amount, Long orderId) {
+        if (amount <= 0) {
+            return;
+        }
+
+        // 같은 주문에서 포인트 사용(USE)이 있었다면 적립(EARN) 금지
+        if (orderId != null && pointMapper.countUseHistoryByOrderId(orderId) > 0) {
+            String message = "포인트 사용이 포함된 주문은 적립할 수 없습니다. orderId: " + orderId;
+            log.warn("포인트 적립 차단 - {} phone: {}", message, phone);
+            throw new IllegalStateException(message);
+        }
+
         Point point = getOrCreatePoint(phone);
 
         int newBalance = point.getBalance() + amount;

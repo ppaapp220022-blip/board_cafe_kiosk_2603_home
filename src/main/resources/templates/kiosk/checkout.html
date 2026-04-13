@@ -393,7 +393,7 @@
     <div class="card">
         <div class="card-header"><i data-lucide="clock"></i> 이용 정보</div>
         <div class="info-row">
-            <span class="info-label"><i data-lucide="timer"></i> 추가 시간</span>
+            <span class="info-label"><i data-lucide="timer"></i> 초과 시간</span>
             <span id="elapsed-time">계산 중...</span>
         </div>
         <div class="info-row">
@@ -530,8 +530,14 @@
         }
         const elapsedRaw = Math.floor((Date.now() - startMs) / 60000);
         const elapsed = Math.max(elapsedRaw, 0);
-        const hours   = Math.floor(elapsed / 60);
-        const minutes = elapsed % 60;
+
+        // "추가 시간" 표시는 패키지 기본시간을 제외한 초과분만 보여준다.
+        const extraMinutesForDisplay =
+            (durationMinutes != null && durationMinutes > 0)
+                ? Math.max(elapsed - durationMinutes, 0)
+                : 0;
+        const hours   = Math.floor(extraMinutesForDisplay / 60);
+        const minutes = extraMinutesForDisplay % 60;
         document.getElementById('elapsed-time').innerText = `${hours}시간 ${minutes}분`;
 
         // 매번 기본 금액으로 초기화 후 초과 요금 반영

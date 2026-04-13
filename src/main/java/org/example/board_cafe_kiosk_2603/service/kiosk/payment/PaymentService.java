@@ -227,8 +227,9 @@ public class PaymentService {
                     .build();
 
         } catch (HttpClientErrorException e) {
-            log.error("토스 API 호출 실패 - {}", e.getResponseBodyAsString());
-            return errorResponse(parseTossError(e.getResponseBodyAsString()));
+            String errorBody = new String(e.getResponseBodyAsByteArray(), StandardCharsets.UTF_8);
+            log.error("토스 API 호출 실패 - {}", errorBody);
+            return errorResponse(parseTossError(errorBody));
         } catch (Exception e) {
             log.error("결제 승인 중 오류", e);
             return errorResponse("결제 승인 중 오류가 발생했습니다.");
@@ -246,6 +247,7 @@ public class PaymentService {
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setAccept(List.of(MediaType.APPLICATION_JSON));
             headers.set("Authorization", "Basic " + encoded);
 
             Map<String, Object> body = new HashMap<>();
@@ -253,18 +255,20 @@ public class PaymentService {
             body.put("orderId", orderId);
             body.put("amount", amount);
 
-            ResponseEntity<String> response = restTemplate.exchange(
-                    confirmUrl, HttpMethod.POST, new HttpEntity<>(body, headers), String.class);
+            ResponseEntity<byte[]> response = restTemplate.exchange(
+                    confirmUrl, HttpMethod.POST, new HttpEntity<>(body, headers), byte[].class);
 
-            if (response.getBody() == null) {
+            byte[] responseBytes = response.getBody();
+            if (responseBytes == null || responseBytes.length == 0) {
                 return null;
             }
 
-            JsonNode root = objectMapper.readTree(response.getBody());
+            String responseBody = new String(responseBytes, StandardCharsets.UTF_8);
+            JsonNode root = objectMapper.readTree(responseBody);
             return TossConfirmResponse.builder()
                     .method(root.path("method").asText())
                     .approvedAt(root.path("approvedAt").asText())
-                    .rawResponse(response.getBody())
+                    .rawResponse(responseBody)
                     .build();
 
         } catch (Exception e) {
@@ -389,6 +393,11 @@ public class PaymentService {
         if (pointUsed > 0 && isValidPhone(customerPhone)) {
             pointService.usePoint(customerPhone, pointUsed, orderId);
             log.info("포인트 사용 - {}: -{}P", customerPhone, pointUsed);
+        }
+
+        if (pointUsed > 0) {
+            log.info("포인트 사용 주문은 적립 제외 - phone: {}, orderId: {}", customerPhone, orderId);
+            return 0;
         }
 
         if (isValidPhone(customerPhone) && finalAmount > 0) {
