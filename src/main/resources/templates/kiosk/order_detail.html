@@ -587,7 +587,7 @@
         </div>
         <div>
           <div class="status-text" id="status-text" th:text="${statusDisplay}">주문 확인중...</div>
-          <div class="status-subtext">매장 준비 상황에 따라 변경될 수 있어요</div>
+          <div class="status-subtext" id="status-subtext">매장 준비 상황에 따라 변경될 수 있어요</div>
         </div>
       </div>
       <div class="status-chip" id="status-chip">주문 완료</div>
@@ -596,7 +596,7 @@
     <div class="progress-bar">
       <div class="progress-fill" id="progress-fill" style="width: 20%;"></div>
     </div>
-    <div class="progress-labels">
+    <div class="progress-labels" id="progress-labels">
       <span>주문</span>
       <span>확인</span>
       <span>조리</span>
@@ -692,15 +692,17 @@
 
   function renderOrderItems() {
     const itemsContainer = document.getElementById('order-items');
-    const items = orderData.items || [];
+    const items = Array.isArray(orderData.items)
+      ? orderData.items
+      : (Array.isArray(orderData.orderItems) ? orderData.orderItems : []);
 
     itemsContainer.innerHTML = items.map((item, index) => `
       <div class="order-item">
         <div class="item-info">
-          <div class="item-name">${item.menuName}</div>
+          <div class="item-name">${item.menuName || item.name || '상품명 없음'}</div>
           <div class="item-qty">수량: ${item.quantity}개 · <span class="item-status" data-index="${index}">주문 완료</span></div>
         </div>
-        <div class="item-price">₩${(item.price * item.quantity).toLocaleString()}</div>
+        <div class="item-price">₩${((Number(item.price ?? item.menuPrice ?? 0)) * Number(item.quantity || 0)).toLocaleString()}</div>
       </div>
     `).join('');
   }
@@ -722,54 +724,28 @@
     const status = currentStatus;
     const statusIcon = document.getElementById('status-icon');
     const statusText = document.getElementById('status-text');
+    const statusSubtext = document.getElementById('status-subtext');
     const progressFill = document.getElementById('progress-fill');
     const statusChip = document.getElementById('status-chip');
+    const progressLabels = document.getElementById('progress-labels');
 
     const statusConfig = {
-      'ORDERED': {
-        icon: 'clock',
-        text: '주문 완료! 관리자 확인 중...',
-        short: '주문 완료',
-        progress: 20
-      },
-      'CONFIRMED': {
-        icon: 'check-circle',
-        text: '주문 확인! 조리 시작...',
-        short: '주문 확인',
-        progress: 40
-      },
-      'COOKING': {
-        icon: 'flame',
-        text: '조리 중입니다...',
-        short: '조리 중',
-        progress: 65
-      },
-      'DELIVERING': {
-        icon: 'package-check',
-        text: '배달 준비 중...',
-        short: '서빙 준비',
-        progress: 85
-      },
-      'COMPLETED': {
-        icon: 'check-circle-2',
-        text: '완료!',
-        short: '완료',
-        progress: 100
-      },
-      'CANCELLED': {
-        icon: 'x-circle',
-        text: '주문 취소됨',
-        short: '취소',
-        progress: 0
-      }
+      'ORDERED': { icon: 'clock', text: '주문 완료! 관리자 확인 중...', short: '주문 완료', progress: 20 },
+      'CONFIRMED': { icon: 'check-circle', text: '주문 확인! 조리 시작...', short: '주문 확인', progress: 40 },
+      'COOKING': { icon: 'flame', text: '조리 중입니다...', short: '조리 중', progress: 65 },
+      'DELIVERING': { icon: 'package-check', text: '배달 준비 중...', short: '서빙 준비', progress: 85 },
+      'COMPLETED': { icon: 'check-circle-2', text: '완료!', short: '완료', progress: 100 },
+      'CANCELLED': { icon: 'x-circle', text: '주문 취소됨', short: '취소', progress: 0 }
     };
 
     const config = statusConfig[status] || statusConfig['ORDERED'];
 
     statusIcon.innerHTML = `<i data-lucide="${config.icon}"></i>`;
     statusText.innerText = config.text;
+    if (statusSubtext) statusSubtext.innerText = '매장 준비 상황에 따라 변경될 수 있어요';
     statusChip.innerText = config.short;
     progressFill.style.width = config.progress + '%';
+    if (progressLabels) progressLabels.innerHTML = '<span>주문</span><span>확인</span><span>조리</span><span>서빙</span><span>완료</span>';
 
     lucide.createIcons();
   }

@@ -319,8 +319,8 @@ VALUES
 
 -- ============================================================
 -- 12. game_history
--- 과거 세션: 반납 완료(RETURNED)
--- 활성 세션: 현재 대여 중(RENTING) — game_item.status=RENTED 와 1:1 대응
+-- 과거 세션: 반납 완료(NORMAL)
+-- 활성 세션: 현재 대여 중(RENTED) — game_item.status=RENTED 와 1:1 대응
 --
 -- game_item_id 참조 매핑 (id 기준):
 --   SPL-004=4, NUM-001=6, NUM-003=8, ANM-001=9, ANM-002=10
@@ -333,32 +333,32 @@ VALUES
     (1, 4,
      DATE_SUB(CURDATE(), INTERVAL 1 DAY) + INTERVAL '13:05' HOUR_MINUTE,
      DATE_SUB(CURDATE(), INTERVAL 1 DAY) + INTERVAL '14:50' HOUR_MINUTE,
-     'RETURNED'),
+     'NORMAL'),
     (2, 9,
      DATE_SUB(CURDATE(), INTERVAL 1 DAY) + INTERVAL '15:35' HOUR_MINUTE,
      DATE_SUB(CURDATE(), INTERVAL 1 DAY) + INTERVAL '18:30' HOUR_MINUTE,
-     'RETURNED'),
+     'NORMAL'),
     (3, 6,
      DATE_SUB(CURDATE(), INTERVAL 1 DAY) + INTERVAL '17:05' HOUR_MINUTE,
      DATE_SUB(CURDATE(), INTERVAL 1 DAY) + INTERVAL '18:00' HOUR_MINUTE,
-     'RETURNED'),
+     'NORMAL'),
     (4, 13,
      DATE_SUB(CURDATE(), INTERVAL 1 DAY) + INTERVAL '19:05' HOUR_MINUTE,
      DATE_SUB(CURDATE(), INTERVAL 1 DAY) + INTERVAL '21:10' HOUR_MINUTE,
-     'RETURNED'),
+     'NORMAL'),
     (5, 15,
      DATE_SUB(CURDATE(), INTERVAL 1 DAY) + INTERVAL '11:05' HOUR_MINUTE,
      DATE_SUB(CURDATE(), INTERVAL 1 DAY) + INTERVAL '22:50' HOUR_MINUTE,
-     'RETURNED'),
+     'NORMAL'),
     -- 현재 대여 중 (활성 세션 6~9)
-    (6, 4,  CURDATE() + INTERVAL '13:35' HOUR_MINUTE, NULL, 'RENTING'), -- table1: SPL-004
-    (7, 9,  CURDATE() + INTERVAL '14:05' HOUR_MINUTE, NULL, 'RENTING'), -- table2: ANM-001
-    (7, 10, CURDATE() + INTERVAL '14:05' HOUR_MINUTE, NULL, 'RENTING'), -- table2: ANM-002
-    (8, 13, CURDATE() + INTERVAL '15:05' HOUR_MINUTE, NULL, 'RENTING'), -- table5: CLR-002
-    (8, 15, CURDATE() + INTERVAL '15:05' HOUR_MINUTE, NULL, 'RENTING'), -- table5: SPD-001
-    (8, 16, CURDATE() + INTERVAL '15:05' HOUR_MINUTE, NULL, 'RENTING'), -- table5: SPD-002
-    (9, 8,  CURDATE() + INTERVAL '12:05' HOUR_MINUTE, NULL, 'RENTING'), -- table8: NUM-003
-    (9, 21, CURDATE() + INTERVAL '12:05' HOUR_MINUTE, NULL, 'RENTING'); -- table8: QUZ-005
+    (6, 4,  CURDATE() + INTERVAL '13:35' HOUR_MINUTE, NULL, 'RENTED'), -- table1: SPL-004
+    (7, 9,  CURDATE() + INTERVAL '14:05' HOUR_MINUTE, NULL, 'RENTED'), -- table2: ANM-001
+    (7, 10, CURDATE() + INTERVAL '14:05' HOUR_MINUTE, NULL, 'RENTED'), -- table2: ANM-002
+    (8, 13, CURDATE() + INTERVAL '15:05' HOUR_MINUTE, NULL, 'RENTED'), -- table5: CLR-002
+    (8, 15, CURDATE() + INTERVAL '15:05' HOUR_MINUTE, NULL, 'RENTED'), -- table5: SPD-001
+    (8, 16, CURDATE() + INTERVAL '15:05' HOUR_MINUTE, NULL, 'RENTED'), -- table5: SPD-002
+    (9, 8,  CURDATE() + INTERVAL '12:05' HOUR_MINUTE, NULL, 'RENTED'), -- table8: NUM-003
+    (9, 21, CURDATE() + INTERVAL '12:05' HOUR_MINUTE, NULL, 'RENTED'); -- table8: QUZ-005
 
 -- ============================================================
 -- 13. cart (테이블 12개 전부 생성 — 키오스크 화면 렌더링 필수)

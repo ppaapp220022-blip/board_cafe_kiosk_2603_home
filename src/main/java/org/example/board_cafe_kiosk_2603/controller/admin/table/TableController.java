@@ -2,9 +2,11 @@ package org.example.board_cafe_kiosk_2603.controller.admin.table;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import jakarta.servlet.http.HttpSession;
 import org.example.board_cafe_kiosk_2603.dto.admin.table.CafeTableDTO;
 import org.example.board_cafe_kiosk_2603.dto.kiosk.order.OrderItemDTO;
 import org.example.board_cafe_kiosk_2603.service.admin.cafeTable.CafeTableService;
+import org.example.board_cafe_kiosk_2603.service.kiosk.KioskPageService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,6 +21,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class TableController {
     private final CafeTableService cafeTableService;
+    private final KioskPageService kioskPageService;
 
     /**
      * [GET] 대시보드 메인 페이지
@@ -64,6 +67,32 @@ public class TableController {
 
         // 데이터가 없더라도 빈 리스트([])와 함께 200 OK를 반환하여 프론트 처리를 원활하게 함
         return ResponseEntity.ok(activeOrders);
+    }
+
+    /**
+     * [GET] 대시보드에서 정산 페이지 진입
+     * kiosk 권한 체인을 타지 않고 관리자 권한으로 checkout.html을 렌더링한다.
+     */
+    @GetMapping("/{id}/checkout")
+    public String moveToCheckout(@PathVariable("id") Integer id, HttpSession session, Model model) {
+        List<CafeTableDTO> tables = cafeTableService.getAllTableStatus();
+        CafeTableDTO table = tables.stream()
+                .filter(t -> id.equals(t.getId()))
+                .findFirst()
+                .orElse(null);
+
+        if (table == null || table.getTableNumber() == null) {
+            return "redirect:/admin/dashboard";
+        }
+
+        int tableNumber = table.getTableNumber();
+        session.setAttribute("tableId", id);
+        session.setAttribute("tableNumber", tableNumber);
+        session.setAttribute("adminCheckoutMode", true);
+
+        kioskPageService.buildCheckoutModel(model, tableNumber, session);
+        model.addAttribute("tableNumber", tableNumber);
+        return "kiosk/checkout";
     }
 
     /**

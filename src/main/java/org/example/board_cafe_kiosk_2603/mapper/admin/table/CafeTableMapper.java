@@ -111,6 +111,9 @@ public interface CafeTableMapper {
     // table_session에서 직접 활성 세션 ID 조회
     Long selectActiveSessionByTableId(@Param("tableId") int tableId);
 
+    // table_session에서 최신 세션 ID 조회 (활성/비활성 포함)
+    Long selectLatestSessionByTableId(@Param("tableId") int tableId);
+
     /**
      * 특정 세션 ID에 해당하는 모든 메시지를 읽음 처리
      */

@@ -214,7 +214,7 @@ CREATE TABLE `game_history`
     `game_item_id` INT                                          NOT NULL COMMENT '실물 게임 ID',
     `rented_at`    TIMESTAMP                                    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '대여 시각',
     `returned_at`  TIMESTAMP                                    NULL COMMENT '반납 시각',
-    `status`       ENUM ('RENTING','RETURNED','DAMAGED','LOST') NOT NULL DEFAULT 'RENTING' COMMENT '대여 진행 상태',
+    `status`       ENUM ('NORMAL','RENTED','DAMAGED','LOST') NOT NULL DEFAULT 'NORMAL' COMMENT '대여 진행 상태',
     CONSTRAINT `fk_rental_session` FOREIGN KEY (`session_id`) REFERENCES `table_session` (`id`),
     CONSTRAINT `fk_rental_item` FOREIGN KEY (`game_item_id`) REFERENCES `game_item` (`id`)
 ) ENGINE = InnoDB

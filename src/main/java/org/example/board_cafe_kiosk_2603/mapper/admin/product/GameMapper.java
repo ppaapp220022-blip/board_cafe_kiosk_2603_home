@@ -27,6 +27,9 @@ public interface GameMapper {
     /** PK로 게임 단건 조회 (category JOIN, game_item COUNT 포함) */
     Optional<GameResponseDTO> findById(int id);
 
+    /** 게임명 리스트로 게임 상세 조회 */
+    List<GameResponseDTO> findByNames(@Param("names") List<String> names);
+
     /** 게임 등록 */
     int insert(Game game);
 

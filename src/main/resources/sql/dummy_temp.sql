@@ -42,18 +42,18 @@ VALUES
 --           7=7777, 8=8888, 9=9999, 10=1010, 11=1011, 12=1012
 INSERT INTO `cafe_table` (`table_number`, `password`, `status`, `access_token`, `current_session_id`)
 VALUES
-    (1,  '$2a$12$6.m99XxVXQhLA.kW.pV.8.yAkQtntwMG6zJ2XEzCYdIt6F92AHZoa', 'OCCUPIED', 'a1b2c3d4-0001-4000-8000-table00000001', NULL),
-    (2,  '$2a$12$jMyxkDnEXF6zTzs.6odIHuCtzfR35EDFxZmflbbamUHc9drejGipa', 'OCCUPIED', 'a1b2c3d4-0002-4000-8000-table00000002', NULL),
-    (3,  '$2a$12$wPexDR2riZFgwKTtj925FOXZFGPaf6U13GkiNK4Gd43M.1hltvlBS', 'EMPTY',    NULL,                                   NULL),
-    (4,  '$2a$12$6UqwKwlaRu05xPzlTbzBQeC68kViy7OrQscQQq.MzUiMyV9eyOlcO', 'EMPTY',    NULL,                                   NULL),
-    (5,  '$2a$12$BoILW/Dwdq267pCpVPlxWuKsjctBoWy1Jz8XY9KHJiA/v86.pPxYe', 'OCCUPIED', 'a1b2c3d4-0005-4000-8000-table00000005', NULL),
-    (6,  '$2a$12$EKiULQjPsNUuxtwfm1K9V.tmr1lkGAUZTzdKkFXiKRGt8N.oC2qwq', 'CLEANING', 'a1b2c3d4-0006-4000-8000-table00000006', NULL),
-    (7,  '$2a$12$epx2tbnDEk1tuGNOcYu1/.Ciww5olY7rULAIuiUEkn1CLGU1zLV3u', 'EMPTY',    NULL,                                   NULL),
-    (8,  '$2a$12$LANNhG93KYJLa7QpyB5t1uJ.pQBpy7CUFg8r8J.9WAX6ARxsNZzJC', 'OCCUPIED', 'a1b2c3d4-0008-4000-8000-table00000008', NULL),
-    (9,  '$2a$12$fHPOFdBDC9dlEIeR648aTeGAIEsK9SBC8UgsCq7vcV2KF6dMk6WDi', 'EMPTY',    NULL,                                   NULL),
-    (10, '$2a$12$A13LCSatRIIpBFoKiTNyLep7invKMx2KUClmbX28sHYLzEwK4Y4ui', 'EMPTY',    NULL,                                   NULL),
-    (11, '$2a$12$YoAiJOrZMD4Kk/9lHYi1BOjV2Y3kFSeslzr44L75nfKt6cEOCrgNa', 'EMPTY',    NULL,                                   NULL),
-    (12, '$2a$12$wXHXtdMIS3U7ASVzH1K4T.nbxE5X5nTcNbdv8BHk4zLOcIDSpv0pu', 'EMPTY',    NULL,                                   NULL);
+    (1,  '$2a$12$6.m99XxVXQhLA.kW.pV.8.yAkQtntwMG6zJ2XEzCYdIt6F92AHZoa', 'OCCUPIED', NULL, NULL),
+    (2,  '$2a$12$jMyxkDnEXF6zTzs.6odIHuCtzfR35EDFxZmflbbamUHc9drejGipa', 'OCCUPIED', NULL, NULL),
+    (3,  '$2a$12$wPexDR2riZFgwKTtj925FOXZFGPaf6U13GkiNK4Gd43M.1hltvlBS', 'EMPTY',    NULL, NULL),
+    (4,  '$2a$12$6UqwKwlaRu05xPzlTbzBQeC68kViy7OrQscQQq.MzUiMyV9eyOlcO', 'EMPTY',    NULL, NULL),
+    (5,  '$2a$12$BoILW/Dwdq267pCpVPlxWuKsjctBoWy1Jz8XY9KHJiA/v86.pPxYe', 'OCCUPIED', NULL, NULL),
+    (6,  '$2a$12$EKiULQjPsNUuxtwfm1K9V.tmr1lkGAUZTzdKkFXiKRGt8N.oC2qwq', 'CLEANING', NULL, NULL),
+    (7,  '$2a$12$epx2tbnDEk1tuGNOcYu1/.Ciww5olY7rULAIuiUEkn1CLGU1zLV3u', 'EMPTY',    NULL, NULL),
+    (8,  '$2a$12$LANNhG93KYJLa7QpyB5t1uJ.pQBpy7CUFg8r8J.9WAX6ARxsNZzJC', 'OCCUPIED', NULL, NULL),
+    (9,  '$2a$12$fHPOFdBDC9dlEIeR648aTeGAIEsK9SBC8UgsCq7vcV2KF6dMk6WDi', 'EMPTY',    NULL, NULL),
+    (10, '$2a$12$A13LCSatRIIpBFoKiTNyLep7invKMx2KUClmbX28sHYLzEwK4Y4ui', 'EMPTY',    NULL, NULL),
+    (11, '$2a$12$YoAiJOrZMD4Kk/9lHYi1BOjV2Y3kFSeslzr44L75nfKt6cEOCrgNa', 'EMPTY',    NULL, NULL),
+    (12, '$2a$12$wXHXtdMIS3U7ASVzH1K4T.nbxE5X5nTcNbdv8BHk4zLOcIDSpv0pu', 'EMPTY',    NULL, NULL);
 
 -- ============================================================
 -- 3. customer (등록 고객)
@@ -276,20 +276,20 @@ VALUES
 INSERT INTO `game_history` (`session_id`, `game_item_id`, `rented_at`, `returned_at`, `status`)
 VALUES
     -- 과거 세션 반납 완료
-    (1, 4,  '2026-03-25 13:05:00', '2026-03-25 14:50:00', 'RETURNED'), -- 맞춤법 SPL-004
-    (2, 9,  '2026-03-25 15:35:00', '2026-03-25 18:30:00', 'RETURNED'), -- 동물  ANM-001
-    (3, 6,  '2026-03-25 17:05:00', '2026-03-25 18:00:00', 'RETURNED'), -- 숫자  NUM-001 [수정: id=6]
-    (4, 13, '2026-03-25 19:05:00', '2026-03-25 21:10:00', 'RETURNED'), -- 색상  CLR-002 [수정: id=13]
-    (5, 15, '2026-03-25 11:05:00', '2026-03-25 22:50:00', 'RETURNED'), -- 스피드 SPD-001
+    (1, 4,  '2026-03-25 13:05:00', '2026-03-25 14:50:00', 'RENTED'), -- 맞춤법 SPL-004
+    (2, 9,  '2026-03-25 15:35:00', '2026-03-25 18:30:00', 'RENTED'), -- 동물  ANM-001
+    (3, 6,  '2026-03-25 17:05:00', '2026-03-25 18:00:00', 'RENTED'), -- 숫자  NUM-001 [수정: id=6]
+    (4, 13, '2026-03-25 19:05:00', '2026-03-25 21:10:00', 'RENTED'), -- 색상  CLR-002 [수정: id=13]
+    (5, 15, '2026-03-25 11:05:00', '2026-03-25 22:50:00', 'RENTED'), -- 스피드 SPD-001
     -- 현재 대여 중 (session 6~9)
-    (6, 4,  '2026-03-26 13:35:00', NULL, 'RENTING'), -- table1: SPL-004
-    (7, 9,  '2026-03-26 14:05:00', NULL, 'RENTING'), -- table2: ANM-001
-    (7, 10, '2026-03-26 14:05:00', NULL, 'RENTING'), -- table2: ANM-002
-    (8, 13, '2026-03-26 15:05:00', NULL, 'RENTING'), -- table5: CLR-002 [수정: id=13]
-    (8, 15, '2026-03-26 15:05:00', NULL, 'RENTING'), -- table5: SPD-001
-    (8, 16, '2026-03-26 15:05:00', NULL, 'RENTING'), -- table5: SPD-002
-    (9, 8,  '2026-03-26 12:05:00', NULL, 'RENTING'), -- table8: NUM-003 [수정: id=8]
-    (9, 21, '2026-03-26 12:05:00', NULL, 'RENTING'); -- table8: QUZ-005 [수정: id=21]
+    (6, 4,  '2026-03-26 13:35:00', NULL, 'RENTED'), -- table1: SPL-004
+    (7, 9,  '2026-03-26 14:05:00', NULL, 'RENTED'), -- table2: ANM-001
+    (7, 10, '2026-03-26 14:05:00', NULL, 'RENTED'), -- table2: ANM-002
+    (8, 13, '2026-03-26 15:05:00', NULL, 'RENTED'), -- table5: CLR-002 [수정: id=13]
+    (8, 15, '2026-03-26 15:05:00', NULL, 'RENTED'), -- table5: SPD-001
+    (8, 16, '2026-03-26 15:05:00', NULL, 'RENTED'), -- table5: SPD-002
+    (9, 8,  '2026-03-26 12:05:00', NULL, 'RENTED'), -- table8: NUM-003 [수정: id=8]
+    (9, 21, '2026-03-26 12:05:00', NULL, 'RENTED'); -- table8: QUZ-005 [수정: id=21]
 
 -- ============================================================
 -- 13. cart (장바구니 헤더)

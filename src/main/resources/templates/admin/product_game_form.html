@@ -355,6 +355,13 @@
             </div>
 
             <div class="form-group">
+                <label class="form-label" for="description">게임 설명</label>
+                <textarea id="description" name="description" class="form-control"
+                          rows="4" placeholder="게임 설명을 입력하세요"
+                          th:text="${game != null} ? ${game.description} : ''"></textarea>
+            </div>
+
+            <div class="form-group">
                 <label class="form-label">게임 이미지</label>
                 <div class="image-preview-box">
                     <img id="previewImg"

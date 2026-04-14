@@ -3,8 +3,11 @@ package org.example.board_cafe_kiosk_2603.controller.kiosk.order;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.example.board_cafe_kiosk_2603.dto.admin.product.GameResponseDTO;
 import org.example.board_cafe_kiosk_2603.dto.kiosk.order.OrderCreateRequest;
+import org.example.board_cafe_kiosk_2603.dto.kiosk.order.OrderItemDTO;
 import org.example.board_cafe_kiosk_2603.dto.kiosk.order.OrdersDTO;
+import org.example.board_cafe_kiosk_2603.service.admin.product.GameService;
 import org.example.board_cafe_kiosk_2603.service.kiosk.KioskPageService;
 import org.example.board_cafe_kiosk_2603.service.kiosk.order.OrderService;
 import org.springframework.http.ResponseEntity;
@@ -12,8 +15,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * 키오스크 주문 관리 컨트롤러.
@@ -36,6 +43,7 @@ import java.util.Map;
 public class OrderController {
     private final OrderService orderService;
     private final KioskPageService kioskPageService;
+    private final GameService gameService;
 
     // ===========================================================
     // 페이지
@@ -70,12 +78,73 @@ public class OrderController {
         }
 
         // 모델에 데이터 추가
+        boolean isGameOnlyOrder = isGameOnlyOrder(order);
         model.addAttribute("order", order);
         model.addAttribute("orderId", orderId);
         model.addAttribute("tableNumber", tableNumber);
-        model.addAttribute("statusDisplay", getStatusDisplay(order.getStatus()));
+        model.addAttribute("isGameOnlyOrder", isGameOnlyOrder);
+        model.addAttribute("statusDisplay", getStatusDisplay(order.getStatus(), isGameOnlyOrder));
 
         return "kiosk/order_detail";
+    }
+
+    /**
+     * 게임 주문 상세 페이지
+     * GET /kiosk/game/{orderId}
+     */
+    @GetMapping("/game/{orderId}")
+    public String gameDetailPage(@PathVariable int orderId, Model model, HttpSession session) {
+        Integer tableNumber = sessionTableNumber(session);
+        if (tableNumber == null) return "redirect:/kiosk";
+
+        if (!orderService.isOrderOwnedByTableNumber(orderId, tableNumber)) {
+            return "redirect:/kiosk/cart";
+        }
+
+        OrdersDTO order = orderService.getOrder(orderId);
+        if (!order.isSuccess()) {
+            return "redirect:/kiosk/cart";
+        }
+
+        List<OrderItemDTO> orderItems = order.getItems() == null ? List.of() : order.getItems();
+        List<OrderItemDTO> gameItems = orderItems.stream()
+                .filter(item -> item != null && item.getPrice() == 0)
+                .toList();
+
+        if (gameItems.isEmpty()) {
+            return "redirect:/kiosk/order/" + orderId;
+        }
+
+        List<String> gameNames = gameItems.stream()
+                .map(OrderItemDTO::getMenuName)
+                .filter(name -> name != null && !name.isBlank())
+                .distinct()
+                .toList();
+
+        Map<String, GameResponseDTO> gameInfoMap = gameService.getByNames(gameNames).stream()
+                .collect(Collectors.toMap(GameResponseDTO::getName, Function.identity(), (a, b) -> a));
+
+        List<Map<String, Object>> requestedGames = new ArrayList<>();
+        for (OrderItemDTO gameItem : gameItems) {
+            String gameName = gameItem.getMenuName();
+            GameResponseDTO info = gameInfoMap.get(gameName);
+
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("name", gameName);
+            row.put("quantity", gameItem.getQuantity());
+            row.put("imageUrl", info != null ? info.getImageUrl() : null);
+            row.put("minPlayers", info != null ? info.getMinPlayers() : null);
+            row.put("maxPlayers", info != null ? info.getMaxPlayers() : null);
+            row.put("playTime", info != null ? info.getPlayTime() : null);
+            row.put("description", info != null ? info.getDescription() : null);
+            requestedGames.add(row);
+        }
+
+        model.addAttribute("order", order);
+        model.addAttribute("orderId", orderId);
+        model.addAttribute("tableNumber", tableNumber);
+        model.addAttribute("requestedGames", requestedGames);
+        return "kiosk/game_detail";
     }
 
     // ===========================================================
@@ -155,9 +224,9 @@ public class OrderController {
     @GetMapping("/pending")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> getPendingOrders() {
-        log.info("신규 주문 목록 조회");
+        log.info("신규 일반 주문 목록 조회");
         try {
-            List<OrdersDTO> orders = orderService.getNewOrders();
+            List<OrdersDTO> orders = orderService.getNewNormalOrders();
 
             return ResponseEntity.ok(Map.of(
                     "success", true,
@@ -294,7 +363,17 @@ public class OrderController {
     /**
      * 주문 상태를 한글 메시지로 변환
      */
-    private String getStatusDisplay(String status) {
+    private String getStatusDisplay(String status, boolean isGameOnlyOrder) {
+        if (isGameOnlyOrder) {
+            return switch (status) {
+                case "ORDERED" -> "게임 요청 완료! 일련번호 배정 대기 중...";
+                case "CONFIRMED" -> "일련번호 배정 완료! 대여 준비가 끝났어요.";
+                case "COOKING", "DELIVERING" -> "게임 대여 처리 중...";
+                case "COMPLETED" -> "게임 처리 완료!";
+                case "CANCELLED" -> "요청 취소됨";
+                default -> "상태 확인 중...";
+            };
+        }
         return switch (status) {
             case "ORDERED"   -> "주문 완료! 관리자 확인 중...";
             case "CONFIRMED" -> "주문 확인! 조리 시작...";
@@ -304,6 +383,14 @@ public class OrderController {
             case "CANCELLED" -> "주문 취소됨";
             default -> "상태 확인 중...";
         };
+    }
+
+    private boolean isGameOnlyOrder(OrdersDTO order) {
+        if (order == null || order.getItems() == null || order.getItems().isEmpty()) {
+            return false;
+        }
+        return order.getItems().stream()
+                .allMatch(item -> item != null && item.getPrice() == 0);
     }
 
     private Integer sessionTableNumber(HttpSession session) {

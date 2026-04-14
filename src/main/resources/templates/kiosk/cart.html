@@ -1043,6 +1043,11 @@
                     'CANCELLED': 4
                 };
 
+                const isGameOrder = (order) => {
+                    const items = Array.isArray(order.items) ? order.items : [];
+                    return items.length > 0 && items.every(item => Number(item?.price ?? item?.menuPrice ?? 0) === 0);
+                };
+
                 const steps = ['주문', '주문확인', '조리시작', '서빙시작', '완료'];
 
                 const cards = orders.map(order => {
@@ -1052,8 +1057,12 @@
                         ? order.items.map(item => `${item.menuName} x${item.quantity}`).join(', ')
                         : '';
 
+                    const detailPath = isGameOrder(order)
+                        ? `/kiosk/order/game/${order.id}`
+                        : `/kiosk/order/${order.id}`;
+
                     return `
-                        <div class="order-status-card" onclick="window.location.href='/kiosk/order/${order.id}'">
+                        <div class="order-status-card" onclick="window.location.href='${detailPath}'">
                             <div class="card-header">
                                 <span class="order-number">주문 #${order.id}</span>
                                 <span class="status-badge status-${order.status.toLowerCase()}">${statusText[order.status] || order.status}</span>
@@ -1178,9 +1187,15 @@
                 console.log('주문 생성 성공 - orderId:', data.id);
                 showToast(`✓ 주문이 생성되었습니다. (주문번호: ${data.id})`);
 
+                const createdItems = Array.isArray(data.items) ? data.items : [];
+                const gameOnlyOrder = createdItems.length > 0
+                    && createdItems.every(item => Number(item?.price ?? item?.menuPrice ?? 0) === 0);
+
                 // 2초 후 주문 상세 페이지로 이동
                 setTimeout(() => {
-                    window.location.href = `/kiosk/order/${data.id}`;
+                    window.location.href = gameOnlyOrder
+                        ? `/kiosk/order/game/${data.id}`
+                        : `/kiosk/order/${data.id}`;
                 }, 1500);
             } else {
                 showToast(`✗ 주문 생성 실패: ${data.message}`);

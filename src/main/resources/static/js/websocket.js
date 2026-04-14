@@ -9,6 +9,8 @@
  */
 
 let stompClient = null;
+let tableOrderSubscription = null;
+let commonChannelSubscribed = false;
 
 // ===================================================
 // 1. 웹소켓 연결 (자동 실행)
@@ -38,14 +40,23 @@ function connectWebSocket() {
 
 function subscribeToChannels() {
     if (!stompClient || !stompClient.connected) return;
+    if (commonChannelSubscribed) return;
 
-    // 신규 주문 알림
+    // 신규 일반 주문 알림
     stompClient.subscribe('/topic/new-orders', function(message) {
         const order = JSON.parse(message.body);
-        console.log('🚨 신규 주문:', order);
+        console.log('🚨 신규 일반 주문:', order);
         onNewOrder(order);
     });
 
+    // 신규 게임 요청 알림 (일반 주문 알림창과 분리)
+    stompClient.subscribe('/topic/new-game-orders', function(message) {
+        const order = JSON.parse(message.body);
+        console.log('🎲 신규 게임 요청:', order);
+        onNewGameOrder(order);
+    });
+
+    commonChannelSubscribed = true;
     console.log('✅ 채널 구독 완료');
 }
 
@@ -60,8 +71,11 @@ function subscribeToTableOrders(tableId) {
         return;
     }
 
+    // 기존 테이블 구독이 있으면 먼저 해제한다.
+    unsubscribeFromOrders();
+
     // 테이블별 주문 구독
-    stompClient.subscribe(`/topic/orders/${tableId}`, function(message) {
+    tableOrderSubscription = stompClient.subscribe(`/topic/orders/${tableId}`, function(message) {
         const orders = JSON.parse(message.body);
         console.log(`📨 테이블 ${tableId} 주문:`, orders);
         onOrdersUpdated(orders, tableId);
@@ -77,8 +91,16 @@ function subscribeToTableOrders(tableId) {
 // ===================================================
 
 function unsubscribeFromOrders() {
-    // 현재 구독 해제 로직 (필요 시 구독 ID 관리)
-    console.log('📴 주문 구독 해제');
+    if (tableOrderSubscription) {
+        try {
+            tableOrderSubscription.unsubscribe();
+            console.log('📴 주문 구독 해제');
+        } catch (e) {
+            console.warn('주문 구독 해제 실패:', e);
+        } finally {
+            tableOrderSubscription = null;
+        }
+    }
 }
 
 // ===================================================
@@ -88,7 +110,16 @@ function unsubscribeFromOrders() {
 function onNewOrder(order) {
     showNewOrderNotificationModal(order);
     playNotificationSound();
-    fetchPendingOrders();
+    if (typeof window.fetchPendingOrders === 'function') {
+        window.fetchPendingOrders();
+    }
+}
+
+function onNewGameOrder(order) {
+    // 게임 주문은 일반 주문 알림창과 분리: 목록만 갱신
+    if (typeof window.fetchPendingOrders === 'function') {
+        window.fetchPendingOrders();
+    }
 }
 
 function showNewOrderNotificationModal(order) {
@@ -227,7 +258,7 @@ function onOrdersUpdated(orders, tableId) {
 // 7. 주문 상태 변경 API
 // ===================================================
 
-async function updateOrderStatus(orderId, nextStatus) {
+async function updateOrderStatusViaApi(orderId, nextStatus) {
     if (!orderId) {
         alert('주문 번호를 찾을 수 없습니다.');
         return;
@@ -245,35 +276,9 @@ async function updateOrderStatus(orderId, nextStatus) {
     try {
         console.log('📝 주문 상태 변경 요청:', { orderId, nextStatus });
 
-        // 1) DB 기준 현재 상태/다음 상태를 먼저 조회해서 UI 지연으로 인한 오판을 방지
-        let statusToSend = nextStatus;
-        let currentStatusFromDb = null;
-        const nextStatusRes = await fetch(`/admin/api/dashboard/orders/${orderId}/next-status`, {
-            method: 'GET',
-            headers: { 'Accept': 'application/json' }
-        });
-
-        if (nextStatusRes.ok) {
-            const nextStatusData = await nextStatusRes.json();
-            currentStatusFromDb = nextStatusData.currentStatus || null;
-
-            if (!nextStatusData.canChange || !nextStatusData.nextStatus) {
-                console.warn('⚠️ 이미 변경 불가 상태:', nextStatusData);
-                if (typeof fetchActiveOrders === 'function') await fetchActiveOrders();
-                alert('이미 완료/취소된 주문입니다.');
-                return;
-            }
-
-            // UI에서 전달된 값보다 서버가 계산한 다음 상태를 우선 사용
-            if (statusToSend !== nextStatusData.nextStatus) {
-                console.warn('UI 상태와 DB 상태 불일치 - 서버 기준으로 교정', {
-                    uiNext: statusToSend,
-                    dbCurrent: currentStatusFromDb,
-                    dbNext: nextStatusData.nextStatus
-                });
-                statusToSend = nextStatusData.nextStatus;
-            }
-        }
+        // 버튼에서 요청한 상태를 그대로 서버에 전달한다.
+        // (대여 주문은 CANCELLED 같은 분기 상태가 있어 next-status 강제 보정과 충돌함)
+        const statusToSend = nextStatus;
 
         // 2) 관리자 대시보드 전용 API로 상태 변경
         let response = await fetch(`/admin/api/dashboard/orders/${orderId}/status`, {
@@ -313,11 +318,9 @@ async function updateOrderStatus(orderId, nextStatus) {
         const errorData = await response.json().catch(() => ({ message: response.statusText }));
         const errorMessage = errorData.message || errorData.error || "주문 상태 변경에 실패했습니다.";
 
-        // 4) 동시성 충돌(이미 같은 상태/다른 상태로 변경됨) 시 최신값으로 재조회 후 안내
+        // 동시성 충돌(이미 같은 상태/다른 상태로 변경됨) 시 최신값으로 재조회 후 안내
         if (typeof errorMessage === 'string' && errorMessage.includes('허용되지 않는 상태 전이')) {
-            console.warn('⚠️ 상태 전이 충돌 감지 - 최신 상태 재조회', {
-                orderId, statusToSend, currentStatusFromDb, errorMessage
-            });
+            console.warn('⚠️ 상태 전이 충돌 감지 - 최신 상태 재조회', { orderId, statusToSend, errorMessage });
             if (typeof fetchActiveOrders === 'function') await fetchActiveOrders();
             alert('다른 화면에서 먼저 상태가 변경되었습니다. 최신 상태로 갱신했습니다.');
             return;
@@ -331,49 +334,8 @@ async function updateOrderStatus(orderId, nextStatus) {
     }
 }
 
-// ===================================================
-// 8. 신규 주문 목록 폴링 (REST 폴백)
-// ===================================================
-
-async function fetchPendingOrders() {
-    try {
-        console.log('📡 신규 주문 폴링: /kiosk/order/pending');
-
-        const response = await fetch('/kiosk/order/pending', {
-            method: 'GET',
-            headers: { 'Accept': 'application/json' }
-        });
-
-        console.log('📊 Response Status:', response.status);
-
-        if (!response.ok) {
-            const text = await response.text();
-            console.error('❌ 서버 오류:', text.substring(0, 200));
-            return null;
-        }
-
-        const data = await response.json();
-        console.log('📥 받은 전체 응답:', JSON.stringify(data, null, 2));
-
-        let orders = [];
-        if (data && data.orders && Array.isArray(data.orders)) {
-            orders = data.orders;
-        } else if (Array.isArray(data)) {
-            orders = data;
-        } else {
-            console.warn('⚠️ 예상하지 못한 응답 구조:', data);
-            orders = [];
-        }
-
-        if (typeof renderPendingOrders === 'function') {
-            renderPendingOrders(orders);
-        }
-
-        return orders;
-    } catch (error) {
-        console.error('❌ fetchPendingOrders 에러:', error);
-        return null;
-    }
+if (typeof window.updateOrderStatus !== 'function') {
+    window.updateOrderStatus = updateOrderStatusViaApi;
 }
 
 // ===================================================

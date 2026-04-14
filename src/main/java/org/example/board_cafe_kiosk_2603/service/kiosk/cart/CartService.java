@@ -85,6 +85,18 @@ public class CartService {
         Cart cart = getOrCreateCart(tableId);
 
         CartItem existing = cartItemMapper.findByCartIdAndMenuId(cart.getId(), menuId);
+        int requestQty = Math.max(request.getQuantity(), 0);
+        int targetQty = (existing != null ? existing.getQuantity() : 0) + requestQty;
+
+        if (isGameMenu(menuId) && !hasEnoughGameStock(menuId, targetQty)) {
+            int available = availableGameStock(menuId);
+            return CartDTO.builder()
+                    .success(false)
+                    .message("게임 재고가 부족합니다. 요청 수량: " + targetQty + ", 현재 가능 수량: " + available)
+                    .cartItems(Collections.emptyList())
+                    .build();
+        }
+
         if (existing != null) {
             int newQty = existing.getQuantity() + request.getQuantity();
             cartItemMapper.updateQuantity(cart.getId(), menuId, newQty);
@@ -129,6 +141,15 @@ public class CartService {
             return CartDTO.builder()
                     .success(false)
                     .message("장바구니가 없습니다.")
+                    .cartItems(Collections.emptyList())
+                    .build();
+        }
+
+        if (request.getQuantity() > 0 && isGameMenu(menuId) && !hasEnoughGameStock(menuId, request.getQuantity())) {
+            int available = availableGameStock(menuId);
+            return CartDTO.builder()
+                    .success(false)
+                    .message("게임 재고가 부족합니다. 요청 수량: " + request.getQuantity() + ", 현재 가능 수량: " + available)
                     .cartItems(Collections.emptyList())
                     .build();
         }
@@ -203,5 +224,17 @@ public class CartService {
             log.info("장바구니 신규 생성 - tableId: {}", tableId);
         }
         return cart;
+    }
+
+    private boolean isGameMenu(int menuId) {
+        return cartItemMapper.countGameMenuByMenuId(menuId) > 0;
+    }
+
+    private int availableGameStock(int menuId) {
+        return cartItemMapper.countAvailableGameStockByMenuId(menuId);
+    }
+
+    private boolean hasEnoughGameStock(int menuId, int requiredQty) {
+        return availableGameStock(menuId) >= requiredQty;
     }
 }

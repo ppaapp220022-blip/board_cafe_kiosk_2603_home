@@ -16,35 +16,46 @@
         }
         /* --- 좌측 사이드바 --- */
         .sidebar-left {
-            width: 100px;
+            width: 168px;
             background-color: white;
             border-right: 1px solid #eaeaea;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            align-items: center;
-            padding: 20px 0;
+            align-items: stretch;
+            padding: 20px 12px;
             z-index: 10;
         }
-        .nav-group { display: flex; flex-direction: column; gap: 15px; }
+        .nav-group { display: flex; flex-direction: column; gap: 12px; }
         .nav-btn {
-            width: 64px; height: 64px; border-radius: 18px;
-            display: flex; align-items: center; justify-content: center;
+            width: 100%; height: 56px; border-radius: 14px;
+            display: flex; align-items: center; justify-content: flex-start;
+            gap: 10px; padding: 0 14px;
             background-color: #f0f2f5; color: #888; cursor: pointer;
-            border: none; transition: all 0.3s ease; font-size: 0; position: relative;
+            border: none; transition: all 0.3s ease; font-size: 0.95rem; position: relative;
         }
         .nav-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
         .nav-btn.active { background-color: #007bff; color: white; box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3); }
         .nav-btn.orange { background-color: #ff9800; color: white; }
         .nav-btn.red { background-color: #f44336; color: white; }
-        .nav-btn i { width: 34px; height: 34px; }
+        .nav-btn i { width: 22px; height: 22px; flex-shrink: 0; }
         .nav-label {
-            position: absolute; left: 80px; background-color: #333; color: white;
-            padding: 6px 12px; border-radius: 8px; font-size: 0.85rem;
-            white-space: nowrap; opacity: 0; pointer-events: none;
-            transition: opacity 0.2s; z-index: 100; bottom: 15px;
+            position: static;
+            background: none;
+            color: inherit;
+            padding: 0;
+            border-radius: 0;
+            font-size: 0.95rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            opacity: 1;
+            pointer-events: auto;
+            transition: none;
+            z-index: auto;
+            bottom: auto;
         }
-        .nav-btn:hover .nav-label { opacity: 1; }
 
         /* --- 메인 영역 --- */
         .main-area { flex: 1; display: flex; flex-direction: column; }
@@ -65,7 +76,20 @@
             align-items: center; justify-content: center; border: none; cursor: pointer;
             color: white; font-weight: 600; transition: all 0.3s ease; position: relative;
         }
-        .icon-btn.cart { background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%); }
+        .icon-btn.cart {
+            width: auto;
+            height: 44px;
+            border-radius: 12px;
+            padding: 0 14px;
+            gap: 6px;
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+        }
+        .icon-btn .btn-label {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1;
+        }
         .cart-badge {
             position: absolute; top: -5px; right: -5px; background-color: #ff5252;
             color: white; font-size: 0.75rem; font-weight: 700; width: 24px; height: 24px;
@@ -95,6 +119,46 @@
             border: 1px solid #ffccba;
             min-height: 40px;
             max-width: 200px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .game-status-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            background: #eff7ee;
+            color: #2d7d32;
+            border: 1px solid #b9dfbc;
+            min-height: 40px;
+            max-width: 240px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .game-status-box:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(45, 125, 50, 0.18);
+        }
+        .game-status-box.hidden { display: none; }
+        .game-status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #2d7d32;
+            animation: pulse-order 1.5s infinite;
+        }
+
+        .order-status-box:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(216, 90, 48, 0.18);
+        }
+
+        .order-status-box:focus-visible {
+            outline: 2px solid #ff9a76;
+            outline-offset: 2px;
         }
 
         .order-status-box.hidden {
@@ -289,7 +353,7 @@
             <i data-lucide="gamepad-2"></i><span class="nav-label">게임</span>
         </button>
         <button class="nav-btn" th:classappend="${currentMenu == 'members' ? 'active' : ''}" onclick="navigateMenu('members')">
-            <i data-lucide="user-plus"></i><span class="nav-label">추가인원관리</span>
+            <i data-lucide="user-plus"></i><span class="nav-label">인원추가</span>
         </button>
     </div>
     <div class="nav-group">
@@ -301,22 +365,27 @@
 <div class="main-area">
     <div class="header">
         <div class="header-left">
-            <span class="table-info" th:text="'Table #' + ${tableNumber != null ? tableNumber : '0'}">Table #0</span>
+            <span class="table-info" th:text="'Table ' + ${tableNumber != null ? tableNumber : '0'} + '번'">Table 0번</span>
             <span class="party-badge">
                 <i data-lucide="users"></i>
-                <span th:text="(${partySize ?: 0}) + ' ' + (${(partySize ?: 0) > 1} ? 'people' : 'person')">1 person</span>
+                <span th:text="(${partySize ?: 0}) + '명'">1명</span>
             </span>
         </div>
         <div class="header-right">
             <div class="timer-badge" id="timer-badge">
                 <i data-lucide="clock"></i><span id="timer-text">--:--</span>
             </div>
-            <div class="order-status-box hidden" id="order-status-box">
+            <div class="order-status-box hidden" id="order-status-box" role="button" tabindex="0" aria-label="주문 상세 보기">
                 <span class="order-status-dot"></span>
                 <span id="order-status-text">새 주문</span>
             </div>
+            <div class="game-status-box hidden" id="game-status-box" role="button" tabindex="0" aria-label="게임 요청 상세 보기">
+                <span class="game-status-dot"></span>
+                <span id="game-status-text">게임 요청</span>
+            </div>
             <button class="icon-btn cart" onclick="navigateCart()">
                 <i data-lucide="shopping-cart"></i>
+                <span class="btn-label">장바구니</span>
                 <span class="cart-badge" id="cart-badge" th:text="${cartCount ?: 0}" th:style="${(cartCount ?: 0) > 0 ? 'display:flex' : 'display:none'}">0</span>
             </button>
         </div>
@@ -426,8 +495,10 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ menuName, menuPrice, quantity: 1 })
             });
-            if (!res.ok) throw new Error('서버 오류 (' + res.status + ')');
-            const cart = await res.json();
+            const cart = await res.json().catch(() => ({}));
+            if (!res.ok || cart.success === false) {
+                throw new Error(cart.message || ('서버 오류 (' + res.status + ')'));
+            }
 
             const badge = document.getElementById('cart-badge');
             const count = cart.cartCount ?? (cart.cartItems ? cart.cartItems.length : 0);
@@ -484,7 +555,61 @@
     function startOrderStatusWatcher() {
         const statusBox = document.getElementById('order-status-box');
         const statusText = document.getElementById('order-status-text');
+        const gameStatusBox = document.getElementById('game-status-box');
+        const gameStatusText = document.getElementById('game-status-text');
         let lastOrderCount = 0;
+
+        const isGameOnlyOrder = (order) => {
+            const items = Array.isArray(order?.items) ? order.items : (Array.isArray(order?.orderItems) ? order.orderItems : []);
+            if (!items.length) return false;
+            return items.every(item => Number(item?.price ?? item?.menuPrice ?? 0) === 0);
+        };
+
+        const toStatusLabel = (status, gameFlow) => {
+            const normalLabels = {
+                ORDERED: '주문 완료',
+                CONFIRMED: '주문 확인중...',
+                COOKING: '조리 중...',
+                DELIVERING: '배달 시작',
+                COMPLETED: '완료',
+                CANCELLED: '취소'
+            };
+            const gameLabels = {
+                ORDERED: '게임 요청',
+                CONFIRMED: '대여 확정',
+                COOKING: '대여 처리중',
+                DELIVERING: '반납 확인중',
+                COMPLETED: '완료',
+                CANCELLED: '취소'
+            };
+            return (gameFlow ? gameLabels : normalLabels)[status] || status;
+        };
+
+        const goToOrderDetail = () => {
+            const orderId = statusBox.dataset.orderId;
+            if (!orderId) return;
+            window.location.href = `/kiosk/order/${orderId}`;
+        };
+        const goToGameDetail = () => {
+            const orderId = gameStatusBox.dataset.orderId;
+            if (!orderId) return;
+            window.location.href = `/kiosk/order/game/${orderId}`;
+        };
+
+        statusBox.addEventListener('click', goToOrderDetail);
+        statusBox.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                goToOrderDetail();
+            }
+        });
+        gameStatusBox.addEventListener('click', goToGameDetail);
+        gameStatusBox.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                goToGameDetail();
+            }
+        });
 
         function checkOrderStatus() {
             fetch('/kiosk/order/active')
@@ -497,34 +622,55 @@
                 .then(orders => {
                     if (!Array.isArray(orders) || orders.length === 0) {
                         statusBox.classList.add('hidden');
+                        statusBox.dataset.orderId = '';
+                        gameStatusBox.classList.add('hidden');
+                        gameStatusBox.dataset.orderId = '';
                         lastOrderCount = 0;
                         return;
                     }
 
                     // 완료되지 않은 주문만 필터링
                     const activeOrders = orders.filter(o => o.status !== 'COMPLETED' && o.status !== 'CANCELLED');
+                    const normalOrders = activeOrders.filter(o => !isGameOnlyOrder(o));
+                    const gameOrders = activeOrders.filter(o => isGameOnlyOrder(o));
 
                     if (activeOrders.length === 0) {
                         statusBox.classList.add('hidden');
+                        statusBox.dataset.orderId = '';
+                        gameStatusBox.classList.add('hidden');
+                        gameStatusBox.dataset.orderId = '';
                         lastOrderCount = 0;
                         return;
                     }
 
-                    // 주문 상태 텍스트 업데이트
-                    const statusTexts = {
-                        'ORDERED': '주문 완료',
-                        'CONFIRMED': '주문 확인중...',
-                        'COOKING': '조리 중...',
-                        'DELIVERING': '배달 시작',
-                        'COMPLETED': '완료',
-                        'CANCELLED': '취소'
-                    };
+                    if (normalOrders.length > 0) {
+                        const latestNormal = normalOrders
+                            .slice()
+                            .sort((a, b) => Number(b?.id || 0) - Number(a?.id || 0))[0];
+                        const statusLabel = toStatusLabel(latestNormal.status, false);
+                        statusText.textContent = statusLabel;
+                        statusBox.dataset.orderId = latestNormal.id ? String(latestNormal.id) : '';
+                        statusBox.classList.remove('hidden');
+                    } else {
+                        statusBox.classList.add('hidden');
+                        statusBox.dataset.orderId = '';
+                    }
 
-                    const latestOrder = activeOrders[0];
-                    const statusLabel = statusTexts[latestOrder.status] || latestOrder.status;
-                    statusText.textContent = statusLabel;
+                    if (gameOrders.length > 0) {
+                        const latestGame = gameOrders
+                            .slice()
+                            .sort((a, b) => Number(b?.id || 0) - Number(a?.id || 0))[0];
+                        const statusLabel = toStatusLabel(latestGame.status, true);
+                        gameStatusText.textContent = gameOrders.length > 1
+                            ? `${statusLabel} (${gameOrders.length}건)`
+                            : statusLabel;
+                        gameStatusBox.dataset.orderId = latestGame.id ? String(latestGame.id) : '';
+                        gameStatusBox.classList.remove('hidden');
+                    } else {
+                        gameStatusBox.classList.add('hidden');
+                        gameStatusBox.dataset.orderId = '';
+                    }
 
-                    statusBox.classList.remove('hidden');
                     lastOrderCount = activeOrders.length;
                 })
                 .catch(err => {

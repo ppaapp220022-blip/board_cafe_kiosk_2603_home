@@ -12,6 +12,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 @Log4j2
 @SpringBootTest
 class GameItemMapperTest {
@@ -22,6 +25,7 @@ class GameItemMapperTest {
     @Test
     void findAllTest() {
         List<GameItemResponseDTO> list = gameItemMapper.findAll();
+        assertTrue(list.stream().allMatch(item -> item.getGameName() != null && !item.getGameName().isBlank()));
         list.forEach(item -> log.info(item));
     }
 
@@ -34,12 +38,14 @@ class GameItemMapperTest {
     @Test
     void findByStatusTest() {
         List<GameItemResponseDTO> list = gameItemMapper.findByStatus(GameItemStatus.NORMAL);
+        assertTrue(list.stream().allMatch(item -> item.getStatus() == GameItemStatus.NORMAL));
         list.forEach(item -> log.info(item));
     }
 
     @Test
     void findByIdTest() {
         Optional<GameItemResponseDTO> item = gameItemMapper.findById(1);
+        item.ifPresent(gameItem -> assertNotNull(gameItem.getGameName()));
         log.info(item);
     }
 

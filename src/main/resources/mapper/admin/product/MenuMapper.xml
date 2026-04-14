@@ -167,4 +167,32 @@
         SELECT COUNT(*) FROM menu WHERE is_deleted = #{isDeleted}
     </select>
 
+    <insert id="insertGameMenuIfNotExists">
+        INSERT INTO menu (category_id, name, price, description, is_available, is_deleted)
+        SELECT #{categoryId}, #{name}, 0, #{description}, true, false
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM menu
+            WHERE name = #{name}
+              AND price = 0
+              AND is_deleted = false
+        )
+    </insert>
+
+    <update id="updateGameMenuDescriptionByName">
+        UPDATE menu
+        SET description = #{description}
+        WHERE name = #{name}
+          AND price = 0
+          AND is_deleted = false
+    </update>
+
+    <update id="renameGameMenuName">
+        UPDATE menu
+        SET name = #{newName}
+        WHERE name = #{oldName}
+          AND price = 0
+          AND is_deleted = false
+    </update>
+
 </mapper>

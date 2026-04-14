@@ -107,6 +107,14 @@
         LIMIT 1
     </select>
 
+    <select id="selectLatestSessionByTableId" resultType="java.lang.Long">
+        SELECT id
+        FROM table_session
+        WHERE table_id = #{tableId}
+        ORDER BY check_in_time DESC
+        LIMIT 1
+    </select>
+
     <update id="resetAllTablesAtMidnight">
         /* 모든 테이블을 공석으로 만들고 세션 연결을 강제 해제 */
         /* 자정/강제 리셋: 상태(EMPTY), 세션포인터(NULL), 인증토큰(NULL)을 한 번에 초기화 */
