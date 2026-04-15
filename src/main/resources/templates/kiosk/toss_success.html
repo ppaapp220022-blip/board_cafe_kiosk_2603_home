@@ -110,8 +110,9 @@
 <script th:inline="javascript">
   lucide.createIcons({ attrs: { 'stroke-width': 2.5 } });
   localStorage.removeItem('returnUrl');
+  const redirectUrl = /*[[${redirectUrl}]]*/ '/kiosk/session/start';
   setTimeout(() => {
-    window.location.href = `/kiosk/session/start`;
+    window.location.href = redirectUrl;
   }, 3000);
 </script>
 </body>

@@ -20,6 +20,12 @@ public interface CartItemMapper {
     Integer findMenuIdByNameAndPrice(@Param("name") String name,
                                      @Param("price") int price);
 
+    // 해당 menu가 게임 카테고리(=game 테이블과 매칭)인지 확인
+    int countGameMenuByMenuId(@Param("menuId") int menuId);
+
+    // 해당 게임 메뉴의 대여 가능 재고(NORMAL) 수
+    int countAvailableGameStockByMenuId(@Param("menuId") int menuId);
+
     // 항목 추가
     void insert(CartItem cartItem);
 

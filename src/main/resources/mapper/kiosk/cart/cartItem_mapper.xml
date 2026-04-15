@@ -37,6 +37,28 @@
         LIMIT 1
     </select>
 
+    <select id="countGameMenuByMenuId" resultType="int">
+        SELECT COUNT(*)
+        FROM menu m
+        JOIN game g ON g.name = m.name
+        WHERE m.id = #{menuId}
+          AND m.is_deleted = FALSE
+          AND m.is_available = TRUE
+          AND g.is_active = TRUE
+    </select>
+
+    <select id="countAvailableGameStockByMenuId" resultType="int">
+        SELECT COUNT(*)
+        FROM menu m
+        JOIN game g ON g.name = m.name
+        JOIN game_item gi ON gi.game_id = g.id
+        WHERE m.id = #{menuId}
+          AND m.is_deleted = FALSE
+          AND m.is_available = TRUE
+          AND g.is_active = TRUE
+          AND gi.status = 'NORMAL'
+    </select>
+
     <!-- 항목 추가 (PK 반환) -->
     <insert id="insert"
             useGeneratedKeys="true" keyProperty="id">

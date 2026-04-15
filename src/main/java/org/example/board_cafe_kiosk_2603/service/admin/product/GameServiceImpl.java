@@ -8,6 +8,7 @@ import org.example.board_cafe_kiosk_2603.dto.admin.product.GameResponseDTO;
 import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageRequestDTO;
 import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageResponseDTO;
 import org.example.board_cafe_kiosk_2603.mapper.admin.product.GameMapper;
+import org.example.board_cafe_kiosk_2603.mapper.admin.product.MenuMapper;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +26,7 @@ import java.util.NoSuchElementException;
 class GameServiceImpl implements GameService {
 
     private final GameMapper gameMapper;
+    private final MenuMapper menuMapper;
     private final ModelMapper modelMapper;
 
     /**
@@ -73,6 +75,14 @@ class GameServiceImpl implements GameService {
                 });
     }
 
+    @Override
+    public List<GameResponseDTO> getByNames(List<String> names) {
+        if (names == null || names.isEmpty()) {
+            return List.of();
+        }
+        return gameMapper.findByNames(names);
+    }
+
     /**
      * 게임 등록
      */
@@ -91,6 +101,15 @@ class GameServiceImpl implements GameService {
                 .imageUrl(gameRequestDTO.getImageUrl())
                 .build();
         gameMapper.insert(game);
+        menuMapper.insertGameMenuIfNotExists(
+                gameRequestDTO.getCategoryId(),
+                gameRequestDTO.getName(),
+                gameRequestDTO.getDescription()
+        );
+        menuMapper.updateGameMenuDescriptionByName(
+                gameRequestDTO.getName(),
+                gameRequestDTO.getDescription()
+        );
         log.info("게임 등록 완료 - generated id: {}", game.getId());
         return game.getId();  // insert 후 game.getId() 반환
     }
@@ -101,7 +120,7 @@ class GameServiceImpl implements GameService {
     @Override
     public void modify(int id, GameRequestDTO gameRequestDTO) {
         log.debug("GameServiceImpl.modify() 실행 - id: {}, dto: {}", id, gameRequestDTO);
-        gameMapper.findById(id)
+        GameResponseDTO origin = gameMapper.findById(id)
                 .orElseThrow(() -> {
                     log.warn("수정 대상 게임 없음 - id: {}", id);
                     return new NoSuchElementException("게임을 찾을 수 없습니다. id=" + id);
@@ -117,6 +136,21 @@ class GameServiceImpl implements GameService {
                 .imageUrl(gameRequestDTO.getImageUrl())
                 .build();
         int result = gameMapper.update(game);
+
+        if (origin.getName() != null && gameRequestDTO.getName() != null
+                && !origin.getName().equals(gameRequestDTO.getName())) {
+            menuMapper.renameGameMenuName(origin.getName(), gameRequestDTO.getName());
+        }
+        menuMapper.insertGameMenuIfNotExists(
+                gameRequestDTO.getCategoryId(),
+                gameRequestDTO.getName(),
+                gameRequestDTO.getDescription()
+        );
+        menuMapper.updateGameMenuDescriptionByName(
+                gameRequestDTO.getName(),
+                gameRequestDTO.getDescription()
+        );
+
         log.debug("게임 수정 결과 - affected rows: {}", result);
     }
 

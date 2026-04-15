@@ -23,6 +23,9 @@ public class GameResponseDTO {
     /* 평균 플레이 시간 (분) */
     private Integer playTime;
 
+    /** 게임 설명 (menu.description JOIN) */
+    private String description;
+
     private boolean isActive;
 
     private String imageUrl;

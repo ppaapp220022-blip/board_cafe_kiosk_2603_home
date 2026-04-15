@@ -26,6 +26,9 @@ public class GameRequestDTO {
     /* 평균 플레이 시간 (분) */
     private Integer playTime;
 
+    /** 게임 설명 (menu.description과 연동 저장) */
+    private String description;
+
     /* 활성 여부 */
     private boolean isActive;
 

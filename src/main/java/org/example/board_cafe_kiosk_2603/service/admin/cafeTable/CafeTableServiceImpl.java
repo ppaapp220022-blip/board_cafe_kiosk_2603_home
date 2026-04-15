@@ -6,6 +6,7 @@ import org.example.board_cafe_kiosk_2603.domain.admin.table.CafeTable;
 import org.example.board_cafe_kiosk_2603.domain.common.cafeTableSession.CafeTableSession;
 import org.example.board_cafe_kiosk_2603.dto.admin.table.CafeTableDTO;
 import org.example.board_cafe_kiosk_2603.dto.kiosk.order.OrderItemDTO;
+import org.example.board_cafe_kiosk_2603.mapper.admin.product.GameItemMapper;
 import org.example.board_cafe_kiosk_2603.mapper.admin.table.CafeTableMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CafeTableServiceImpl implements CafeTableService {
     private final CafeTableMapper cafeTableMapper;
+    private final GameItemMapper gameItemMapper;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -97,6 +99,17 @@ public class CafeTableServiceImpl implements CafeTableService {
                 break;
 
             case "EMPTY":
+                Long latestSessionId = cafeTableMapper.selectCurrentSessionId(id);
+                if (latestSessionId == null) {
+                    latestSessionId = cafeTableMapper.selectLatestSessionByTableId(id);
+                }
+                if (latestSessionId != null) {
+                    int historyUpdated = gameItemMapper.returnActiveRentalsBySessionId(latestSessionId);
+                    int itemUpdated = gameItemMapper.normalizeNormalItemsBySessionId(latestSessionId);
+                    log.info("청소완료(EMPTY) 전환 시 게임 대여 자동 복구 | tableId: {}, sessionId: {}, historyUpdated: {}, itemUpdated: {}",
+                            id, latestSessionId, historyUpdated, itemUpdated);
+                }
+
                 // EMPTY 전환 시에도 혹시 남아있을지 모를 테이블 기준 알림 청소
                 cafeTableMapper.updateMessagesReadStatus(id);
                 /* 주 설명: [청소 완료] 다음 손님 대기 상태로 전환 */

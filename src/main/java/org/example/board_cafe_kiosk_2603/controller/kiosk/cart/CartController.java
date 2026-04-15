@@ -69,6 +69,10 @@ public class CartController {
             log.info("장바구니 추가 요청 - 테이블: {}, 메뉴: {} (₩{}), 수량: {}", 
                     tableNumber, item.getMenuName(), item.getMenuPrice(), item.getQuantity());
             CartDTO result = cartService.addItem(tableNumber, item);
+            if (!result.isSuccess()) {
+                log.warn("장바구니 추가 실패 - {}", result.getMessage());
+                return ResponseEntity.badRequest().body(result);
+            }
             log.info("장바구니 추가 완료 - 결과: {}", result.getMessage());
             return ResponseEntity.ok(result);
         } catch (Exception e) {

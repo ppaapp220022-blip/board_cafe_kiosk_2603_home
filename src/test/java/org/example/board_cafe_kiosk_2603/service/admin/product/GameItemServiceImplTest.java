@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -67,8 +68,25 @@ class GameItemServiceImplTest {
 
     @Test
     void removeTest() {
-        gameItemService.remove(1);
-        log.info("remove 완료");
+        String serial = "SN-REMOVE-POLICY-" + System.currentTimeMillis();
+
+        GameItemRequestDTO gameItemRequestDTO = GameItemRequestDTO.builder()
+                .gameId(1)
+                .serialNumber(serial)
+                .status(GameItemStatus.NORMAL)
+                .build();
+        gameItemService.register(gameItemRequestDTO);
+
+        GameItemResponseDTO created = gameItemService.getAll().stream()
+                .filter(item -> serial.equals(item.getSerialNumber()))
+                .findFirst()
+                .orElseThrow(() -> new NoSuchElementException("방금 등록한 테스트 아이템을 찾지 못했습니다."));
+
+        assertThrows(IllegalStateException.class, () -> gameItemService.remove(created.getId()));
+
+        gameItemService.changeStatus(created.getId(), GameItemStatus.DAMAGED);
+        assertDoesNotThrow(() -> gameItemService.remove(created.getId()));
+        log.info("remove 정책 테스트 완료 - itemId: {}", created.getId());
     }
 
     @Test

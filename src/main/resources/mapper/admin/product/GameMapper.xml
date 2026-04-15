@@ -16,9 +16,13 @@
                g.play_time,
                g.is_active,
                g.image_url,
+               MAX(CASE WHEN m.price = 0 AND m.is_deleted = FALSE THEN m.description END) AS description,
                COUNT(CASE WHEN gi.status IN ('NORMAL', 'RENTED') THEN 1 END) AS game_item_count
         FROM game g
                  LEFT JOIN category c ON g.category_id = c.id
+                 LEFT JOIN menu m ON m.name = g.name
+                                AND m.price = 0
+                                AND m.is_deleted = FALSE
                  LEFT JOIN game_item gi ON g.id = gi.game_id
     </sql>
 
@@ -54,6 +58,17 @@
         WHERE g.id = #{id}
         GROUP BY g.id, g.category_id, c.name, g.name,
         g.min_players, g.max_players, g.play_time, g.is_active
+    </select>
+
+    <select id="findByNames" resultType="org.example.board_cafe_kiosk_2603.dto.admin.product.GameResponseDTO">
+        <include refid="selectGameWithCategory"/>
+        WHERE g.name IN
+        <foreach collection="names" item="name" open="(" separator="," close=")">
+            #{name}
+        </foreach>
+        GROUP BY g.id, g.category_id, c.name, g.name,
+        g.min_players, g.max_players, g.play_time, g.is_active
+        ORDER BY g.id
     </select>
 
     <!-- 게임 등록 -->

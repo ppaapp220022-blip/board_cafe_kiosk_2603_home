@@ -43,6 +43,8 @@ dependencies {
 
     // WebSocket & STOMP
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.springframework:spring-websocket'
+    implementation 'org.springframework:spring-messaging'
 
     // test lombok
     testCompileOnly 'org.projectlombok:lombok'

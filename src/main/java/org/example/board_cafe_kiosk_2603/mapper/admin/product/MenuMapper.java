@@ -80,4 +80,17 @@ public interface MenuMapper {
     /** 소프트 삭제 여부 + category_id 기준 메뉴 수 */
     int countByIsDeletedAndCategoryId(@Param("isDeleted") boolean isDeleted,
                                       @Param("categoryId") int categoryId);
+
+    /** game 등록 시 menu(가격 0) 레코드가 없으면 생성 */
+    int insertGameMenuIfNotExists(@Param("categoryId") Integer categoryId,
+                                  @Param("name") String name,
+                                  @Param("description") String description);
+
+    /** 게임명 기준 menu 설명 업데이트 (price=0 대상) */
+    int updateGameMenuDescriptionByName(@Param("name") String name,
+                                        @Param("description") String description);
+
+    /** 게임명 변경 시 menu 이름 동기화 (price=0 대상) */
+    int renameGameMenuName(@Param("oldName") String oldName,
+                           @Param("newName") String newName);
 }

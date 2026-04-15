@@ -19,6 +19,7 @@ import org.example.board_cafe_kiosk_2603.mapper.kiosk.cafePackage.CafePackageMap
 import org.example.board_cafe_kiosk_2603.mapper.kiosk.cart.CartMapper;
 import org.example.board_cafe_kiosk_2603.mapper.kiosk.order.OrdersMapper;
 import org.example.board_cafe_kiosk_2603.mapper.kiosk.payment.PaymentMapper;
+import org.example.board_cafe_kiosk_2603.mapper.admin.product.GameItemMapper;
 import org.example.board_cafe_kiosk_2603.service.admin.point.PointService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -49,6 +50,7 @@ public class PaymentService {
     private final CafePackageMapper cafePackageMapper;
     private final OrdersMapper ordersMapper;
     private final PaymentMapper paymentMapper;
+    private final GameItemMapper gameItemMapper;
     private final CartMapper cartMapper;
     private final PointService pointService;
     private final CafeTableSessionMapper tableSessionMapper;
@@ -208,6 +210,9 @@ public class PaymentService {
 
             // 포인트 사용/적립 처리
             int earnedPoints = processPoints(customerPhone, pointUsed, finalAmount, latestOrderId);
+
+            // 결제 완료 시점에 남아있는 게임 대여 이력을 자동 반납 처리한다.
+            settleRemainingGameRentalsOnCheckout(session.getId());
 
             // 결제 완료 후 테이블 세션 종료 + 청소중 상태 전환
             closeTableSessionAndSetCleaning(tableId, session.getId());
@@ -433,6 +438,13 @@ public class PaymentService {
 
         log.info("결제 완료 후 세션 종료/상태 반영 결과 | tableId: {}, sessionId: {}, msgReadRows: {}, closeRows: {}, statusRows: {}, finalStatus: {}, finalCurrentSessionId: {}",
                 tableId, sessionId, readUpdated, closedRows, statusRows, currentStatus, currentSessionId);
+    }
+
+    private void settleRemainingGameRentalsOnCheckout(Long sessionId) {
+        int historyUpdated = gameItemMapper.returnActiveRentalsBySessionId(sessionId);
+        int itemUpdated = gameItemMapper.normalizeNormalItemsBySessionId(sessionId);
+        log.info("결제 완료 시 게임 대여 자동 반납 처리 | sessionId: {}, historyUpdated: {}, itemUpdated: {}",
+                sessionId, historyUpdated, itemUpdated);
     }
 
     private PaymentDTO errorResponse(String message) {

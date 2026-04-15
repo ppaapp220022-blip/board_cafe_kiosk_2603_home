@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Log4j2
 @Controller
@@ -151,5 +153,72 @@ public class GameItemController {
 
         log.info("--- 상태 변경 완료 (id: {}, status: {}) ---", id, status);
         return "redirect:/admin/product/game";
+    }
+
+    /**
+     * 대시보드/관리자용: 게임명 기준 대여 가능한 시리얼 조회
+     * GET /admin/product/game-items/available?tableId=1&gameName=...
+     */
+    @GetMapping("/available")
+    @ResponseBody
+    public List<GameItemResponseDTO> getAvailableGameItems(
+            @RequestParam int tableId,
+            @RequestParam String gameName) {
+        log.info("대여 가능 시리얼 조회 - tableId: {}, gameName: {}", tableId, gameName);
+        return gameItemService.getAvailableByGameName(gameName);
+    }
+
+    /**
+     * 대시보드/관리자용: 주문에 시리얼 할당 후 RENTED 전환 + game_history 생성
+     * POST /admin/product/game-items/assign
+     * body: { tableId, orderId, gameName, gameItemIds: [] }
+     */
+    @PostMapping("/assign")
+    @ResponseBody
+    public Map<String, Object> assignGameItems(@RequestBody Map<String, Object> body) {
+        int tableId = Integer.parseInt(String.valueOf(body.get("tableId")));
+        int orderId = Integer.parseInt(String.valueOf(body.get("orderId")));
+        String gameName = String.valueOf(body.get("gameName"));
+        List<Integer> gameItemIds = ((List<?>) body.getOrDefault("gameItemIds", List.of()))
+                .stream().map(v -> Integer.parseInt(String.valueOf(v))).collect(Collectors.toList());
+
+        gameItemService.assignGameItemsToOrder(tableId, orderId, gameName, gameItemIds);
+        return Map.of("success", true, "message", "일련번호가 대여 처리되었습니다.");
+    }
+
+    /**
+     * 현재 테이블의 활성 대여 목록 조회 (RENTED)
+     * GET /admin/product/game-items/rentals/active?tableId=1
+     */
+    @GetMapping("/rentals/active")
+    @ResponseBody
+    public List<Map<String, Object>> getActiveRentals(@RequestParam int tableId) {
+        return gameItemService.getActiveGameRentalsByTable(tableId);
+    }
+
+    /**
+     * 현재 테이블의 전체 대여 이력 조회
+     * GET /admin/product/game-items/rentals/history?tableId=1
+     */
+    @GetMapping("/rentals/history")
+    @ResponseBody
+    public List<Map<String, Object>> getRentalHistory(@RequestParam int tableId) {
+        return gameItemService.getGameRentalHistoryByTable(tableId);
+    }
+
+    /**
+     * 결제 전/후 반납 상태 처리 (NORMAL/DAMAGED/LOST) + game_history 업데이트
+     * PATCH /admin/product/game-items/rentals/settle
+     * body: { tableId, updates:[{historyId, gameItemId, status}] }
+     */
+    @PatchMapping("/rentals/settle")
+    @ResponseBody
+    public Map<String, Object> settleRentals(@RequestBody Map<String, Object> body) {
+        int tableId = Integer.parseInt(String.valueOf(body.get("tableId")));
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> updates = (List<Map<String, Object>>) body.getOrDefault("updates", List.of());
+
+        gameItemService.settleGameRentals(tableId, updates);
+        return Map.of("success", true, "message", "반납 상태가 반영되었습니다.");
     }
 }

@@ -12,6 +12,7 @@ import org.example.board_cafe_kiosk_2603.service.admin.product.GameService;
 import org.example.board_cafe_kiosk_2603.util.FileUploadUtil;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -102,6 +103,7 @@ public class GameController {
     /* 게임 및 개별 재고(Item) 등록 처리 */
     @PostMapping("/add")
     @PreAuthorize("hasAnyRole('ADMIN','SUPER')")
+    @Transactional(rollbackFor = Exception.class)
     public String register(@ModelAttribute GameRequestDTO gameRequestDTO,
                            @RequestParam(value = "imageFile", required = false) MultipartFile imageFile)
             throws IOException {
@@ -156,6 +158,7 @@ public class GameController {
     /* 게임 정보 수정(이미지 교체) 및 재고(game_item) 변경/삭제 처리 */
     @PostMapping("/edit/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','SUPER')")
+    @Transactional(rollbackFor = Exception.class)
     public String modify(@PathVariable int id,
                          @ModelAttribute GameRequestDTO gameRequestDTO,
                          @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
@@ -180,6 +183,8 @@ public class GameController {
         if (gameRequestDTO.getItems() != null) {
             for (GameItemRequestDTO item : gameRequestDTO.getItems()) {
                 if (item.getId() != 0) {
+                    validateItemOwnership(id, item.getId());
+                    item.setGameId(id);
                     gameItemService.modify(item.getId(), item);
                     log.debug("game_item 수정 완료 - itemId: {}", item.getId());
                 }
@@ -200,12 +205,25 @@ public class GameController {
         // game_item 삭제 (콤마 구분 id 목록)
         if (!deletedItemIds.isEmpty()) {
             for (String itemIdStr : deletedItemIds.split(",")) {
-                int itemId = Integer.parseInt(itemIdStr.trim());
+                String trimmedId = itemIdStr.trim();
+                if (trimmedId.isEmpty()) {
+                    continue;
+                }
+                int itemId = Integer.parseInt(trimmedId);
+                validateItemOwnership(id, itemId);
                 gameItemService.remove(itemId);
                 log.debug("game_item 삭제 완료 - itemId: {}", itemId);
             }
         }
         return "redirect:/admin/product/game";
+    }
+
+    private void validateItemOwnership(int gameId, int itemId) {
+        GameItemResponseDTO targetItem = gameItemService.getById(itemId);
+        if (targetItem.getGameId() != gameId) {
+            throw new IllegalArgumentException(
+                    "현재 게임(id=" + gameId + ")에 속하지 않은 재고(itemId=" + itemId + ")는 수정/삭제할 수 없습니다.");
+        }
     }
 
     /* 게임 활성/비활성 상태 토글 (키오스크 노출 여부) */

@@ -24,6 +24,9 @@ public interface GameService {
     /** PK로 게임 단건 반환 */
     GameResponseDTO getById(int id);
 
+    /** 게임명 리스트로 게임 상세 조회 */
+    List<GameResponseDTO> getByNames(List<String> names);
+
     /** 게임 등록 */
     int register(GameRequestDTO gameRequestDTO);
 
