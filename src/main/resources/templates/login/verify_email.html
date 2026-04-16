@@ -153,6 +153,16 @@
   // 페이지 로드 시 정보 출력
   window.addEventListener('load', function() {
     console.log('=== 2차 인증 페이지(HTML 버전) 로드 완료 ===');
+
+    // URL 파라미터로 에러 감지
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get('error') === 'email') {
+      globalError.textContent = '등록된 이메일 주소와 일치하지 않습니다. 다시 확인해 주세요.';
+      globalError.style.display = 'block';
+      emailInput.classList.add('error');
+      emailInput.focus();
+    }
   });
 
   // 이메일 유효성 검사 (입력란에서 포커스가 빠질 때)

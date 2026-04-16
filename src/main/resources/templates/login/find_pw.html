@@ -481,6 +481,39 @@
       stopTimer();
     }
   });
+
+  async function submitStep1() {
+    hideFieldError(idError);
+    clearMsg();
+
+    const id = inputId.value.trim();
+    if (!id) { showFieldError(idError, '아이디를 입력해 주세요.'); return; }
+
+    step1Btn.disabled    = true;
+    step1Btn.textContent = '확인 중...';
+
+    try {
+      const { ok, status, text } = await post('/forgot-password/verify-id', { loginId: id });
+
+      if (ok) {
+        confirmedId.value = id;
+        goStep(2);
+        inputEmail.focus();
+      } else if (status === 403) {
+        // ★ 비활성 계정 분기 ★
+        showMsg(text, 'error');          // "비활성화된 계정입니다. 관리자에게 문의해 주세요."
+        showFieldError(idError, '이 계정은 현재 사용이 제한되어 있습니다.');
+      } else {
+        // 404: 존재하지 않는 아이디 등
+        showMsg(text, 'error');
+      }
+    } catch {
+      showMsg('네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.', 'error');
+    } finally {
+      step1Btn.disabled    = false;
+      step1Btn.textContent = '다음';
+    }
+  }
 </script>
 </body>
 </html>

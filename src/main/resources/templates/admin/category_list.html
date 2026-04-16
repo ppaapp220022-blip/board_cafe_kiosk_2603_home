@@ -137,30 +137,37 @@
             }
 
             /* 액션 버튼 */
+            /* ── 액션 버튼 그룹 (가로 정렬 보장) ── */
             .action-group {
                 display: flex;
-                gap: 8px;
+                gap: 10px;               /* 버튼 사이 간격 */
                 justify-content: flex-end;
+                align-items: center;
+                white-space: nowrap;     /* 줄바꿈 강제 방지 */
             }
 
             .btn-table {
-                padding: 7px 13px;
+                padding: 8px 14px;       /* 여백 소폭 조정 */
                 border-radius: 8px;
                 border: 1px solid var(--border-color);
                 background: white;
                 cursor: pointer;
                 font-size: 13px;
                 font-weight: 600;
-                display: inline-flex;
+                display: inline-flex;    /* 내부 아이콘과 텍스트 가로 정렬 */
                 align-items: center;
-                gap: 5px;
-                transition: 0.2s;
+                justify-content: center;
+                gap: 6px;
+                transition: all 0.2s;
                 text-decoration: none;
+                min-width: 80px;         /* 버튼의 최소 너비를 맞춰서 균형감 부여 */
             }
 
+            /* 호버 효과 강화 */
             .btn-table:hover {
                 background: #f8fafc;
-                transform: translateY(-1px);
+                transform: translateY(-2px);
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
             }
 
             .btn-edit {
@@ -168,15 +175,19 @@
                 border-color: #dbeafe;
             }
 
+            .btn-edit:hover {
+                background: #eff6ff;
+                border-color: var(--primary-blue);
+            }
+
             .btn-delete {
                 color: var(--danger-red);
                 border-color: #fee2e2;
             }
 
-            .btn-delete:disabled {
-                opacity: 0.35;
-                cursor: not-allowed;
-                transform: none;
+            .btn-delete:hover {
+                background: #fef2f2;
+                border-color: var(--danger-red);
             }
 
             /* + 새 카테고리 추가 버튼 */
@@ -379,6 +390,38 @@
                     opacity: 0;
                 }
             }
+            /* 페이징 */
+            .pagination {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 6px;
+                padding: 20px 0 10px;
+            }
+
+            .page-link {
+                padding: 7px 13px;
+                border-radius: 8px;
+                border: 1px solid var(--border-color);
+                background: white;
+                color: #64748b;
+                font-size: 14px;
+                font-weight: 600;
+                text-decoration: none;
+                transition: 0.2s;
+            }
+
+            .page-link:hover {
+                border-color: var(--primary-blue);
+                color: var(--primary-blue);
+                background: #eff6ff;
+            }
+
+            .page-link.active {
+                background: var(--primary-blue);
+                border-color: var(--primary-blue);
+                color: white;
+            }
         </style>
     </th:block>
 </head>
@@ -436,12 +479,14 @@
             <tbody>
 
             <!-- 빈 목록 -->
-            <tr th:if="${#lists.isEmpty(categoryList)}" class="empty-row">
+<!--            <tr th:if="${#lists.isEmpty(categoryList)}" class="empty-row">-->
+            <tr th:if="${#lists.isEmpty(pageResponse.dtoList)}" class="empty-row">
                 <td colspan="4">등록된 카테고리가 없습니다.</td>
             </tr>
 
             <!-- 카테고리 행 반복 -->
-            <tr th:each="cat : ${categoryList}">
+<!--            <tr th:each="cat : ${categoryList}">-->
+            <tr th:each="cat : ${pageResponse.dtoList}">
                 <td>
                     <span class="status-badge"
                           th:classappend="'type-' + ${cat.type}"
@@ -508,6 +553,24 @@
 
             </tbody>
         </table>
+
+        <!-- 페이징 -->
+        <div class="pagination">
+            <a th:if="${pageResponse.prev}"
+               th:href="@{/admin/category(page=${pageResponse.start - 1}, size=${pageResponse.size})}"
+               class="page-link">◀</a>
+
+            <a th:each="i : ${#numbers.sequence(pageResponse.start, pageResponse.end)}"
+               th:href="@{/admin/category(page=${i}, size=${pageResponse.size})}"
+               th:text="${i}"
+               th:classappend="${pageResponse.page == i} ? ' active'"
+               class="page-link"></a>
+
+            <a th:if="${pageResponse.next}"
+               th:href="@{/admin/category(page=${pageResponse.end + 1}, size=${pageResponse.size})}"
+               class="page-link">▶</a>
+        </div>
+
     </div>
 
 

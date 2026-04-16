@@ -208,4 +208,16 @@ class GameServiceImpl implements GameService {
                 .total(total)
                 .build();
     }
+
+    /** 활성 여부 기준 게임 목록 조회 - 페이징 */
+    @Override
+    public PageResponseDTO<GameResponseDTO> getByIsActive(boolean isActive,  Integer categoryId, PageRequestDTO pageRequestDTO) {
+        List<GameResponseDTO> list = gameMapper.findByIsActivePaged(isActive, categoryId, pageRequestDTO);
+        int total = gameMapper.countByIsActive(isActive, categoryId);
+        return PageResponseDTO.<GameResponseDTO>withAll()
+                .pageRequestDTO(pageRequestDTO)
+                .dtoList(list)
+                .total(total)
+                .build();
+    }
 }

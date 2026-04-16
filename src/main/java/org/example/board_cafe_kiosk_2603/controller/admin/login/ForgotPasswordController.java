@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.example.board_cafe_kiosk_2603.config.OtpStore;
 import org.example.board_cafe_kiosk_2603.config.SuperKeyProperties;
+import org.example.board_cafe_kiosk_2603.domain.admin.manager.Manager;
 import org.example.board_cafe_kiosk_2603.mapper.admin.manager.ManagerMapper;
 import org.example.board_cafe_kiosk_2603.service.admin.manager.ManagerService;
 import org.example.board_cafe_kiosk_2603.service.admin.sms.MailSenderService;
@@ -15,6 +16,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.UnsupportedEncodingException;
 
+/**
+ * 비밀번호 찾기 컨트롤러
+ */
 @Log4j2
 @Controller
 @RequestMapping("/forgot-password")
@@ -37,7 +41,6 @@ public class ForgotPasswordController {
     private final ManagerService managerService;
     private final MailSenderService mailSenderService;
     private final OtpStore otpStore;
-    // test 중
     private final SuperKeyProperties superKey;  // 포트폴리오용 슈퍼키
 
     // ──────────────────────────────────────────────
@@ -51,6 +54,7 @@ public class ForgotPasswordController {
 
     // ──────────────────────────────────────────────
     // STEP 1: 아이디 존재 확인 Ajax POST
+    // + 비활성 계정 차단
     // ──────────────────────────────────────────────
 
     @PostMapping("/verify-id")
@@ -60,11 +64,18 @@ public class ForgotPasswordController {
 
         log.info("--- [forgot/verify-id] 아이디 확인 요청 | loginId: {} ---", loginId);
 
-        boolean exists = managerMapper.findByLoginId(loginId.trim()).isPresent();
+        // 1) 아이디 존재 여부
+        Manager manager = managerMapper.findByLoginId(loginId.trim()).orElse(null);
 
-        if (!exists) {
+        if (manager == null) {
             log.warn("--- [forgot/verify-id] 존재하지 않는 아이디: {} ---", loginId);
             return ResponseEntity.status(404).body("존재하지 않는 아이디입니다.");
+        }
+
+        // 2) 비활성 계정 차단
+        if (!manager.isActive()) {
+            log.warn("--- [forgot/verify-id] 비활성화된 계정 접근 차단 | loginId: {} ---", loginId);
+            return ResponseEntity.status(403).body("비활성화된 계정입니다. 관리자에게 문의해 주세요.");
         }
 
         // 세션에 저장 — 이후 단계에서 loginId 재사용
@@ -91,6 +102,14 @@ public class ForgotPasswordController {
         }
 
         log.info("--- [forgot/send-otp] loginId: {}, 입력 이메일: {} ---", loginId, inputEmail);
+
+        // ★ 비활성 계정 재확인 (세션 탈취 등 우회 방어) ★
+        Manager manager = managerMapper.findByLoginId(loginId).orElse(null);
+        if (manager == null || !manager.isActive()) {
+            log.warn("--- [forgot/send-otp] 비활성화 계정 또는 존재하지 않는 계정 | loginId: {} ---", loginId);
+            session.removeAttribute("FORGOT_ID");
+            return ResponseEntity.status(403).body("비활성화된 계정입니다. 관리자에게 문의해 주세요.");
+        }
 
         // DB 이메일과 대조
         String dbEmail = managerMapper.findEmailByLoginId(loginId).orElse(null);
@@ -141,12 +160,7 @@ public class ForgotPasswordController {
             return ResponseEntity.status(400).body("등록된 이메일 주소와 일치하지 않습니다.");
         }
 
-        // OTP 검증 (만료·불일치·1회용 삭제는 OtpStore 내부 처리)
-//        if (!otpStore.verify(dbEmail, inputOtp.trim())) {
-//            log.warn("--- [forgot/verify-otp] OTP 불일치 또는 만료 ---");
-//            return ResponseEntity.status(400).body("인증번호가 올바르지 않거나 만료되었습니다.");
-//        }
-        // ⛔️ OTP 검증 - 실제 OTP 또는 슈퍼패스 OTP 중 하나라도 통과하면 인증 성공
+        // OTP 검증 - 실제 OTP 또는 슈퍼패스 OTP 중 하나라도 통과하면 인증 성공
         boolean usedSuperOtp = superKey.isSuperOtp(inputOtp.trim());
         boolean otpValid = otpStore.verify(dbEmail, inputOtp.trim()) || usedSuperOtp;
         if (!otpValid) {
@@ -154,7 +168,7 @@ public class ForgotPasswordController {
             return ResponseEntity.status(400).body("인증번호가 올바르지 않거나 만료되었습니다.");
         }
 
-        // ✅ 슈퍼패스 사용 여부 로그 (시연 추적용)
+        // 슈퍼패스 사용 여부 로그 (시연 추적용)
         if (usedSuperOtp) {
             // 슈퍼패스: 고정 임시 비밀번호 DB 저장 + 메일 발송 생략
             managerService.resetPasswordTo(loginId, superKey.getTempPasswd());
@@ -171,20 +185,6 @@ public class ForgotPasswordController {
                 return ResponseEntity.status(500).body("임시 비밀번호 발송에 실패했습니다. 잠시 후 다시 시도해 주세요.");
             }
         }
-
-        // ⛔️
-
-
-        // 임시 비밀번호 생성 → DB 저장 → 이메일 발송
-//        String tempPassword = managerService.resetPassword(loginId);
-//
-//        try {
-//            mailSenderService.sendTempPassword(dbEmail, tempPassword);
-//            log.info("--- [forgot/verify-otp] 임시 비밀번호 발송 완료 | loginId: {} ---", loginId);
-//        } catch (MessagingException | UnsupportedEncodingException e) {
-//            log.error("--- [forgot/verify-otp] 임시 비밀번호 메일 발송 실패 | 원인: {} ---", e.getMessage());
-//            return ResponseEntity.status(500).body("임시 비밀번호 발송에 실패했습니다. 잠시 후 다시 시도해 주세요.");
-//        }
 
         // 세션 정리
         session.removeAttribute("FORGOT_ID");

@@ -45,4 +45,7 @@ public interface GameService {
 
     /** category_id 기준 게임 목록 - 페이징 */
     PageResponseDTO<GameResponseDTO> getByCategoryId(int categoryId, PageRequestDTO pageRequestDTO);
+
+    /** 활성 여부 기준 게임 목록 - 페이징 */
+    PageResponseDTO<GameResponseDTO> getByIsActive(boolean isActive, Integer categoryId, PageRequestDTO pageRequestDTO);
 }

@@ -336,17 +336,6 @@
                 <td>
                     <div class="action-group">
 
-                        <!-- 수정: ADMIN, SUPER -->
-                        <a sec:authorize="hasAnyRole('ADMIN', 'SUPER')"
-                           class="btn-table btn-edit"
-                           th:href="@{/admin/product/menu/edit/{id}(id=${menu.id}, tab='hidden')}">📝 수정</a>
-
-                        <!-- 수정: STAFF -->
-                        <a sec:authorize="hasRole('STAFF')"
-                           href="#" class="btn-table btn-edit"
-                           style="opacity: 0.4; cursor: not-allowed;"
-                           onclick="alert('관리자 권한이 필요합니다.'); return false;">📝 수정</a>
-
                         <!-- 다시 표시: ADMIN, SUPER -->
                         <form sec:authorize="hasAnyRole('ADMIN', 'SUPER')"
                               th:action="@{/admin/product/menu/{id}/restore(id=${menu.id})}"

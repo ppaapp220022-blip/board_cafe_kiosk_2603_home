@@ -57,27 +57,38 @@ public class GameController {
 
             // 숨김 탭
             if ("hidden".equals(tab)) {
+//                model.addAttribute("activeTab", "hidden");
+//
+//                List<GameResponseDTO> gameList = gameService.getByIsActive(false);
+//
+//                // 카테고리 필터 적용
+//                if (categoryId != null) {
+//                    gameList = gameList.stream()
+//                            .filter(g -> g.getCategoryId() == categoryId)
+//                            .collect(Collectors.toList());
+//                }
+//
+//                model.addAttribute("gameList", gameList);
+//                log.info("숨김 게임 목록 조회 성공 - 건수: {}", gameList.size());
+
                 model.addAttribute("activeTab", "hidden");
 
-                List<GameResponseDTO> gameList = gameService.getByIsActive(false);
+                PageResponseDTO<GameResponseDTO> hiddenPageResponse =
+                        gameService.getByIsActive(false, categoryId, pageRequestDTO);
 
-                // 카테고리 필터 적용
-                if (categoryId != null) {
-                    gameList = gameList.stream()
-                            .filter(g -> g.getCategoryId() == categoryId)
-                            .collect(Collectors.toList());
-                }
-
-                model.addAttribute("gameList", gameList);
-                log.info("숨김 게임 목록 조회 성공 - 건수: {}", gameList.size());
+                model.addAttribute("hiddenPageResponse", hiddenPageResponse);
+                log.info("숨김 게임 목록 조회 성공 - 건수: {}, 전체: {}", hiddenPageResponse.getDtoList().size(), hiddenPageResponse.getTotal());
 
                 // 일반 탭
             } else {
                 model.addAttribute("activeTab", "game");
 
-                PageResponseDTO<GameResponseDTO> pageResponse = (categoryId != null)
-                        ? gameService.getByCategoryId(categoryId, pageRequestDTO)
-                        : gameService.getAll(pageRequestDTO);
+//                PageResponseDTO<GameResponseDTO> pageResponse = (categoryId != null)
+//                        ? gameService.getByCategoryId(categoryId, pageRequestDTO)
+//                        : gameService.getAll(pageRequestDTO);
+                // 서비스 인터페이스의 getByIsActive(boolean, Integer, PageRequestDTO)를 활용
+                PageResponseDTO<GameResponseDTO> pageResponse =
+                        gameService.getByIsActive(true, categoryId, pageRequestDTO);
 
                 model.addAttribute("pageResponse", pageResponse);
                 log.info("게임 목록 조회 성공 - 건수: {}, 전체: {}", pageResponse.getDtoList().size(), pageResponse.getTotal());

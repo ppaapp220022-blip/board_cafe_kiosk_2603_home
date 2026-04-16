@@ -129,6 +129,28 @@
         LIMIT #{pageRequestDTO.size} OFFSET #{pageRequestDTO.skip}
     </select>
 
+    <!-- 활성 여부 기준 게임 목록 조회 - 페이징 -->
+    <select id="findByIsActivePaged" resultType="org.example.board_cafe_kiosk_2603.dto.admin.product.GameResponseDTO">
+        <include refid="selectGameWithCategory"/>
+        WHERE g.is_active = #{isActive}
+        <if test="categoryId != null">
+            AND g.category_id = #{categoryId}
+        </if>
+        GROUP BY g.id, g.category_id, c.name, g.name,
+        g.min_players, g.max_players, g.play_time, g.is_active
+        ORDER BY g.id
+        LIMIT #{pageRequestDTO.size} OFFSET #{pageRequestDTO.skip}
+    </select>
+
+    <!-- 활성 여부 기준 게임 수 -->
+    <select id="countByIsActive" resultType="int">
+        SELECT COUNT(*) FROM game
+        WHERE is_active = #{isActive}
+        <if test="categoryId != null">
+            AND category_id = #{categoryId}
+        </if>
+    </select>
+
     <!-- category_id 기준 게임 수 -->
     <select id="countByCategoryId" resultType="int">
         SELECT COUNT(*) FROM game WHERE category_id = #{categoryId}

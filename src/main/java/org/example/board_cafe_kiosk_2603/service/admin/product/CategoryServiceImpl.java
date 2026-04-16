@@ -6,6 +6,8 @@ import org.example.board_cafe_kiosk_2603.domain.admin.product.Category;
 import org.example.board_cafe_kiosk_2603.domain.admin.product.CategoryType;
 import org.example.board_cafe_kiosk_2603.dto.admin.product.CategoryRequestDTO;
 import org.example.board_cafe_kiosk_2603.dto.admin.product.CategoryResponseDTO;
+import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageRequestDTO;
+import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageResponseDTO;
 import org.example.board_cafe_kiosk_2603.mapper.admin.product.CategoryMapper;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -117,5 +119,19 @@ public class CategoryServiceImpl implements CategoryService {
         int linkedCount = categoryMapper.countLinkedProducts(id);
         log.info("--- 삭제 가능 여부 (id: {}, 연결 상품 수: {}, canDelete: {}) ---", id, linkedCount, linkedCount == 0);
         return linkedCount == 0;
+    }
+
+    /* 전체 카테고리 목록 - 페이징 */
+    @Override
+    public PageResponseDTO<CategoryResponseDTO> getAll(PageRequestDTO pageRequestDTO) {
+        log.info("--- 카테고리 페이징 실행 ---");
+        List<CategoryResponseDTO> list = categoryMapper.findAllPaged(pageRequestDTO);
+        int total = categoryMapper.countAll();
+        log.info("조회된 카테고리 수: {}, 전체: {}", list.size(), total);
+        return PageResponseDTO.<CategoryResponseDTO>withAll()
+                .pageRequestDTO(pageRequestDTO)
+                .dtoList(list)
+                .total(total)
+                .build();
     }
 }
