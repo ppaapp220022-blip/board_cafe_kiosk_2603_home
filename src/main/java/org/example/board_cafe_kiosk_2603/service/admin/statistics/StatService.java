@@ -5,14 +5,11 @@ import lombok.extern.log4j.Log4j2;
 import org.example.board_cafe_kiosk_2603.dto.admin.statistics.DailySalesDTO;
 import org.example.board_cafe_kiosk_2603.dto.admin.statistics.GameStatsDTO;
 import org.example.board_cafe_kiosk_2603.dto.admin.statistics.ItemSalesDTO;
-import org.example.board_cafe_kiosk_2603.dto.admin.statistics.TopItemDTO;
 import org.example.board_cafe_kiosk_2603.mapper.admin.statistics.StatMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.YearMonth;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,17 +56,6 @@ public class StatService {
             createDailyStatistics(current);
             current = current.plusDays(1);
         }
-    }
-
-    /**
-     * 자동 스케줄링용 어제 날짜를 자동으로 계산해서 통계 생성
-     * 매일 새벽 배치 프로그램이 호출하기 적합한 메서드
-     */
-    public void createYesterdayStatistics() {
-        log.info("--- StatService createYesterdayStatistics ---");
-        LocalDate yesterday = LocalDate.now().minusDays(1);
-        log.info("어제 날짜({}) 통계 자동 생성 시작", yesterday);
-        createDailyStatistics(yesterday);
     }
 
     /**
@@ -125,18 +111,5 @@ public class StatService {
     public List<GameStatsDTO> getTopGamesByMonth(LocalDate targetDate, int limit) {
         log.info("--- StatService getTopGamesByMonth ---");
         return statMapper.getTopGamesByMonth(targetDate, limit);
-    }
-
-    /**
-     * 월간 top 5 메뉴 조회
-     */
-    public List<ItemSalesDTO> getMonthlyTopMenu(String yearMonth) {
-        // yearMonth 값이 없으면 기본값으로 현재 '연도-월' 세팅 (예: "2026-04")
-        if (yearMonth == null || yearMonth.trim().isEmpty()) {
-            yearMonth = YearMonth.now().format(DateTimeFormatter.ofPattern("yyyy-MM"));
-        }
-
-        log.info("--- [StatService] 월간 인기 Top 5 조회 요청 - 대상 월: {} ---", yearMonth);
-        return statMapper.findMonthlyTop5Items(yearMonth);
     }
 }
