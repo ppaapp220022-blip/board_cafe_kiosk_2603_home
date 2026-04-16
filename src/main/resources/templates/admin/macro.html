@@ -42,17 +42,19 @@
 
     <div class="tabs">
         <button th:each="entry, stat : ${macroGroups}"
+                th:if="${entry.key == 'STAFF_TO_TABLE'}"
                 class="tab-btn"
                 th:classappend="${stat.first} ? 'active' : ''"
                 th:data-dir="${entry.key}"
                 th:data-tid="'content-' + ${stat.index}"
                 onclick="openTab(event)"
-                th:text="${entry.key == 'STAFF_TO_TABLE' ? '직원 → 테이블' : (entry.key == 'TABLE_TO_STAFF' ? '테이블 → 직원' : entry.key)}">
+                th:text="${entry.key == 'STAFF_TO_TABLE' ? '직원 → 테이블' : entry.key}">
         </button>
     </div>
 
     <div class="table-container">
         <div th:each="entry, stat : ${macroGroups}"
+             th:if="${entry.key == 'STAFF_TO_TABLE'}"
              th:id="'content-' + ${stat.index}"
              class="tab-content"
              th:style="${stat.first} ? 'display: block' : 'display: none'">
@@ -101,7 +103,7 @@
 
 <th:block layout:fragment="scripts">
     <script>
-        let currentDirection = '';
+        let currentDirection = 'STAFF_TO_TABLE'; // 기본값을 고정
 
         function openTab(evt) {
             const btn = evt.currentTarget;
@@ -114,7 +116,8 @@
             document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
             document.getElementById(tabId).style.display = 'block';
 
-            document.getElementById('btnAddMacro').style.display = (currentDirection === 'TABLE_TO_STAFF') ? 'none' : 'block';
+            // 테이블 -> 직원 로직이 사라졌으므로 등록 버튼은 항상 표시
+            document.getElementById('btnAddMacro').style.display = 'block';
             loadMacroList(currentDirection, 1);
         }
 
