@@ -389,6 +389,16 @@
       color: #555;
     }
 
+    .btn-cancel {
+      background: #ef4444;
+      color: white;
+    }
+
+    .btn-cancel:hover {
+      background: #dc2626;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    }
+
     .status-control-item {
       background: #f9f9f9;
       border-radius: 12px;
@@ -664,6 +674,10 @@
       <i data-lucide="utensils"></i>
       메뉴로 돌아가기
     </button>
+    <button class="btn btn-cancel" id="cancel-order-btn" onclick="cancelOrder()" style="display:none;">
+      <i data-lucide="x-circle"></i>
+      주문 취소
+    </button>
     <button class="btn btn-back" onclick="goToCart()">
       <i data-lucide="shopping-cart"></i>
       장바구니
@@ -685,7 +699,9 @@
   document.addEventListener('DOMContentLoaded', function() {
     renderOrderItems();
     renderOrderTime();
+    startTableStatusWatcher();
     updateStatusDisplay();
+    updateCancelButtonVisibility();
     initAdminControls();
     pollOrderStatus();
   });
@@ -746,6 +762,7 @@
     statusChip.innerText = config.short;
     progressFill.style.width = config.progress + '%';
     if (progressLabels) progressLabels.innerHTML = '<span>주문</span><span>확인</span><span>조리</span><span>서빙</span><span>완료</span>';
+    updateCancelButtonVisibility();
 
     lucide.createIcons();
   }
@@ -778,6 +795,36 @@
     });
   }
 
+  function startTableStatusWatcher() {
+    async function checkTableStatus() {
+      try {
+        const res = await fetch('/kiosk/table/status', {
+          headers: { 'Accept': 'application/json' },
+          credentials: 'same-origin'
+        });
+        if (!res.ok) return;
+
+        const contentType = res.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+          if (res.redirected && res.url) {
+            window.location.href = res.url;
+          }
+          return;
+        }
+
+        const data = await res.json();
+        if (data?.success && data.status === 'CLEANING') {
+          window.location.href = '/kiosk/cleaning_wait';
+        }
+      } catch (error) {
+        console.error('테이블 상태 확인 실패:', error);
+      }
+    }
+
+    checkTableStatus();
+    setInterval(checkTableStatus, 3000);
+  }
+
   function getStatusText(status) {
     const texts = {
       'ORDERED': '주문 완료',
@@ -796,6 +843,42 @@
 
   function goToCart() {
     window.location.href = '/kiosk/cart';
+  }
+
+  function canCancelOrder(status) {
+    return status === 'ORDERED' || status === 'CONFIRMED';
+  }
+
+  function updateCancelButtonVisibility() {
+    const cancelBtn = document.getElementById('cancel-order-btn');
+    if (!cancelBtn) return;
+    cancelBtn.style.display = canCancelOrder(currentStatus) ? 'inline-flex' : 'none';
+  }
+
+  async function cancelOrder() {
+    if (!canCancelOrder(currentStatus)) {
+      showToast('조리 시작 이후에는 취소할 수 없습니다.');
+      return;
+    }
+
+    if (!confirm('주문을 취소하시겠습니까?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/kiosk/order/${orderId}`, { method: 'DELETE' });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok || data.success === false) {
+        throw new Error(data.message || '주문 취소 실패');
+      }
+
+      currentStatus = 'CANCELLED';
+      updateStatusDisplay();
+      showToast('주문이 취소되었습니다.');
+    } catch (error) {
+      showToast(`주문 취소 실패: ${error.message}`);
+    }
   }
 
   function showToast(message) {

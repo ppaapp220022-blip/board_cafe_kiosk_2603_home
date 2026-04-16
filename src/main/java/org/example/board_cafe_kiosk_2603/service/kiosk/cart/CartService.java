@@ -100,14 +100,14 @@ public class CartService {
         if (existing != null) {
             int newQty = existing.getQuantity() + request.getQuantity();
             cartItemMapper.updateQuantity(cart.getId(), menuId, newQty);
-            log.info("수량 누적 - 메뉴: {}, {}→{}", request.getMenuName(), existing.getQuantity(), newQty);
+            log.debug("수량 누적 - 메뉴: {}, {}→{}", request.getMenuName(), existing.getQuantity(), newQty);
         } else {
             cartItemMapper.insert(CartItem.builder()
                     .cartId(cart.getId())
                     .menuId(menuId)
                     .quantity(request.getQuantity())
                     .build());
-            log.info("신규 추가 - 메뉴: {}, 수량: {}", request.getMenuName(), request.getQuantity());
+            log.debug("신규 추가 - 메뉴: {}, 수량: {}", request.getMenuName(), request.getQuantity());
         }
 
         cartMapper.updateTimestamp(cart.getId());
@@ -156,10 +156,10 @@ public class CartService {
 
         if (request.getQuantity() <= 0) {
             cartItemMapper.deleteByCartIdAndMenuId(cart.getId(), menuId);
-            log.info("항목 삭제 - 메뉴: {}", request.getMenuName());
+            log.debug("항목 삭제 - 메뉴: {}", request.getMenuName());
         } else {
             cartItemMapper.updateQuantity(cart.getId(), menuId, request.getQuantity());
-            log.info("수량 변경 - 메뉴: {}, 수량: {}", request.getMenuName(), request.getQuantity());
+            log.debug("수량 변경 - 메뉴: {}, 수량: {}", request.getMenuName(), request.getQuantity());
         }
 
         cartMapper.updateTimestamp(cart.getId());
@@ -185,7 +185,7 @@ public class CartService {
             Cart cart = cartMapper.findByTableId(tableId);
             if (cart != null) {
                 cartItemMapper.deleteAllByCartId(cart.getId());
-                log.info("장바구니 비우기 - tableNumber: {}", tableNumber);
+                log.debug("장바구니 비우기 - tableNumber: {}", tableNumber);
             }
             return CartDTO.builder()
                     .success(true)
@@ -221,7 +221,7 @@ public class CartService {
             Cart newCart = Cart.builder().tableId(tableId).build();
             cartMapper.insert(newCart);
             cart = cartMapper.findByTableId(tableId);
-            log.info("장바구니 신규 생성 - tableId: {}", tableId);
+            log.debug("장바구니 신규 생성 - tableId: {}", tableId);
         }
         return cart;
     }

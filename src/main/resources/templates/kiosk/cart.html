@@ -873,8 +873,39 @@
     document.addEventListener('DOMContentLoaded', function () {
         loadCart();
         loadActiveOrders();
+        startTableStatusWatcher();
         startTimer();
     });
+
+    function startTableStatusWatcher() {
+        async function checkTableStatus() {
+            try {
+                const res = await fetch('/kiosk/table/status', {
+                    headers: {'Accept': 'application/json'},
+                    credentials: 'same-origin'
+                });
+                if (!res.ok) return;
+
+                const contentType = res.headers.get('content-type') || '';
+                if (!contentType.includes('application/json')) {
+                    if (res.redirected && res.url) {
+                        window.location.href = res.url;
+                    }
+                    return;
+                }
+
+                const data = await res.json();
+                if (data && data.success && data.status === 'CLEANING') {
+                    window.location.href = '/kiosk/cleaning_wait';
+                }
+            } catch (err) {
+                console.error('테이블 상태 확인 실패:', err);
+            }
+        }
+
+        checkTableStatus();
+        setInterval(checkTableStatus, 3000);
+    }
 
     // ===== 장바구니 로드 =====
     function loadCart() {
@@ -1020,7 +1051,19 @@
             })
             .then(orders => {
                 const section = document.getElementById('active-orders-section');
-                if (!Array.isArray(orders) || orders.length === 0) {
+                const isGameOrder = (order) => {
+                    const items = Array.isArray(order?.items) ? order.items : [];
+                    return items.length > 0
+                        && items.every(item => Number(item?.price ?? item?.menuPrice ?? 0) === 0);
+                };
+
+                const visibleOrders = Array.isArray(orders)
+                    ? orders.filter(order =>
+                        order
+                        && !isGameOrder(order))
+                    : [];
+
+                if (visibleOrders.length === 0) {
                     section.style.display = 'none';
                     return;
                 }
@@ -1043,14 +1086,9 @@
                     'CANCELLED': 4
                 };
 
-                const isGameOrder = (order) => {
-                    const items = Array.isArray(order.items) ? order.items : [];
-                    return items.length > 0 && items.every(item => Number(item?.price ?? item?.menuPrice ?? 0) === 0);
-                };
-
                 const steps = ['주문', '주문확인', '조리시작', '서빙시작', '완료'];
 
-                const cards = orders.map(order => {
+                const cards = visibleOrders.map(order => {
                     const currentStep = statusSteps[order.status] || 0;
                     const progressWidth = (currentStep / 4) * 100;
                     const itemsList = order.items && order.items.length > 0

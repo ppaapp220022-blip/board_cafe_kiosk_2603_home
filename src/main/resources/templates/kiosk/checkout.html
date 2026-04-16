@@ -786,8 +786,40 @@
         }
     }
 
+    function startTableStatusWatcher() {
+        async function checkTableStatus() {
+            try {
+                const res = await fetch('/kiosk/table/status', {
+                    headers: {'Accept': 'application/json'},
+                    credentials: 'same-origin'
+                });
+                if (!res.ok) return;
+
+                const contentType = res.headers.get('content-type') || '';
+                if (!contentType.includes('application/json')) {
+                    if (res.redirected && res.url) {
+                        window.location.href = res.url;
+                    }
+                    return;
+                }
+
+                const data = await res.json();
+                if (data && data.success && data.status === 'CLEANING') {
+                    window.location.href = '/kiosk/cleaning_wait';
+                }
+            } catch (err) {
+                console.error('테이블 상태 확인 실패:', err);
+            }
+        }
+
+        checkTableStatus();
+        setInterval(checkTableStatus, 3000);
+    }
+
     // ===== 페이지 로드 시 초기화 =====
     document.addEventListener('DOMContentLoaded', async function () {
+        startTableStatusWatcher();
+
         // 주문 데이터 + 포인트 잔액 동시 로드
         await Promise.all([
             loadCheckout(),

@@ -267,7 +267,7 @@ public class OrderService {
 
         // DB 업데이트
         ordersMapper.updateOrderStatus(Orders.builder().id(orderId).status(next.name()).build());
-        log.info(" 주문 상태 변경 - orderId: {}, gameOnly: {}, {} → {}",
+        log.debug(" 주문 상태 변경 - orderId: {}, gameOnly: {}, {} → {}",
                 orderId, gameOnlyOrder, current.name(), next.name());
 
         Orders updated = ordersMapper.findByOrderId(orderId);
@@ -295,10 +295,10 @@ public class OrderService {
         try {
             if (isGameOnlyOrder(order)) {
                 messagingTemplate.convertAndSend("/topic/new-game-orders", order);
-                log.info("📡 신규 게임요청 브로드캐스트 - orderId: {}, tableId: {}", order.getId(), tableId);
+                log.debug("📡 신규 게임요청 브로드캐스트 - orderId: {}, tableId: {}", order.getId(), tableId);
             } else {
                 messagingTemplate.convertAndSend("/topic/new-orders", order);
-                log.info("📡 신규 일반주문 브로드캐스트 - orderId: {}, tableId: {}", order.getId(), tableId);
+                log.debug("📡 신규 일반주문 브로드캐스트 - orderId: {}, tableId: {}", order.getId(), tableId);
             }
         } catch (Exception e) {
             log.warn("웹소켓 전송 실패: {}", e.getMessage());
@@ -312,7 +312,7 @@ public class OrderService {
         try {
             List<OrdersDTO> orders = getOrdersByTableId(tableId);
             messagingTemplate.convertAndSend("/topic/orders/" + tableId, orders);
-            log.info("📡 주문 상태 업데이트 - tableId: {}, 주문 수: {}", tableId, orders.size());
+            log.debug("📡 주문 상태 업데이트 - tableId: {}, 주문 수: {}", tableId, orders.size());
         } catch (Exception e) {
             log.warn("웹소켓 전송 실패: {}", e.getMessage());
         }
@@ -423,7 +423,7 @@ public class OrderService {
                     .build());
         }
 
-        log.info(" 주문 생성(분리) - orderId: {}, tableId: {}, amount: {}, itemCount: {}",
+        log.debug(" 주문 생성(분리) - orderId: {}, tableId: {}, amount: {}, itemCount: {}",
                 order.getId(), tableId, totalAmount, items.size());
         return toDTO(order, fetchItemDTOs(order.getId()));
     }

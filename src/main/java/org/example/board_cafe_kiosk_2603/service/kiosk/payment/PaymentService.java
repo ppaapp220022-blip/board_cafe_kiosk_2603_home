@@ -80,7 +80,7 @@ public class PaymentService {
      */
     public PaymentDTO preparePayment(int tableNumber, PaymentDTO request) {
         try {
-            log.info("=== 결제 준비 시작 - tableNumber: {}", tableNumber);
+            log.debug("=== 결제 준비 시작 - tableNumber: {}", tableNumber);
 
             // 테이블 검증
             Integer tableId = cartMapper.findCafeTableIdByTableNumber(tableNumber);
@@ -135,7 +135,7 @@ public class PaymentService {
                     .cafePackage(cafePackage)
                     .build();
 
-            log.info("=== 결제 준비 완료 - orderId: {}, amount: {}, packageId: {}",
+            log.debug("=== 결제 준비 완료 - orderId: {}, amount: {}, packageId: {}",
                     orderIdToss, finalAmount, cafePackage != null ? cafePackage.getId() : "없음");
             return response;
 
@@ -159,7 +159,7 @@ public class PaymentService {
                                      int amount, int tableNumber,
                                      int pointUsed, String customerPhone) {
         try {
-            log.info("=== 결제 승인 시작 - orderIdToss: {}, amount: {}, pointUsed: {}",
+            log.debug("=== 결제 승인 시작 - orderIdToss: {}, amount: {}, pointUsed: {}",
                     orderIdToss, amount, pointUsed);
 
             // 중복 결제 방지
@@ -217,7 +217,7 @@ public class PaymentService {
             // 결제 완료 후 테이블 세션 종료 + 청소중 상태 전환
             closeTableSessionAndSetCleaning(tableId, session.getId());
 
-            log.info("=== 결제 완료 - latestOrderId: {}, finalAmount: {}, earnedPoints: {}",
+            log.debug("=== 결제 완료 - latestOrderId: {}, finalAmount: {}, earnedPoints: {}",
                     latestOrderId, finalAmount, earnedPoints);
 
             return PaymentDTO.builder()
@@ -397,18 +397,18 @@ public class PaymentService {
 
         if (pointUsed > 0 && isValidPhone(customerPhone)) {
             pointService.usePoint(customerPhone, pointUsed, orderId);
-            log.info("포인트 사용 - {}: -{}P", customerPhone, pointUsed);
+            log.debug("포인트 사용 - {}: -{}P", customerPhone, pointUsed);
         }
 
         if (pointUsed > 0) {
-            log.info("포인트 사용 주문은 적립 제외 - phone: {}, orderId: {}", customerPhone, orderId);
+            log.debug("포인트 사용 주문은 적립 제외 - phone: {}, orderId: {}", customerPhone, orderId);
             return 0;
         }
 
         if (isValidPhone(customerPhone) && finalAmount > 0) {
             earnedPoints = (int) Math.floor(finalAmount * EARN_RATE);
             pointService.earnPoint(customerPhone, earnedPoints, orderId);
-            log.info("포인트 적립 - {}: +{}P", customerPhone, earnedPoints);
+            log.debug("포인트 적립 - {}: +{}P", customerPhone, earnedPoints);
         }
 
         return earnedPoints;
@@ -436,14 +436,14 @@ public class PaymentService {
             currentSessionId = cafeTableMapper.selectCurrentSessionId(tableId);
         }
 
-        log.info("결제 완료 후 세션 종료/상태 반영 결과 | tableId: {}, sessionId: {}, msgReadRows: {}, closeRows: {}, statusRows: {}, finalStatus: {}, finalCurrentSessionId: {}",
+        log.debug("결제 완료 후 세션 종료/상태 반영 결과 | tableId: {}, sessionId: {}, msgReadRows: {}, closeRows: {}, statusRows: {}, finalStatus: {}, finalCurrentSessionId: {}",
                 tableId, sessionId, readUpdated, closedRows, statusRows, currentStatus, currentSessionId);
     }
 
     private void settleRemainingGameRentalsOnCheckout(Long sessionId) {
         int historyUpdated = gameItemMapper.returnActiveRentalsBySessionId(sessionId);
         int itemUpdated = gameItemMapper.normalizeNormalItemsBySessionId(sessionId);
-        log.info("결제 완료 시 게임 대여 자동 반납 처리 | sessionId: {}, historyUpdated: {}, itemUpdated: {}",
+        log.debug("결제 완료 시 게임 대여 자동 반납 처리 | sessionId: {}, historyUpdated: {}, itemUpdated: {}",
                 sessionId, historyUpdated, itemUpdated);
     }
 

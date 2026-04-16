@@ -41,7 +41,6 @@ public class KioskLoginSuccessHandler implements AuthenticationSuccessHandler {
 
         KioskDTO kiosk = (KioskDTO) authentication.getPrincipal();
         int tableId = kiosk.getTableId();
-
         log.info("--- [KioskLoginSuccess] 로그인 성공 | tableId: {}, tableNumber: {} ---",
                 tableId, kiosk.getUsername());
 
@@ -58,9 +57,6 @@ public class KioskLoginSuccessHandler implements AuthenticationSuccessHandler {
         request.getSession().setAttribute("tableId", tableId);
         request.getSession().setMaxInactiveInterval(60 * 60 * 8); // 세션 유지 8시간
 
-        log.info("--- [KioskLoginSuccess] 기본 세션 저장 완료 | tableNumber: {}, tableId: {}, sessionId: {} ---",
-                Integer.parseInt(kiosk.getUsername()), tableId, request.getSession().getId());
-
         // ────────────────────────────────────────────────────────
         // 2. access_token 갱신
         //    로그인 성공 시마다 새 UUID 발급 후 DB 저장
@@ -68,8 +64,6 @@ public class KioskLoginSuccessHandler implements AuthenticationSuccessHandler {
         // ────────────────────────────────────────────────────────
         String newToken = UUID.randomUUID().toString();
         cafeTableService.updateAccessToken(tableId, newToken);
-        log.info("--- [KioskLoginSuccess] access_token 갱신 완료 | tableId: {}, token: {} ---",
-                tableId, newToken);
 
         // ────────────────────────────────────────────────────────
         // 3. ★ 수정: getActiveSession() 단일 호출로 통합
@@ -88,8 +82,6 @@ public class KioskLoginSuccessHandler implements AuthenticationSuccessHandler {
         CafeTableSession activeSession = tableSessionAdminService.getActiveSession(tableId);
         Long activeSessionId = (activeSession != null) ? activeSession.getId() : null;
 
-        log.info("--- [KioskLoginSuccess] 활성 세션 조회 결과: {} ---", activeSessionId);
-
         if (activeSession != null) {
 
             // ────────────────────────────────────────────────────
@@ -98,21 +90,17 @@ public class KioskLoginSuccessHandler implements AuthenticationSuccessHandler {
             //      (서버 재기동, 강제 초기화 등으로 불일치 발생 방어)
             // ────────────────────────────────────────────────────
             Long currentSessionId = cafeTableService.findCurrentSessionId(tableId);
-            log.info("--- [KioskLoginSuccess] cafe_table.current_session_id 조회 결과: {} ---",
-                    currentSessionId);
+            String tableStatus = cafeTableService.getTableStatus(tableId);
+            boolean needsSync = currentSessionId == null
+                    || !currentSessionId.equals(activeSessionId)
+                    || !"OCCUPIED".equals(tableStatus);
 
-            if (currentSessionId == null || !currentSessionId.equals(activeSessionId)) {
+            if (needsSync) {
                 log.warn("--- [KioskLoginSuccess] 데이터 불일치 감지 | " +
-                                "cafe_table.current_session_id: {}, table_session.id: {} → 복구 시작 ---",
-                        currentSessionId, activeSessionId);
+                                "cafe_table.current_session_id: {}, table_session.id: {}, status: {} → 복구 시작 ---",
+                        currentSessionId, activeSessionId, tableStatus);
 
                 cafeTableService.syncTableWithSession(tableId, activeSessionId);
-
-                log.info("--- [KioskLoginSuccess] 복구 완료 | current_session_id: {}, status: OCCUPIED ---",
-                        activeSessionId);
-            } else {
-                log.info("--- [KioskLoginSuccess] 데이터 정상 일치 | current_session_id: {} ---",
-                        currentSessionId);
             }
 
             // ────────────────────────────────────────────────────
@@ -142,12 +130,6 @@ public class KioskLoginSuccessHandler implements AuthenticationSuccessHandler {
                 }
             }
 
-            log.info("--- [KioskLoginSuccess] 세션 정보 복구 완료 | " +
-                            "partySize: {}, packageId: {}, checkInTime: {} ---",
-                    activeSession.getInitialGuestCnt(),
-                    activeSession.getPackageId(),
-                    activeSession.getCheckInTime());
-
             // ────────────────────────────────────────────────────
             // 3-3. ★ 수정: cart 조건부 초기화
             //      활성 세션이 있을 때는 기존 cart 유지
@@ -155,13 +137,10 @@ public class KioskLoginSuccessHandler implements AuthenticationSuccessHandler {
             // ────────────────────────────────────────────────────
             if (request.getSession().getAttribute("cart") == null) {
                 request.getSession().setAttribute("cart", new ArrayList<>());
-                log.info("--- [KioskLoginSuccess] cart 초기화 (기존 cart 없음) ---");
-            } else {
-                log.info("--- [KioskLoginSuccess] 기존 cart 유지 ---");
             }
 
             // 진행 중인 세션 있음 → 기본 메뉴 탭(음료)로 이동
-            log.info("--- [KioskLoginSuccess] 활성 세션 존재 → /kiosk/drinks 이동 ---");
+            log.info("--- [KioskLoginSuccess] 활성 세션 재진입 | tableId: {}, redirect: /kiosk/drinks ---", tableId);
             response.sendRedirect("/kiosk/drinks");
 
         } else {
@@ -170,11 +149,9 @@ public class KioskLoginSuccessHandler implements AuthenticationSuccessHandler {
             //    cart를 새 빈 리스트로 초기화
             // ────────────────────────────────────────────────────
             request.getSession().setAttribute("cart", new ArrayList<>());
-            log.info("--- [KioskLoginSuccess] 활성 세션 없음 → cart 초기화 후 /kiosk/session/start 이동 ---");
+            log.info("--- [KioskLoginSuccess] 신규 세션 진입 | tableId: {}, redirect: /kiosk/session/start ---", tableId);
             response.sendRedirect("/kiosk/session/start");
         }
-
-        log.info("--- [KioskLoginSuccess] 로그인 처리 완료 | tableId: {} ---", tableId);
     }
 
     @PostConstruct

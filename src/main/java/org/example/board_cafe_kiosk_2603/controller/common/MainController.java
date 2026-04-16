@@ -38,19 +38,16 @@ public class MainController {
 
     @GetMapping("/common/login")
     public String loginPage() {
-        log.info("초기 페이지 접근 ...");
         return "common/login";
     }
 
     @GetMapping("/admin/login")
     public String adminLoginPage() {
-        log.info("관리자 -> 로그인 ...");
         return "login/admin_login";
     }
 
     @GetMapping("/kiosk/login")
     public String kioskLoginPage(HttpServletRequest request, RedirectAttributes redirectAttributes) {
-        log.info("키오스크 -> 로그인 ...");
         return "login/kiosk_login";
     }
 
@@ -94,7 +91,6 @@ public class MainController {
     public String headcountProcess(@RequestParam int partySize,
                                    HttpSession session) {
         session.setAttribute("partySize", partySize);
-        log.info("인원수 세션 저장 완료 : {}명", partySize);
         return "redirect:/kiosk/phone_login";
     }
 
@@ -104,10 +100,8 @@ public class MainController {
                                     HttpSession session) {
         if (phone != null && !phone.isEmpty()) {
             session.setAttribute("customerPhone", phone);
-            log.info("회원 전화번호 세션 저장: {}", phone);
         } else {
             session.removeAttribute("customerPhone");
-            log.info("비회원으로 진행");
         }
         return "redirect:/kiosk/package_selection";
     }
@@ -158,7 +152,17 @@ public class MainController {
             return null;
         }
 
+        Long recoverSessionId = cafeTableService.findActiveSessionByTableId(tableId);
         String tableStatus = cafeTableService.getTableStatus(tableId);
+        Long currentSessionId = cafeTableService.findCurrentSessionId(tableId);
+        if (recoverSessionId != null &&
+                (!"OCCUPIED".equals(tableStatus) || currentSessionId == null || !recoverSessionId.equals(currentSessionId))) {
+            cafeTableService.syncTableWithSession(tableId, recoverSessionId);
+            tableStatus = "OCCUPIED";
+            log.warn("--- [MainController] 메뉴 진입 전 상태/세션 자동 복구 완료 (tableId: {}, sessionId: {}) ---",
+                    tableId, recoverSessionId);
+        }
+
         if (!"OCCUPIED".equals(tableStatus)) {
             log.warn("--- [MainController] /kiosk/menu 진입 차단: 대시보드 상태가 OCCUPIED 아님 (tableId: {}, status: {}) ---",
                     tableId, tableStatus);
@@ -172,7 +176,6 @@ public class MainController {
 
         CafeTableSession activeSession = tableSessionAdminService.getActiveSession(tableId);
         if (activeSession == null) {
-            Long recoverSessionId = cafeTableService.findActiveSessionByTableId(tableId);
             if (recoverSessionId != null) {
                 cafeTableService.syncTableWithSession(tableId, recoverSessionId);
                 activeSession = tableSessionAdminService.getActiveSession(tableId);
@@ -208,7 +211,6 @@ public class MainController {
 
     @GetMapping("/admin/find_pw")
     public String findPwPage() {
-        log.info("--- 비밀번호 찾기 진입 ---");
         return "login/find_pw";
     }
 }
