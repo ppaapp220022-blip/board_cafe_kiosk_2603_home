@@ -32,7 +32,7 @@ public class OrderWebSocketHandler {
      */
     @MessageMapping("/subscribe/{tableId}")
     public void subscribeTableOrders(@DestinationVariable int tableId) {
-        log.info("테이블 {} 주문 상태 구독 시작", tableId);
+        log.debug("테이블 {} 주문 상태 구독 시작", tableId);
         
         try {
             // 현재 테이블의 주문 조회
@@ -44,7 +44,7 @@ public class OrderWebSocketHandler {
                     orders
             );
             
-            log.info("테이블 {} 주문 {}건 전송", tableId, orders.size());
+            log.debug("테이블 {} 주문 {}건 전송", tableId, orders.size());
         } catch (Exception e) {
             log.error("주문 상태 전송 실패 - tableId: {}", tableId, e);
         }
@@ -64,7 +64,7 @@ public class OrderWebSocketHandler {
                     orders
             );
             
-            log.info("주문 상태 변경 브로드캐스트 - orderId: {}, tableId: {}", orderId, tableId);
+            log.debug("주문 상태 변경 브로드캐스트 - orderId: {}, tableId: {}", orderId, tableId);
         } catch (Exception e) {
             log.error("브로드캐스트 실패", e);
         }
@@ -78,7 +78,7 @@ public class OrderWebSocketHandler {
         try {
             // 관리자 대시보드에 신규 주문 알림
             messagingTemplate.convertAndSend("/topic/new-orders", newOrder);
-            log.info("신규 주문 브로드캐스트 - orderId: {}, tableId: {}",
+            log.debug("신규 주문 브로드캐스트 - orderId: {}, tableId: {}",
                     newOrder.getId(), newOrder.getTableId());
         } catch (Exception e) {
             log.error("신규 주문 브로드캐스트 실패", e);

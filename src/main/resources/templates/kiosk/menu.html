@@ -26,10 +26,12 @@
           <div class="menu-info-left">
             <div class="menu-name" th:text="${item.name != null ? item.name : '상품명'}">상품명</div>
             <div class="menu-price"
-                 th:classappend="${(item.price != null ? item.price : 0) == 0 ? 'free' : ''}"
-                 th:text="${(item.price != null ? item.price : 0) == 0
+                 th:classappend="${currentMenu == 'games' or (item.price != null ? item.price : 0) == 0 ? 'free' : ''}"
+                 th:text="${currentMenu == 'games'
+                            ? '대여가능'
+                            : ((item.price != null ? item.price : 0) == 0
                             ? 'FREE'
-                            : '₩' + #numbers.formatInteger(item.price, 1, 'COMMA')}">
+                            : '₩' + #numbers.formatInteger(item.price, 1, 'COMMA'))}">
               ₩5,000
             </div>
           </div>

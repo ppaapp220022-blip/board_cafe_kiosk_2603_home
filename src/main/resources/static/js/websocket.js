@@ -113,12 +113,18 @@ function onNewOrder(order) {
     if (typeof window.fetchPendingOrders === 'function') {
         window.fetchPendingOrders();
     }
+    if (typeof refreshTableCardOrderBadges === 'function') {
+        refreshTableCardOrderBadges();
+    }
 }
 
 function onNewGameOrder(order) {
     // 게임 주문은 일반 주문 알림창과 분리: 목록만 갱신
     if (typeof window.fetchPendingOrders === 'function') {
         window.fetchPendingOrders();
+    }
+    if (typeof refreshTableCardOrderBadges === 'function') {
+        refreshTableCardOrderBadges();
     }
 }
 
@@ -244,9 +250,13 @@ function playNotificationSound() {
 // ===================================================
 
 function onOrdersUpdated(orders, tableId) {
-    // dashboard.html의 renderOrders 함수 호출
-    if (typeof renderOrders === 'function') {
-        renderOrders(orders);
+    // 대기 주문 영역도 함께 갱신해서 신규 주문 누락을 방지
+    if (typeof window.fetchPendingOrders === 'function') {
+        window.fetchPendingOrders();
+    }
+    // 모달은 REST 재조회로 렌더링(활성 대여 목록 포함)
+    if (typeof fetchActiveOrders === 'function') {
+        fetchActiveOrders();
     }
     // 대시보드 카드의 상단 주문 상태 배지도 최신화
     if (typeof refreshTableCardOrderBadges === 'function') {

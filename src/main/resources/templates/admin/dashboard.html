@@ -235,6 +235,24 @@
                 background: #0d6efd;
                 color: #fff;
             }
+            .btn-return {
+                background: #0ea5e9;
+                color: #fff;
+            }
+            .inline-small-btn {
+                padding: 6px 12px;
+                border-radius: 6px;
+                border: none;
+                font-size: 11px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s;
+                background: #4285f4;
+                color: #fff;
+            }
+            .inline-small-btn.return {
+                background: #0ea5e9;
+            }
 
             .serial-item-row {
                 display: flex;
@@ -360,7 +378,7 @@
                 <div style="font-weight: 600; color: #3c4043;">📋 실시간 주문 내역</div>
                 <div id="orderList" class="order-list"></div>
                 <div class="rented-game-box">
-                    <div class="rented-game-title">🎲 현재 대여중 일련번호</div>
+                    <div class="rented-game-title">🎲 테이블 게임 현황</div>
                     <div id="rentedGameList" style="font-size:12px; color:#64748b;">없음</div>
                 </div>
 
@@ -447,6 +465,25 @@
         </div>
     </div>
 
+    <div id="rentalReturnModal" class="modal-overlay" onclick="closeRentalReturnModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <span id="rentalReturnTitle">↩️ 대여 반납 처리</span>
+                <button class="close-btn" onclick="closeRentalReturnModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="rentalReturnDesc" style="font-size:13px; color:#475569; margin-bottom:10px;">
+                    반납 처리할 일련번호를 체크하세요.
+                </div>
+                <div id="rentalReturnList"></div>
+                <div class="action-group">
+                    <button class="btn btn-return" onclick="submitRentalReturn()">선택 반납</button>
+                    <button class="btn btn-close" onclick="closeRentalReturnModal()">취소</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <th:block layout:fragment="script">
         <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
@@ -455,11 +492,37 @@
             let currentTableId = null;
             let currentTableStatus = null;
             let serialAssignContext = { orderId: null, gameName: '', quantity: 1 };
+            let rentalReturnContext = { orderId: null, gameName: '', quantity: 1 };
             let pendingOrdersState = [];
+            let latestModalOrderItems = [];
+            let pendingAckOrderIds = new Set();
+
+            try {
+                const raw = sessionStorage.getItem('dashboard_pending_ack_ids');
+                const parsed = raw ? JSON.parse(raw) : [];
+                if (Array.isArray(parsed)) {
+                    pendingAckOrderIds = new Set(parsed.map(v => Number(v)).filter(v => Number.isFinite(v) && v > 0));
+                }
+            } catch (_) {
+                pendingAckOrderIds = new Set();
+            }
 
             function parsePendingOrderId(order) {
                 const id = Number(order?.id ?? order?.orderId ?? 0);
                 return Number.isFinite(id) && id > 0 ? id : 0;
+            }
+
+            function savePendingAckOrderIds() {
+                try {
+                    sessionStorage.setItem('dashboard_pending_ack_ids', JSON.stringify(Array.from(pendingAckOrderIds)));
+                } catch (_) {}
+            }
+
+            function acknowledgePendingOrder(orderId) {
+                const id = Number(orderId || 0);
+                if (id <= 0) return;
+                pendingAckOrderIds.add(id);
+                savePendingAckOrderIds();
             }
 
             function isGameOnlyPendingOrder(order) {
@@ -476,7 +539,7 @@
                 if (btn) btn.style.display = 'none';
             }
 
-            function renderOrders(orders) {
+            function renderOrders(orders, activeRentals = []) {
                 const listDiv = document.getElementById('orderList');
                 const priceSpan = document.getElementById('totalPrice');
                 let sum = 0;
@@ -524,43 +587,96 @@
                 }
 
                 if (!orderItems || orderItems.length === 0) {
+                    latestModalOrderItems = [];
                     listDiv.innerHTML = '<div style="color:#999; display:flex; justify-content:center; padding: 20px; border:none;">진행 중인 주문이 없습니다.</div>';
                     priceSpan.innerText = '0원';
                     return;
+                }
+                latestModalOrderItems = orderItems.slice();
+
+                const activeRentalCountByGame = new Map();
+                if (Array.isArray(activeRentals)) {
+                    activeRentals.forEach(rental => {
+                        const gameName = String(rental?.gameName || '').trim();
+                        if (!gameName) return;
+                        activeRentalCountByGame.set(
+                            gameName,
+                            (activeRentalCountByGame.get(gameName) || 0) + 1
+                        );
+                    });
                 }
 
                 const latest = computeLatestOrderStatus(orderItems);
                 latestStatus = latest ? latest.status : null;
 
-                listDiv.innerHTML = orderItems.map(item => {
-                    const menuName = item.menu_name || item.menuName || '상품명 없음';
-                    const quantity = item.quantity || 0;
-                    const rawPrice = item.price ?? item.menuPrice ?? 0;
-                    const price = Number(rawPrice) || 0;
-                    const itemTotal = price * quantity;
+                const groupedOrders = new Map();
+                for (const item of orderItems) {
+                    const orderId = Number(item?.orderId || item?.id || 0);
+                    if (!orderId) continue;
 
-                    if (item.status !== 'CANCELLED') { sum += itemTotal; }
+                    if (!groupedOrders.has(orderId)) {
+                        groupedOrders.set(orderId, {
+                            orderId,
+                            status: item?.status || 'ORDERED',
+                            items: []
+                        });
+                    }
+                    groupedOrders.get(orderId).items.push(item);
+                }
+
+                listDiv.innerHTML = Array.from(groupedOrders.values()).map(group => {
+                    const orderId = group.orderId;
+                    const currentStatus = group.status || 'ORDERED';
+                    const items = Array.isArray(group.items) ? group.items : [];
+
+                    const isGameRequest = items.length > 0
+                        && items.every(v => Number(v?.price ?? v?.menuPrice ?? 0) === 0);
+
+                    if (isGameRequest) return '';
+
+                    const orderTotal = items.reduce((acc, v) => {
+                        const price = Number(v?.price ?? v?.menuPrice ?? 0) || 0;
+                        const qty = Number(v?.quantity || 0) || 0;
+                        return acc + (price * qty);
+                    }, 0);
+
+                    if (currentStatus !== 'CANCELLED') {
+                        sum += orderTotal;
+                    }
 
                     let statusText = '';
                     let badgeBg = '#f1f3f4';
                     let badgeColor = '#5f6368';
                     let actionHtml = '';
 
-                    // 상태 변경 API는 "주문 ID(orders.id)"를 받아야 한다.
-                    // order_item.id가 먼저 들어오면 400/404가 발생하므로 orderId를 우선 사용.
-                    const orderId = item.orderId || item.id;
-                    const currentStatus = item.status || 'ORDERED';
-
                     const btnBase = "padding: 6px 12px; border-radius: 6px; border: none; font-size: 11px; cursor: pointer; font-weight: 600; transition: all 0.2s;";
                     const btnNext = btnBase + " background: #4285f4; color: white;";
                     const btnSerial = btnBase + " background: #0d6efd; color: white;";
-                    const isGameRequest = price === 0;
+                    const btnReturn = btnBase + " background: #0ea5e9; color: white;";
+                    const btnCancel = btnBase + " background: #ef4444; color: white;";
+
+                    const gameQtyByName = new Map();
+                    items.forEach(v => {
+                        const n = String(v?.menu_name || v?.menuName || '').trim();
+                        if (!n) return;
+                        gameQtyByName.set(n, (gameQtyByName.get(n) || 0) + (Number(v?.quantity || 0) || 0));
+                    });
 
                     if (isGameRequest) {
                         if (currentStatus === 'ORDERED') {
                             statusText = '게임 요청'; badgeBg = '#fff3cd'; badgeColor = '#856404';
-                            actionHtml = `
-                                <button style="${btnSerial}" onclick='openGameSerialModal(${orderId}, ${JSON.stringify(menuName)}, ${quantity})'>일련번호 선택</button>`;
+                            actionHtml = Array.from(gameQtyByName.entries()).map(([name, qty]) => `
+                                <button style="${btnSerial}" onclick='openGameSerialModal(${orderId}, ${JSON.stringify(name)}, ${qty})'>${name} 일련번호 선택</button>
+                            `).join('');
+                        } else if (currentStatus === 'CONFIRMED') {
+                            const hasAnyActiveRental = Array.from(gameQtyByName.keys()).some(name => (activeRentalCountByGame.get(name) || 0) > 0);
+                            if (!hasAnyActiveRental) return '';
+                            statusText = '대여 중'; badgeBg = '#d1ecf1'; badgeColor = '#0c5460';
+                            actionHtml = Array.from(gameQtyByName.entries()).map(([name, qty]) => {
+                                const activeCount = activeRentalCountByGame.get(name) || 0;
+                                if (activeCount <= 0) return '';
+                                return `<button style="${btnReturn}" onclick='openRentalReturnModal(${orderId}, ${JSON.stringify(name)}, ${qty})'>${name} 반납</button>`;
+                            }).join('');
                         } else {
                             statusText = '대여 완료'; badgeBg = '#d1ecf1'; badgeColor = '#0c5460';
                         }
@@ -569,12 +685,14 @@
                             case 'ORDERED':
                                 statusText = '주문 완료'; badgeBg = '#fff3cd'; badgeColor = '#856404';
                                 actionHtml = `
-                                    <button style="${btnNext}" onclick="updateOrderStatus(${orderId}, 'CONFIRMED')">확인</button>`;
+                                    <button style="${btnNext}" onclick="updateOrderStatus(${orderId}, 'CONFIRMED')">확인</button>
+                                    <button style="${btnCancel}" onclick="updateOrderStatus(${orderId}, 'CANCELLED')">취소</button>`;
                                 break;
                             case 'CONFIRMED':
                                 statusText = '주문 확인'; badgeBg = '#d1ecf1'; badgeColor = '#0c5460';
                                 actionHtml = `
-                                    <button style="${btnNext}" onclick="updateOrderStatus(${orderId}, 'COOKING')">조리</button>`;
+                                    <button style="${btnNext}" onclick="updateOrderStatus(${orderId}, 'COOKING')">조리</button>
+                                    <button style="${btnCancel}" onclick="updateOrderStatus(${orderId}, 'CANCELLED')">취소</button>`;
                                 break;
                             case 'COOKING':
                                 statusText = '조리 중'; badgeBg = '#fde8e8'; badgeColor = '#721c24';
@@ -597,19 +715,37 @@
 
                     const isCancelled = currentStatus === 'CANCELLED';
                     const textStyle = isCancelled ? 'text-decoration: line-through; color: #999;' : '';
+                    const itemRows = items.map(v => {
+                        const menuName = v?.menu_name || v?.menuName || '상품명 없음';
+                        const quantity = Number(v?.quantity || 0) || 0;
+                        const price = Number(v?.price ?? v?.menuPrice ?? 0) || 0;
+                        const itemTotal = price * quantity;
+                        return `
+                            <div class="order-item-header">
+                                <span class="order-item-name" style="${textStyle}">${menuName} x ${quantity}</span>
+                                <span class="order-item-price" style="${textStyle}">${itemTotal.toLocaleString()}원</span>
+                            </div>
+                        `;
+                    }).join('');
 
                     return `
                     <div class="order-item-wrapper" data-order-id="${orderId}" data-status="${currentStatus}" data-is-game="${isGameRequest ? 'true' : 'false'}">
-                        <div class="order-item-header">
-                            <span class="order-item-name" style="${textStyle}">${menuName} x ${quantity}</span>
-                            <span class="order-item-price" style="${textStyle}">${itemTotal.toLocaleString()}원</span>
-                        </div>
+                        ${itemRows}
                         <div class="order-item-actions">
                             <span class="order-status-label" style="background: ${badgeBg}; color: ${badgeColor}; ${isCancelled ? 'text-decoration: line-through;' : ''}">${statusText}</span>
                             <div class="order-action-buttons">${actionHtml}</div>
                         </div>
                     </div>`;
                 }).join('');
+
+                if (!listDiv.innerHTML.trim()) {
+                    listDiv.innerHTML = '<div style="color:#999; display:flex; justify-content:center; padding: 20px; border:none;">진행 중인 주문이 없습니다.</div>';
+                    priceSpan.innerText = '0원';
+                    updateTableCardOrderStatus(null);
+                    updateOrderStatusButton();
+                    fetchRentedGameItems();
+                    return;
+                }
 
                 priceSpan.innerText = sum.toLocaleString() + '원';
                 updateTableCardOrderStatus(latest);
@@ -709,6 +845,7 @@
                 else if (nextStatus === 'COOKING') confirmMsg = '조리 시작 처리할까요?';
                 else if (nextStatus === 'DELIVERING') confirmMsg = '배달 시작 처리할까요?';
                 else if (nextStatus === 'COMPLETED') confirmMsg = '완료 처리할까요?';
+                else if (nextStatus === 'CANCELLED') confirmMsg = '해당 주문을 취소 처리할까요?';
 
                 if (!confirm(confirmMsg)) return;
 
@@ -784,6 +921,7 @@
                 unsubscribeFromOrders();
                 closeGameSerialModal();
                 closePaymentGameCheckModal();
+                closeRentalReturnModal();
                 document.querySelectorAll('.table-card').forEach(c => c.classList.remove('selected'));
                 currentTableId = null;
                 currentTableStatus = null;
@@ -815,16 +953,17 @@
 
             async function fetchActiveOrders() {
                 try {
-                    const response = await fetch(`/admin/dashboard/${currentTableId}/orders`);
-                    if (response.ok) {
-                        const orders = await response.json();
-                        renderOrders(orders);
-                    } else {
-                        renderOrders([]);
-                    }
+                    const [orderResponse, rentalResponse] = await Promise.all([
+                        fetch(`/admin/dashboard/${currentTableId}/orders`),
+                        fetch(`/admin/product/game-items/rentals/active?tableId=${currentTableId}`)
+                    ]);
+
+                    const orders = orderResponse.ok ? await orderResponse.json() : [];
+                    const activeRentals = rentalResponse.ok ? await rentalResponse.json() : [];
+                    renderOrders(orders, activeRentals);
                 } catch (err) {
                     console.error('❌ fetchActiveOrders 에러:', err);
-                    renderOrders([]);
+                    renderOrders([], []);
                 }
             }
 
@@ -1063,24 +1202,252 @@
                 }
             }
 
+            async function openRentalReturnModal(orderId, gameName, quantity) {
+                if (!currentTableId) return;
+                rentalReturnContext = {
+                    orderId: Number(orderId || 0),
+                    gameName: String(gameName || '').trim(),
+                    quantity: Math.max(1, Number(quantity) || 1)
+                };
+
+                const modal = document.getElementById('rentalReturnModal');
+                const title = document.getElementById('rentalReturnTitle');
+                const desc = document.getElementById('rentalReturnDesc');
+                const list = document.getElementById('rentalReturnList');
+
+                title.textContent = `↩️ ${rentalReturnContext.gameName || '게임'} 반납`;
+                desc.textContent = '반납 처리할 일련번호를 선택하세요.';
+
+                try {
+                    const res = await fetch(`/admin/product/game-items/rentals/active?tableId=${currentTableId}`);
+                    if (!res.ok) throw new Error('대여 목록 조회 실패');
+                    const rentals = await res.json();
+
+                    const matched = Array.isArray(rentals)
+                        ? rentals.filter(item =>
+                            (item?.gameName || '').trim() === rentalReturnContext.gameName)
+                        : [];
+
+                    if (matched.length === 0) {
+                        list.innerHTML = '<div style="font-size:13px; color:#ef4444;">해당 게임의 대여 중 일련번호가 없습니다.</div>';
+                    } else {
+                        list.innerHTML = matched.map(item => `
+                            <label class="serial-item-row">
+                                <span>${item.serialNumber}</span>
+                                <input type="checkbox"
+                                       class="rental-return-checkbox"
+                                       data-history-id="${item.historyId}"
+                                       data-game-item-id="${item.gameItemId}">
+                            </label>
+                        `).join('');
+                    }
+
+                    modal.style.display = 'flex';
+                    setTimeout(() => {
+                        const content = modal.querySelector('.modal-content');
+                        if (content) content.style.transform = 'translateY(0)';
+                    }, 10);
+                } catch (e) {
+                    alert('반납 목록 조회 실패: ' + e.message);
+                }
+            }
+
+            function closeRentalReturnModal() {
+                const modal = document.getElementById('rentalReturnModal');
+                if (!modal) return;
+                modal.style.display = 'none';
+                const content = modal.querySelector('.modal-content');
+                if (content) content.style.transform = 'translateY(-20px)';
+            }
+
+            async function submitRentalReturn() {
+                if (!currentTableId) return;
+
+                const selected = Array.from(document.querySelectorAll('.rental-return-checkbox:checked'))
+                    .map(el => ({
+                        historyId: Number(el.dataset.historyId),
+                        gameItemId: Number(el.dataset.gameItemId),
+                        status: 'NORMAL'
+                    }))
+                    .filter(v => Number.isFinite(v.historyId) && v.historyId > 0
+                        && Number.isFinite(v.gameItemId) && v.gameItemId > 0);
+
+                if (selected.length === 0) {
+                    alert('반납할 일련번호를 선택해 주세요.');
+                    return;
+                }
+
+                if (selected.length > rentalReturnContext.quantity) {
+                    alert(`최대 ${rentalReturnContext.quantity}개까지만 선택할 수 있습니다.`);
+                    return;
+                }
+
+                try {
+                    const res = await fetch(`/admin/product/game-items/rentals/settle`, {
+                        method: 'PATCH',
+                        headers: getJsonHeaders(),
+                        body: JSON.stringify({
+                            tableId: Number(currentTableId),
+                            updates: selected
+                        })
+                    });
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok || data.success === false) {
+                        throw new Error(data.message || '반납 처리 실패');
+                    }
+
+                    closeRentalReturnModal();
+                    await fetchActiveOrders();
+                    await fetchRentedGameItems();
+                    alert('선택한 일련번호가 반납 처리되었습니다.');
+                } catch (e) {
+                    alert('반납 처리 실패: ' + e.message);
+                }
+            }
+
             async function fetchRentedGameItems() {
                 if (!currentTableId) return;
                 const box = document.getElementById('rentedGameList');
                 if (!box) return;
 
                 try {
-                    const res = await fetch(`/admin/product/game-items/rentals/active?tableId=${currentTableId}`);
-                    if (!res.ok) throw new Error('대여 목록 조회 실패');
-                    const items = await res.json();
-                    if (!Array.isArray(items) || items.length === 0) {
-                        box.innerHTML = '<span style="color:#64748b;">없음</span>';
-                        return;
-                    }
-                    box.innerHTML = items.map(item => `
-                        <div class="rented-game-row">${item.gameName} / ${item.serialNumber} <strong>(${item.rentalStatus})</strong></div>
-                    `).join('');
+                    const [activeRes, historyRes] = await Promise.all([
+                        fetch(`/admin/product/game-items/rentals/active?tableId=${currentTableId}`),
+                        fetch(`/admin/product/game-items/rentals/history?tableId=${currentTableId}`)
+                    ]);
+                    if (!activeRes.ok || !historyRes.ok) throw new Error('대여 목록 조회 실패');
+
+                    const activeItems = await activeRes.json();
+                    const historyItems = await historyRes.json();
+
+                    const rentedItems = Array.isArray(activeItems)
+                        ? activeItems.filter(item => String(item?.rentalStatus || '').toUpperCase() === 'RENTED')
+                        : [];
+                    const returnedItems = Array.isArray(historyItems)
+                        ? historyItems.filter(item => String(item?.rentalStatus || '').toUpperCase() !== 'RENTED')
+                        : [];
+
+                    const pendingGroups = (() => {
+                        const result = [];
+                        const byOrder = new Map();
+                        const source = Array.isArray(latestModalOrderItems) ? latestModalOrderItems : [];
+                        for (const item of source) {
+                            const price = Number(item?.price ?? item?.menuPrice ?? 0);
+                            const status = String(item?.status || '').toUpperCase();
+                            if (price !== 0 || status !== 'ORDERED') continue;
+
+                            const orderId = Number(item?.orderId || item?.id || 0);
+                            const gameName = String(item?.menu_name || item?.menuName || '').trim();
+                            const qty = Number(item?.quantity || 0) || 0;
+                            if (!orderId || !gameName || qty <= 0) continue;
+
+                            const key = `${orderId}::${gameName}`;
+                            const cur = byOrder.get(key) || { orderId, gameName, quantity: 0 };
+                            cur.quantity += qty;
+                            byOrder.set(key, cur);
+                        }
+                        byOrder.forEach(v => result.push(v));
+                        return result;
+                    })();
+
+                    const pendingHtml = pendingGroups.length > 0
+                        ? `
+                            <div style="font-weight:700; color:#0d6efd; margin-bottom:6px;">요청 대기 게임</div>
+                            ${pendingGroups.map(item => `
+                                <div class="serial-item-row">
+                                    <div>
+                                        <div style="font-weight:600;">${item.gameName}</div>
+                                        <div style="font-size:12px; color:#64748b;">수량 ${item.quantity}개</div>
+                                    </div>
+                                    <button class="inline-small-btn"
+                                            onclick='openGameSerialModal(${item.orderId}, ${JSON.stringify(item.gameName)}, ${item.quantity})'>
+                                        일련번호 선택
+                                    </button>
+                                </div>
+                            `).join('')}
+                        `
+                        : `
+                            <div style="font-weight:700; color:#0d6efd; margin-bottom:6px;">요청 대기 게임</div>
+                            <div style="font-size:12px; color:#64748b; margin-bottom:10px;">없음</div>
+                        `;
+
+                    const rentedHtml = rentedItems.length > 0
+                        ? `
+                            <div style="font-weight:700; color:#1d4ed8; margin-top:10px; margin-bottom:6px;">대여중 일련번호</div>
+                            ${rentedItems.map(item => `
+                                <label class="serial-item-row">
+                                    <div>
+                                        <div style="font-weight:600;">${item.gameName}</div>
+                                        <div style="font-size:12px; color:#64748b;">${item.serialNumber}</div>
+                                    </div>
+                                    <input type="checkbox"
+                                           class="inline-rental-checkbox"
+                                           data-history-id="${item.historyId}"
+                                           data-game-item-id="${item.gameItemId}">
+                                </label>
+                            `).join('')}
+                            <div style="display:flex; justify-content:flex-end; margin-top:8px;">
+                                <button class="inline-small-btn return"
+                                        onclick="settleSelectedRentedFromList()">반납 선택</button>
+                            </div>
+                        `
+                        : `
+                            <div style="font-weight:700; color:#1d4ed8; margin-top:10px; margin-bottom:6px;">대여중인 게임/일련번호 </div>
+                            <div style="font-size:12px; color:#64748b; margin-bottom:10px;">없음</div>
+                        `;
+
+                    const returnedHtml = returnedItems.length > 0
+                        ? `
+                            <div style="font-weight:700; color:#64748b; margin-top:10px; margin-bottom:6px;">반납 이력</div>
+                            ${returnedItems.map(item => `
+                                <div class="rented-game-row">${item.gameName} / ${item.serialNumber}</div>
+                            `).join('')}
+                        `
+                        : `
+                            <div style="font-weight:700; color:#64748b; margin-top:10px; margin-bottom:6px;">반납 이력</div>
+                            <div style="font-size:12px; color:#64748b;">없음</div>
+                        `;
+
+                    box.innerHTML = `${pendingHtml}${rentedHtml}${returnedHtml}`;
                 } catch (e) {
                     box.innerHTML = '<span style="color:#ef4444;">조회 실패</span>';
+                }
+            }
+
+            async function settleSelectedRentedFromList() {
+                if (!currentTableId) return;
+
+                const updates = Array.from(document.querySelectorAll('.inline-rental-checkbox:checked'))
+                    .map(el => ({
+                        historyId: Number(el.dataset.historyId),
+                        gameItemId: Number(el.dataset.gameItemId),
+                        status: 'NORMAL'
+                    }))
+                    .filter(v => Number.isFinite(v.historyId) && v.historyId > 0
+                        && Number.isFinite(v.gameItemId) && v.gameItemId > 0);
+
+                if (updates.length === 0) {
+                    alert('반납 처리할 일련번호를 선택해 주세요.');
+                    return;
+                }
+
+                try {
+                    const res = await fetch(`/admin/product/game-items/rentals/settle`, {
+                        method: 'PATCH',
+                        headers: getJsonHeaders(),
+                        body: JSON.stringify({ tableId: Number(currentTableId), updates })
+                    });
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok || data.success === false) {
+                        throw new Error(data.message || '반납 처리 실패');
+                    }
+
+                    await fetchActiveOrders();
+                    await refreshTableCardOrderBadges();
+                    await fetchRentedGameItems();
+                    alert('선택한 일련번호를 정상 반납 처리했습니다.');
+                } catch (e) {
+                    alert('반납 처리 실패: ' + e.message);
                 }
             }
 
@@ -1294,16 +1661,24 @@
 
             async function fetchPendingOrders() {
                 try {
-                    const response = await fetch('/kiosk/order/pending');
+                    // 관리자 대시보드에서는 admin 전용 엔드포인트를 우선 사용한다.
+                    // (체인/권한 경로 차이로 /kiosk/order/pending 응답이 불안정한 경우 대비)
+                    let response = await fetch('/admin/api/dashboard/orders/latest');
+                    if (!response.ok) {
+                        response = await fetch('/kiosk/order/pending');
+                    }
+
                     if (response.ok) {
                         const data = await response.json();
                         const orders = Array.isArray(data) ? data : (data.orders || []);
                         renderPendingOrders(orders);
                     } else {
                         console.error('❌ 신규 주문 API 응답 실패:', response.status);
+                        renderPendingOrders([]);
                     }
                 } catch (err) {
                     console.error('❌ fetchPendingOrders 에러:', err);
+                    renderPendingOrders([]);
                 }
             }
 
@@ -1312,16 +1687,18 @@
                 const list = document.getElementById('pending-orders-list');
                 const badge = document.getElementById('pending-count');
                 const bulkBtn = document.getElementById('pending-confirm-all-btn');
+                if (!section || !list || !badge) return;
                 pendingOrdersState = Array.isArray(orders) ? orders : [];
 
                 const visibleOrders = pendingOrdersState.filter(order => {
                     const id = parsePendingOrderId(order);
-                    return id > 0
-                        && !isGameOnlyPendingOrder(order);
+                    return id > 0 && !pendingAckOrderIds.has(id);
                 });
 
                 if (!visibleOrders || visibleOrders.length === 0) {
                     section.classList.remove('has-orders');
+                    badge.innerText = '0';
+                    list.innerHTML = '';
                     if (bulkBtn) bulkBtn.style.display = 'none';
                     return;
                 }
@@ -1343,44 +1720,49 @@
                     const tableId = order.tableId || order.table_id || '?';
                     const totalAmount = order.totalAmount || order.total_amount || 0;
                     const orderId = parsePendingOrderId(order);
+                    const isGameOrder = isGameOnlyPendingOrder(order);
+                    const actionButton = `<button class="btn-pending-confirm" onclick="confirmPendingOrder(${orderId})">주문 확인</button>`;
+                    const typeLabel = isGameOrder ? '대여 주문' : '일반 주문';
 
                     return `
                     <div class="pending-order-card">
                         <div class="pending-order-info">
                             <div class="pending-order-title">
-                                Table #${tableId} &nbsp;·&nbsp; ₩${totalAmount.toLocaleString()}
+                                Table #${tableId} &nbsp;·&nbsp; ${typeLabel} &nbsp;·&nbsp; ₩${totalAmount.toLocaleString()}
                             </div>
                             <div class="pending-order-items">${itemSummary || '항목 없음'}</div>
                         </div>
                         <div class="pending-order-actions">
-                            <button class="btn-pending-confirm" onclick="confirmPendingOrder(${orderId})">주문 확인</button>
+                            ${actionButton}
                         </div>
                     </div>`;
                 }).join('');
             }
 
             async function confirmAllPendingOrders() {
-                const targets = pendingOrdersState
-                    .filter(order => {
-                        const id = parsePendingOrderId(order);
-                        return id > 0
-                            && !isGameOnlyPendingOrder(order);
-                    })
-                    .map(order => parsePendingOrderId(order))
-                    .filter(id => id > 0);
+                const visible = pendingOrdersState.filter(order => {
+                    const id = parsePendingOrderId(order);
+                    return id > 0 && !pendingAckOrderIds.has(id);
+                });
 
-                if (targets.length === 0) {
+                if (visible.length === 0) {
                     alert('확인할 신규 주문이 없습니다.');
                     return;
                 }
 
-                if (!confirm(`일반 신규 주문 ${targets.length}건을 확인 처리(CONFIRMED)할까요?`)) {
+                if (!confirm(`신규 주문 ${visible.length}건을 확인 처리할까요?`)) {
                     return;
                 }
 
                 let success = 0;
                 let fail = 0;
-                for (const orderId of targets) {
+                for (const order of visible) {
+                    const orderId = parsePendingOrderId(order);
+                    if (isGameOnlyPendingOrder(order)) {
+                        acknowledgePendingOrder(orderId);
+                        success++;
+                        continue;
+                    }
                     const ok = await updateOrderStatusSilent(orderId, 'CONFIRMED');
                     if (ok) success++;
                     else fail++;
@@ -1389,7 +1771,7 @@
                 await fetchPendingOrders();
                 await refreshTableCardOrderBadges();
 
-                if (fail === 0) alert(`일반 신규 주문 ${success}건 확인 완료`);
+                if (fail === 0) alert(`신규 주문 ${success}건 확인 완료`);
                 else alert(`완료 ${success}건 / 실패 ${fail}건`);
             }
 
@@ -1399,7 +1781,10 @@
 
                 const target = pendingOrdersState.find(o => parsePendingOrderId(o) === id);
                 if (target && isGameOnlyPendingOrder(target)) {
-                    alert('대여 주문은 신규 주문 확인 로직에서 제외되어 있습니다.');
+                    acknowledgePendingOrder(id);
+                    renderPendingOrders(pendingOrdersState);
+                    await refreshTableCardOrderBadges();
+                    alert(`대여 주문 1건을 확인했습니다. (ID: ${id})`);
                     return;
                 }
 
@@ -1412,6 +1797,24 @@
                 await fetchPendingOrders();
                 await refreshTableCardOrderBadges();
                 alert(`일반 신규 주문 1건을 확인했습니다. (ID: ${id})`);
+            }
+
+            async function openPendingGameOrder(tableId) {
+                const numericTableId = Number(tableId || 0);
+                if (!numericTableId) {
+                    alert('테이블 정보를 확인할 수 없습니다.');
+                    return;
+                }
+                let card = document.querySelector(`.table-card[data-id="${numericTableId}"]`);
+                if (!card) {
+                    // 백엔드가 tableId 대신 tableNumber를 내려준 경우를 대비한 폴백
+                    card = document.querySelector(`.table-card[data-num="${numericTableId}"]`);
+                }
+                if (!card) {
+                    alert(`Table #${numericTableId} 카드를 찾을 수 없습니다.`);
+                    return;
+                }
+                await openTableModal(card);
             }
 
             document.addEventListener('DOMContentLoaded', () => {

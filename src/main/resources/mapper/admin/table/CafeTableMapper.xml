@@ -8,7 +8,7 @@
         SELECT
         ct.id,
         ct.table_number AS tableNumber,
-        ct.status,
+        CASE WHEN ts.id IS NOT NULL THEN 'OCCUPIED' ELSE ct.status END AS status,
         ct.access_token AS accessToken,
         ts.check_in_time AS checkInTime,
         ts.initial_guest_cnt AS guestCount,
@@ -18,15 +18,32 @@
         AND tm.is_read = false
         AND tm.direction = 'TABLE_TO_STAFF') > 0 AS hasUnreadMessage
         FROM cafe_table ct
-        LEFT JOIN table_session ts ON ct.current_session_id = ts.id
+        LEFT JOIN table_session ts
+            ON ts.id = COALESCE(
+                ct.current_session_id,
+                (
+                    SELECT s.id
+                    FROM table_session s
+                    WHERE s.table_id = ct.id
+                      AND s.is_active = TRUE
+                    ORDER BY s.check_in_time DESC
+                    LIMIT 1
+                )
+            )
         ORDER BY ct.table_number
         <!-- 메인 대시보드 배치를 위해 테이블 번호 순으로 정렬하여 리턴 -->
     </select>
 
     <select id="selectOccupiedTableIds" resultType="int">
-        SELECT id
-        FROM cafe_table
-        WHERE status = 'OCCUPIED'
+        SELECT ct.id
+        FROM cafe_table ct
+        WHERE ct.status = 'OCCUPIED'
+           OR EXISTS (
+               SELECT 1
+               FROM table_session ts
+               WHERE ts.table_id = ct.id
+                 AND ts.is_active = TRUE
+           )
     </select>
 
     <select id="selectAccessTokenById" resultType="string">

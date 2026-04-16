@@ -476,12 +476,12 @@
         setInterval(tick, 1000);
     }
 
-    function showToast(message) {
+    function showToast(message, durationMs = 2000) {
         const toast = document.createElement('div');
         toast.className = 'toast';
         toast.innerText = message;
         document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 2000);
+        setTimeout(() => toast.remove(), durationMs);
     }
 
     async function addItemToCartDirect(btn) {
@@ -513,9 +513,38 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         startTimer();
+        startTableStatusWatcher();
         startOrderStatusWatcher();
         startStaffMacroWatcher();
     });
+
+    function startTableStatusWatcher() {
+        async function checkTableStatus() {
+            try {
+                const res = await fetch('/kiosk/table/status', {
+                    headers: { 'Accept': 'application/json' },
+                    credentials: 'same-origin'
+                });
+                if (!res.ok) return;
+
+                const contentType = res.headers.get('content-type') || '';
+                if (!contentType.includes('application/json')) {
+                    if (res.redirected && res.url) window.location.href = res.url;
+                    return;
+                }
+
+                const data = await res.json();
+                if (data?.success && data.status === 'CLEANING') {
+                    window.location.href = '/kiosk/cleaning_wait';
+                }
+            } catch (err) {
+                console.error('테이블 상태 확인 실패:', err);
+            }
+        }
+
+        checkTableStatus();
+        setInterval(checkTableStatus, 3000);
+    }
 
     function startStaffMacroWatcher() {
         async function checkStaffMessages() {
@@ -536,7 +565,7 @@
 
                 for (const msg of messages) {
                     if (msg?.content) {
-                        showToast('📨 ' + msg.content);
+                        showToast('📨 ' + msg.content, 4000);
                     }
                     if (msg?.id) {
                         await fetch(`/kiosk/messages/${msg.id}/read`, { method: 'PATCH' });
@@ -577,9 +606,6 @@
             const gameLabels = {
                 ORDERED: '게임 요청',
                 CONFIRMED: '대여 확정',
-                COOKING: '대여 처리중',
-                DELIVERING: '반납 확인중',
-                COMPLETED: '완료',
                 CANCELLED: '취소'
             };
             return (gameFlow ? gameLabels : normalLabels)[status] || status;
@@ -661,9 +687,7 @@
                             .slice()
                             .sort((a, b) => Number(b?.id || 0) - Number(a?.id || 0))[0];
                         const statusLabel = toStatusLabel(latestGame.status, true);
-                        gameStatusText.textContent = gameOrders.length > 1
-                            ? `${statusLabel} (${gameOrders.length}건)`
-                            : statusLabel;
+                        gameStatusText.textContent = statusLabel;
                         gameStatusBox.dataset.orderId = latestGame.id ? String(latestGame.id) : '';
                         gameStatusBox.classList.remove('hidden');
                     } else {

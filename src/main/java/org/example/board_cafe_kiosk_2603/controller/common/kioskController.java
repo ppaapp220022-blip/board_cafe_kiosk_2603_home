@@ -69,7 +69,6 @@ public class kioskController {
         }
 
         model.addAttribute("tableNumber", session.getAttribute("tableNumber"));
-        log.info("스크린세이버 접근 - 테이블: {}", session.getAttribute("tableNumber"));
         return "kiosk/screensaver";
     }
 
@@ -85,7 +84,6 @@ public class kioskController {
         }
 
         model.addAttribute("tableNumber", session.getAttribute("tableNumber"));
-        log.info("인원수 선택 화면 - 테이블: {}", session.getAttribute("tableNumber"));
         return "kiosk/headcount";
     }
 
@@ -93,7 +91,6 @@ public class kioskController {
     public String phoneLogin(HttpSession session, Model model) {
         model.addAttribute("tableNumber", session.getAttribute("tableNumber"));
         model.addAttribute("partySize", session.getAttribute("partySize"));
-        log.info("전화번호 입력 화면 - 테이블: {}", session.getAttribute("tableNumber"));
         return "kiosk/phone_login";
     }
 
@@ -102,9 +99,6 @@ public class kioskController {
     //    이 엔드포인트의 목적은 인원수 입력 화면 진입이므로 수정
     @GetMapping("/session/start")
     public String sessionStart(HttpSession session, Model model) {
-        log.info("--- [KioskController] 인원수 입력 화면 진입 | tableNumber: {} ---",
-                session.getAttribute("tableNumber"));
-
         Object tableIdObj = session.getAttribute("tableId");
         if (tableIdObj instanceof Integer tableId) {
             String status = cafeTableService.getTableStatus(tableId);
@@ -170,7 +164,6 @@ public class kioskController {
                         .build())
                 .toList();
 
-        log.info("--- [메뉴 -> 게임] 조회 완료 - 데이터 개수: {}개 ---", items.size());
         buildMenuModel(model, session, "games", "게임", items);
         return "layout/kiosk_layout";
     }
@@ -185,18 +178,14 @@ public class kioskController {
 
         List<kioskItem> items = menuService.getByType("DRINK").stream()
                 .filter(m -> m.isAvailable() && !m.isDeleted())
-                .map(m -> {
-                    log.info("변환 중인 메뉴: {}", m.getName());
-                    return kioskItem.builder()
-                            .name(m.getName())
-                            .price(m.getPrice())
-                            .imageUrl(m.getImageUrl())
-                            .stock(-1)
-                            .build();
-                })
+                .map(m -> kioskItem.builder()
+                        .name(m.getName())
+                        .price(m.getPrice())
+                        .imageUrl(m.getImageUrl())
+                        .stock(-1)
+                        .build())
                 .toList();
 
-        log.info("--- [메뉴 -> 음료] 조회 완료 - 데이터 개수: {}개 ---", items.size());
         buildMenuModel(model, session, "drinks", "음료", items);
         return "layout/kiosk_layout";
     }
@@ -219,7 +208,6 @@ public class kioskController {
                         .build())
                 .toList();
 
-        log.info("--- [메뉴 -> 음식] 조회 완료 - 데이터 개수: {}개 ---", items.size());
         buildMenuModel(model, session, "food", "음식", items);
         return "layout/kiosk_layout";
     }
@@ -242,7 +230,6 @@ public class kioskController {
                         .build())
                 .toList();
 
-        log.info("--- [메뉴 -> 추가인원] 조회 완료 - 데이터 개수: {}개 ---", items.size());
         buildMenuModel(model, session, "members", "추가인원", items);
         return "layout/kiosk_layout";
     }
@@ -257,15 +244,8 @@ public class kioskController {
      */
     private void buildMenuModel(Model model, HttpSession session,
                                 String menuType, String title, List<kioskItem> items) {
-        log.info("--- buildMenuModel | menuType: {} ---", menuType);
-
         Object cart = session.getAttribute("cart");
         int cartCount = cart instanceof List ? ((List<?>) cart).size() : 0;
-
-        log.debug("세션 정보 — 시작시간: {}, 인원수: {}, 패키지: {}",
-                session.getAttribute("sessionStartTime"),
-                getPartySize(session),
-                session.getAttribute("packageId"));
 
         model.addAttribute("tableNumber",      session.getAttribute("tableNumber"));
         model.addAttribute("partySize",        getPartySize(session));
@@ -300,7 +280,6 @@ public class kioskController {
      */
     private void initCart(HttpSession session) {
         if (session.getAttribute("cart") == null) {
-            log.info("--- HttpSession, 새로운 장바구니(Cart) 생성 ---");
             session.setAttribute("cart", new ArrayList<>());
         }
     }
@@ -312,7 +291,17 @@ public class kioskController {
             return "redirect:/kiosk/session/start";
         }
 
+        Long recoverSessionId = cafeTableService.findActiveSessionByTableId(tableId);
         String tableStatus = cafeTableService.getTableStatus(tableId);
+        Long currentSessionId = cafeTableService.findCurrentSessionId(tableId);
+        if (recoverSessionId != null &&
+                (!"OCCUPIED".equals(tableStatus) || currentSessionId == null || !recoverSessionId.equals(currentSessionId))) {
+            cafeTableService.syncTableWithSession(tableId, recoverSessionId);
+            tableStatus = "OCCUPIED";
+            log.warn("--- [KioskController] 메뉴 탭 진입 전 상태/세션 자동 복구 완료 (tableId: {}, sessionId: {}) ---",
+                    tableId, recoverSessionId);
+        }
+
         if (!"OCCUPIED".equals(tableStatus)) {
             log.warn("--- [KioskController] 메뉴 탭 접근 차단: 대시보드 상태가 OCCUPIED 아님 (tableId: {}, status: {}) ---",
                     tableId, tableStatus);
@@ -325,7 +314,6 @@ public class kioskController {
 
         // 대시보드 기준(OCCUPIED)이면 진입 허용하되, 활성 세션 누락 시 자동 복구 시도
         if (tableSessionAdminService.getActiveSession(tableId) == null) {
-            Long recoverSessionId = cafeTableService.findActiveSessionByTableId(tableId);
             if (recoverSessionId != null) {
                 cafeTableService.syncTableWithSession(tableId, recoverSessionId);
                 log.warn("--- [KioskController] OCCUPIED 상태-세션 불일치 복구 완료 (tableId: {}, sessionId: {}) ---",

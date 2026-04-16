@@ -63,8 +63,6 @@ public class OrderController {
         Integer tableNumber = sessionTableNumber(session);
         if (tableNumber == null) return "redirect:/kiosk";
 
-        log.info("주문 상세 페이지 조회 - orderId: {}, tableNumber: {}", orderId, tableNumber);
-
         if (!orderService.isOrderOwnedByTableNumber(orderId, tableNumber)) {
             log.warn("주문 상세 접근 차단 - orderId: {}, tableNumber: {}", orderId, tableNumber);
             return "redirect:/kiosk/cart";
@@ -184,9 +182,6 @@ public class OrderController {
         }
 
         try {
-            log.info("주문 생성 요청 - tableNumber: {}, totalAmount: {}, customerPhone: {}",
-                    tableNumber, request.getTotalAmount(), request.getCustomerPhone());
-
             OrdersDTO result = orderService.createOrderFromCart(
                     tableNumber,
                     request.getCustomerPhone(),
@@ -194,8 +189,6 @@ public class OrderController {
             );
 
             if (result.isSuccess()) {
-                log.info("주문 생성 성공 - orderId: {}, status: {}, totalAmount: {}",
-                        result.getId(), result.getStatus(), result.getTotalAmount());
                 return ResponseEntity.ok(result);
             } else {
                 log.warn("주문 생성 실패 - message: {}", result.getMessage());
@@ -224,9 +217,8 @@ public class OrderController {
     @GetMapping("/pending")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> getPendingOrders() {
-        log.info("신규 일반 주문 목록 조회");
         try {
-            List<OrdersDTO> orders = orderService.getNewNormalOrders();
+            List<OrdersDTO> orders = orderService.getNewOrders();
 
             return ResponseEntity.ok(Map.of(
                     "success", true,
@@ -256,7 +248,6 @@ public class OrderController {
             log.warn("주문 API 접근 차단 - orderId: {}, tableNumber: {}", orderId, tableNumber);
             return ResponseEntity.status(403).build();
         }
-        log.info("주문 조회 - orderId: {}", orderId);
         OrdersDTO result = orderService.getOrder(orderId);
         return result.isSuccess() ? ResponseEntity.ok(result) : ResponseEntity.notFound().build();
     }
@@ -270,7 +261,6 @@ public class OrderController {
     public ResponseEntity<OrdersDTO> getLatestOrder(HttpSession session) {
         Integer tableNumber = sessionTableNumber(session);
         if (tableNumber == null) return ResponseEntity.badRequest().build();
-        log.info("최근 주문 조회 - tableNumber: {}", tableNumber);
         OrdersDTO result = orderService.getLatestOrderByTableNumber(tableNumber);
         return result.isSuccess() ? ResponseEntity.ok(result) : ResponseEntity.notFound().build();
     }
@@ -288,7 +278,6 @@ public class OrderController {
             log.warn("세션 주문 목록 접근 차단 - sessionId: {}, tableNumber: {}", sessionId, tableNumber);
             return ResponseEntity.status(403).build();
         }
-        log.info("세션 주문 목록 조회 - sessionId: {}", sessionId);
         return ResponseEntity.ok(orderService.getOrdersBySessionId(sessionId));
     }
 
@@ -301,7 +290,6 @@ public class OrderController {
     public ResponseEntity<List<OrdersDTO>> getActiveOrders(HttpSession session) {
         Integer tableNumber = sessionTableNumber(session);
         if (tableNumber == null) return ResponseEntity.ok(List.of());
-        log.info("활성 세션 주문 조회 - tableNumber: {}", tableNumber);
         return ResponseEntity.ok(orderService.getActiveSessionOrders(tableNumber));
     }
 
@@ -333,7 +321,6 @@ public class OrderController {
         }
         String status = body.get("status");
         if (status == null || status.isBlank()) return ResponseEntity.badRequest().build();
-        log.info("주문 상태 변경 요청 - orderId: {}, status: {}", orderId, status);
         OrdersDTO result = orderService.updateStatus(orderId, status);
         return result.isSuccess() ? ResponseEntity.ok(result) : ResponseEntity.badRequest().body(result);
     }
@@ -351,7 +338,6 @@ public class OrderController {
             log.warn("주문 취소 차단 - orderId: {}, tableNumber: {}", orderId, tableNumber);
             return ResponseEntity.status(403).build();
         }
-        log.info("주문 취소 요청 - orderId: {}", orderId);
         OrdersDTO result = orderService.cancelOrder(orderId);
         return result.isSuccess() ? ResponseEntity.ok(result) : ResponseEntity.badRequest().body(result);
     }

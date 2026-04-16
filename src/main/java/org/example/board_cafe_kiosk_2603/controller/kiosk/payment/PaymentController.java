@@ -47,7 +47,6 @@ public class PaymentController {
         kioskPageService.buildCheckoutModel(model, tableNumber, session);
         model.addAttribute("tableNumber", tableNumber);
 
-        log.info("정산 화면 - 테이블: {}", tableNumber);
         return "kiosk/checkout";
     }
 
@@ -74,8 +73,6 @@ public class PaymentController {
                     .message("테이블 인증 정보가 유효하지 않습니다.")
                     .build());
         }
-
-        log.info("토스 결제 준비 요청 - tableNumber: {}", tableNumber);
 
         // 포인트 사용액을 세션에 저장 (success 콜백에서 사용)
         int pointUsed = request.getPointUsed() != null ? request.getPointUsed() : 0;
@@ -117,9 +114,6 @@ public class PaymentController {
                 }
             }
 
-            log.info("토스 결제 승인 요청 - orderIdToss: {}, amount: {}, pointUsed: {}, table: {}",
-                    orderIdToss, amount, pointUsed, tableNumber);
-
             // 결제 승인 (토스 API 호출 + DB 저장)
             PaymentDTO confirmResponse = paymentService.confirmPayment(
                     paymentKey, orderIdToss, amount, tableNumber, pointUsed, customerPhone);
@@ -143,7 +137,6 @@ public class PaymentController {
                 session.removeAttribute("durationMinutes");
                 session.removeAttribute("adminCheckoutMode");
 
-                log.info("결제 성공 - orderIdToss: {}, finalAmount: {}", orderIdToss, confirmResponse.getFinalAmount());
                 return "kiosk/toss_success";
             } else {
                 model.addAttribute("errorMessage", confirmResponse.getMessage());
