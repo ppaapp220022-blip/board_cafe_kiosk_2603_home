@@ -24,8 +24,8 @@ public class TableController {
     private final KioskPageService kioskPageService;
 
     /**
-     * [GET] 대시보드 메인 페이지
-     * 주 설명: 현재 20개 테이블의 실시간 상태(이용중/공석/청소중)와 입실 시간을 조회하여 뷰에 전달
+     * 대시보드 메인 페이지
+       현재 12개 테이블의 실시간 상태(이용중/공석/청소중)와 입실 시간을 조회하여 뷰에 전달
      */
     @GetMapping
     public String dashboard(Model model) {
@@ -38,8 +38,8 @@ public class TableController {
     }
 
     /**
-     * [GET] 대시보드 테이블 상태 폴링용 API
-     * 프론트에서 주기적으로 조회하여 상태가 바뀌면 화면을 새로고침합니다.
+     대시보드 테이블 상태 폴링용 API
+     프론트에서 주기적으로 조회하여 상태가 바뀌면 화면을 새로고침
      */
     @ResponseBody
     @GetMapping("/tables")
@@ -48,18 +48,15 @@ public class TableController {
     }
 
     /**
-     * [GET] 특정 테이블의 실시간 주문 항목 조회 (AJAX 호출용)
-     * @param id 테이블 고유 ID
-     * @return OrderItemDTO 리스트 (PAID/CANCELLED 제외된 순수 이용 내역)
+     특정 테이블의 실시간 주문 항목 조회 (AJAX 호출용)
      */
     @ResponseBody
     @GetMapping("/{id}/orders")
     public ResponseEntity<List<OrderItemDTO>> getTableOrders(@PathVariable("id") Integer id) {
         log.info("--- TableController getTableOrders ---");
-        /**
-         * [핵심 로직]
-         * 1. 서비스에서 해당 테이블의 current_session_id를 추적함.
-         * 2. 해당 세션에 묶인 '미결제' 주문 아이템들만 DTO 리스트로 가져옴.
+        /*
+         * 서비스에서 해당 테이블의 current_session_id를 추적함.
+         * 해당 세션에 묶인 '미결제' 주문 아이템들만 DTO 리스트로 가져옴.
          */
         log.info("API 호출: 테이블 {}번 실시간 주문 내역 요청", id);
 
@@ -70,8 +67,8 @@ public class TableController {
     }
 
     /**
-     * [GET] 대시보드에서 정산 페이지 진입
-     * kiosk 권한 체인을 타지 않고 관리자 권한으로 checkout.html을 렌더링한다.
+     대시보드에서 정산 페이지 진입
+     kiosk 권한 체인을 타지 않고 관리자 권한으로 checkout.html을 렌더링
      */
     @GetMapping("/{id}/checkout")
     public String moveToCheckout(@PathVariable("id") Integer id, HttpSession session, Model model) {
@@ -96,9 +93,7 @@ public class TableController {
     }
 
     /**
-     * [PATCH] 테이블 상태 변경 및 세션 연동 (입실/퇴실/청소)
-     * @param id 테이블 PK
-     * @param request {"status": "OCCUPIED" | "CLEANING" | "EMPTY"}
+     테이블 상태 변경 및 세션 연동 (입실/퇴실/청소)
      */
     @ResponseBody
     @PatchMapping("/{id}/status")
@@ -128,9 +123,8 @@ public class TableController {
     }
 
     /**
-     * [POST] 특정 테이블의 액세스 토큰(UUID) 갱신
-     * @param id 테이블 PK
-     * 상세 설명: 태블릿의 로그인이 풀렸거나 보안 갱신이 필요할 때 새로운 8자리 토큰 발급
+     특정 테이블의 액세스 토큰(UUID) 갱신
+     태블릿의 로그인이 풀렸거나 보안 갱신이 필요할 때 새로운 8자리 토큰 발급
      */
     @ResponseBody
     @PostMapping("/{id}/token")
@@ -150,8 +144,8 @@ public class TableController {
     }
 
     /**
-     * [DELETE] 자정 데이터 리셋 강제 실행 (운영/테스트용)
-     * 주 설명: 모든 활성 세션을 강제 종료하고 모든 테이블을 공석(EMPTY)으로 초기화
+     자정 데이터 리셋 강제 실행 (운영/테스트용)
+     모든 활성 세션을 강제 종료하고 모든 테이블을 공석(EMPTY)으로 초기화
      */
     @ResponseBody
     @DeleteMapping("/reset")
@@ -168,7 +162,7 @@ public class TableController {
     }
 
     /**
-     * [GET] 특정 테이블의 미확인 메시지 목록 조회 (모달용)
+     특정 테이블의 미확인 메시지 목록 조회 (모달용)
      */
     @GetMapping("/messages/{tableId}")
     @ResponseBody
@@ -180,7 +174,7 @@ public class TableController {
     }
 
     /**
-     * [PATCH] 특정 테이블의 알림 '읽음' 처리
+     특정 테이블의 알림 '읽음' 처리
      */
     @PatchMapping("/messages/{tableId}/read")
     @ResponseBody

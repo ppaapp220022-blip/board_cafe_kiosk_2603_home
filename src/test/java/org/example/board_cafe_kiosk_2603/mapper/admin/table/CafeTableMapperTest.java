@@ -39,7 +39,7 @@ class CafeTableMapperTest {
 
     @Test
     public void selectActiveOrderItemsTest() {
-        // 실제 DB에 존재하는 유효한 세션 ID를 넣어서 테스트하세요.
+        // 실제 DB에 존재하는 유효한 세션 ID 사용
         Long activeSessionId = 1L;
         List<OrderItemDTO> orderItems = cafeTableMapper.selectActiveOrderItems(activeSessionId);
 

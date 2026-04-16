@@ -28,17 +28,17 @@ class StatMapperTest {
     @Test
     void dailySummaryTest() {
         for (int i = 1; i <= 31; i++) {
-            // 1. Given: 테스트 날짜 설정
+            // 테스트 날짜 설정
             LocalDate targetDate = LocalDate.of(2026, 3, i);
 
-            // 2. When: 통계 생성 로직 실행 (반환타입 void)
+            // 통계 생성 로직 실행 (반환타입 void)
             statMapper.deleteDailySummary(targetDate);
             statMapper.insertDailySummaryFromSessions(targetDate);
 
             statMapper.deleteItemSalesHistory(targetDate);
             statMapper.insertItemSalesHistory(targetDate);
 
-            // 3. Then: JdbcTemplate을 사용하여 실제로 데이터가 1줄 생성되었는지 확인
+            // JdbcTemplate을 사용하여 실제로 데이터가 1줄 생성되었는지 확인
             Integer count = jdbcTemplate.queryForObject(
                     "SELECT COUNT(*) FROM daily_sales_summary WHERE stat_date = ?",
                     Integer.class,
@@ -47,7 +47,7 @@ class StatMapperTest {
 
             assertThat(count).isEqualTo(1); // 특정 날짜에 대해 1행이 생성되어야 함
 
-            // 추가 검증: 매출액이 0보다 큰지 확인 (더미 데이터가 있다는 가정 하에)
+            // 매출액이 0보다 큰지 확인 (더미 데이터가 있다는 가정 하에)
             Long totalRevenue = jdbcTemplate.queryForObject(
                     "SELECT total_revenue FROM daily_sales_summary WHERE stat_date = ?",
                     Long.class,
@@ -66,11 +66,10 @@ class StatMapperTest {
         // Given
         LocalDate targetDate = LocalDate.of(2026, 3, 15);
 
-        // When
         statMapper.deleteItemSalesHistory(targetDate);
         statMapper.insertItemSalesHistory(targetDate);
 
-        // Then: item_sales_history 테이블에 해당 날짜 데이터가 존재하는지 확인
+        // item_sales_history 테이블에 해당 날짜 데이터가 존재하는지 확인
         Integer count = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM item_sales_history WHERE stat_date = ?",
                 Integer.class,

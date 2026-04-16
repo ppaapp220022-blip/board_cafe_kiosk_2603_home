@@ -160,9 +160,17 @@
     let dailySalesChart, categorySalesChart;
 
     document.addEventListener('DOMContentLoaded', function() {
-      initCharts();
-      const initialDate = document.getElementById('targetDate').value;
-      loadStatData(initialDate);
+      // 오늘 날짜 구하기 및 max 설정
+      const dateInput = document.getElementById('targetDate');
+      const today = new Date().toISOString().split('T')[0];
+
+      if (dateInput) {
+        dateInput.setAttribute('max', today);
+        // 초기 차트 생성 (딱 한 번만 실행됨)
+        initCharts();
+        // 데이터 로드
+        loadStatData(dateInput.value);
+      }
     });
 
     async function loadStatData(date) {
@@ -191,7 +199,6 @@
           categorySalesChart.data.datasets[0].data = data.categoryStats.values;
           categorySalesChart.update();
         } else {
-          // 데이터 없을 때 차트 비우기
           categorySalesChart.data.labels = [];
           categorySalesChart.data.datasets[0].data = [];
           categorySalesChart.update();
@@ -243,6 +250,10 @@
     }
 
     function initCharts() {
+      // 만약 이미 차트가 존재한다면 삭제하고 재생성 (안전장치)
+      if (dailySalesChart) dailySalesChart.destroy();
+      if (categorySalesChart) categorySalesChart.destroy();
+
       // 매출 차트 초기화
       dailySalesChart = new Chart(document.getElementById('dailySalesChart'), {
         type: 'line',

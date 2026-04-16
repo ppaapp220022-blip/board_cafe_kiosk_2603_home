@@ -29,7 +29,7 @@ class MacroMessageMapperTest {
 
     @Test
     public void findByIdTest() {
-        // 실제 DB에 존재하는 ID를 사용하세요 (예: 1)
+        // 실제 DB에 존재하는 ID를 사용하세요
         Integer targetId = 1;
         MacroMessage message = macroMessageMapper.findById(targetId);
 
@@ -54,13 +54,12 @@ class MacroMessageMapperTest {
 
     @Test
     public void insertMacroTest() {
-        // 1. 준비: 새로운 매크로 객체 생성 (ID는 자동생성이므로 null)
+        // 새로운 매크로 객체 생성 (ID는 자동생성이므로 null)
         MacroMessage newMsg = new MacroMessage(null, "STAFF_TO_TABLE", "테스트용 매크로입니다.", true);
 
-        // 2. 실행
         macroMessageMapper.insertMacro(newMsg);
 
-        // 3. 검증: 등록 후 생성된 ID가 존재하는지 확인
+        // 등록 후 생성된 ID가 존재하는지 확인
         log.info("등록된 매크로 ID: {}", newMsg.getId());
 
         // 실제 DB에 들어갔는지 재조회
@@ -70,15 +69,14 @@ class MacroMessageMapperTest {
 
     @Test
     public void deactivateMacroTest() {
-        // 1. 준비: 테스트용 데이터를 먼저 하나 등록
+        // 테스트용 데이터를 먼저 하나 등록
         MacroMessage tempMsg = new MacroMessage(null, "TABLE_TO_STAFF", "삭제될 메시지", true);
         macroMessageMapper.insertMacro(tempMsg);
         Integer targetId = tempMsg.getId();
 
-        // 2. 실행: 비활성화 처리 (is_active = false)
+        // 비활성화 처리 (is_active = false)
         macroMessageMapper.deactivateMacro(targetId);
 
-        // 3. 검증
         MacroMessage updatedMsg = macroMessageMapper.findById(targetId);
 
         log.info("비활성화 후 상태: {}", updatedMsg.isActive());

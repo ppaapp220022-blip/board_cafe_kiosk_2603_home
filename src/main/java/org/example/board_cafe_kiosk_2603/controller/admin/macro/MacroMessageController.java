@@ -41,10 +41,10 @@ public class MacroMessageController {
     }
 
     // ==========================================
-    // 2. API 기능 (JSON 데이터 반환) -> @ResponseBody 추가
+    // 2. API 기능 (JSON 데이터 반환)
     // ==========================================
 
-    // 모달창 열 때 매크로 목록 가져오기 API
+    /** 모달창 열 때 매크로 목록 가져오기 API */
     @ResponseBody // HTML이 아닌 JSON 데이터로 반환하겠다는 의미
     @GetMapping("/api")
     public ResponseEntity<List<MacroMessageResponseDTO>> getStaffToTableMacros(
@@ -58,10 +58,10 @@ public class MacroMessageController {
         return ResponseEntity.ok(filtered);
     }
 
-    // 메세지 전송 API
+    /** 메세지 전송 API */
     @PostMapping("/api/send")
     public ResponseEntity<?> send(@RequestBody Map<String, Object> data) {
-        // 1. 우선 Object로 꺼낸 뒤 문자열로 변환
+        // Object로 꺼낸 뒤 문자열로 변환
         Object tableIdObj = data.get("tableId");
         Integer macroId = Integer.parseInt(data.get("macroMessageId").toString());
 
@@ -71,12 +71,12 @@ public class MacroMessageController {
 
         String tableIdStr = tableIdObj.toString();
 
-        // 2. "ALL"인지 체크
+        // "ALL"인지 체크
         if ("ALL".equals(tableIdStr)) {
             log.info("📢 전체 테이블 메세지 전송 요청 (매크로 ID: {})", macroId);
             macroMessageService.sendToAllActiveTables(macroId);
         } else {
-            // 3. 숫자인 경우 기존처럼 단일 전송
+            // 숫자인 경우 기존처럼 단일 전송
             try {
                 Integer tableId = Integer.parseInt(tableIdStr);
                 log.info("✅ 단일 테이블 메세지 전송 요청 (테이블: {}, 매크로: {})", tableId, macroId);
@@ -89,7 +89,7 @@ public class MacroMessageController {
         return ResponseEntity.ok().build();
     }
 
-    // 매크로 등록 API
+    /** 매크로 등록 API */
     @ResponseBody
     @PostMapping("/api/create")
     public ResponseEntity<?> createMacro(@RequestBody Map<String, String> data) {
@@ -104,7 +104,7 @@ public class MacroMessageController {
         return ResponseEntity.ok(Map.of("message", "성공적으로 등록되었습니다."));
     }
 
-    // 매크로 삭제 API (Soft Delete)
+    /** 매크로 삭제 API (Soft Delete) */
     @ResponseBody
     @DeleteMapping("/api/delete/{id}")
     public ResponseEntity<?> deleteMacro(@PathVariable Integer id) {
@@ -112,7 +112,7 @@ public class MacroMessageController {
         return ResponseEntity.ok(Map.of("message", "삭제 처리되었습니다."));
     }
 
-    // 탭별 페이징 AJAX
+    /** 탭별 페이징 AJAX */
     @GetMapping("/list")
     @ResponseBody
     public PageResponseDTO<MacroMessageResponseDTO> getPagedList(

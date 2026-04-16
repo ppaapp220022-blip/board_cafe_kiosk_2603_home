@@ -28,7 +28,7 @@ public class StatController {
     private final StatService statService;
 
     /**
-     * 관리자 통계 페이지 이동
+     관리자 통계 페이지 이동
      */
     @GetMapping("/status")
     public String adminStatusPage(Model model) {
@@ -40,7 +40,7 @@ public class StatController {
     }
 
     /**
-     * 통계 데이터 API (차트 및 요약 정보)
+     통계 데이터 API (차트 및 요약 정보)
      */
     @GetMapping("/api/statistics")
     @ResponseBody
