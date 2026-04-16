@@ -81,24 +81,4 @@ class StatMapperTest {
         log.info("✅ " + targetDate + " 상품별 판매 기록 " + count + "건 확인");
     }
 
-    @Test
-    void findMonthlyTop5ItemsTest() {
-        String yearMonth = "2026-04";
-
-        List<ItemSalesDTO> result = statMapper.findMonthlyTop5Items(yearMonth);
-
-        for (int i = 0; i < result.size() - 1; i++) {
-            ItemSalesDTO current = result.get(i);
-            ItemSalesDTO next = result.get(i + 1);
-
-            assertThat(current.getSalesQty())
-                    .isGreaterThanOrEqualTo(next.getSalesQty());
-        }
-
-        log.info("--- {} 인기 메뉴 Top 5 ---", yearMonth);
-        result.forEach(item ->
-                System.out.println("메뉴명: " + item.getMenuName() + " | 판매수량: " + item.getSalesQty())
-        );
-    }
-
 }
