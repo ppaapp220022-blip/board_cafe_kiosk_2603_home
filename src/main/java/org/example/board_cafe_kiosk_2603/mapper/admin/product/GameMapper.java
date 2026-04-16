@@ -53,6 +53,16 @@ public interface GameMapper {
     List<GameResponseDTO> findByCategoryIdPaged(@Param("categoryId") int categoryId,
                                                 @Param("pageRequestDTO") PageRequestDTO pageRequestDTO);
 
+    /** 활성 여부 기준 게임 목록 조회 - 페이징 */
+    List<GameResponseDTO> findByIsActivePaged(@Param("isActive") boolean isActive,
+                                              @Param("categoryId") Integer categoryId,
+                                              @Param("pageRequestDTO") PageRequestDTO pageRequestDTO);
+
+    /** 활성 여부 기준 게임 수 */
+    int countByIsActive(@Param("isActive") boolean isActive,
+                        @Param("categoryId") Integer categoryId);
+
+
     /** category_id 기준 게임 수 */
     int countByCategoryId(int categoryId);
 

@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.example.board_cafe_kiosk_2603.dto.admin.product.CategoryRequestDTO;
 import org.example.board_cafe_kiosk_2603.dto.admin.product.CategoryResponseDTO;
+import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageRequestDTO;
+import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageResponseDTO;
 import org.example.board_cafe_kiosk_2603.service.admin.product.CategoryService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -25,14 +27,18 @@ public class CategoryController {
 
     /* 카테고리 전체 목록 조회 → 뷰 반환 */
     @GetMapping
-    public String getAll(Model model) {
+    public String getAll(Model model, PageRequestDTO pageRequestDTO) {
         log.info("--- 카테고리 목록 조회 요청 ---");
 
-        List<CategoryResponseDTO> list = categoryService.getAll();
-        model.addAttribute("categoryList", list);
+//        List<CategoryResponseDTO> list = categoryService.getAll();
+//        model.addAttribute("categoryList", list);
+//        model.addAttribute("activePage", "category");
+        PageResponseDTO<CategoryResponseDTO> pageResponse = categoryService.getAll(pageRequestDTO);
+        model.addAttribute("pageResponse", pageResponse);
+        model.addAttribute("pageRequestDTO", pageRequestDTO);
         model.addAttribute("activePage", "category");
 
-        log.debug("카테고리 목록 조회 완료 - 건수: {}", list.size());
+        log.debug("카테고리 목록 조회 완료 - 건수: {}, 전체: {}", pageResponse.getDtoList().size(), pageResponse.getTotal());
         return "admin/category_list";
     }
 

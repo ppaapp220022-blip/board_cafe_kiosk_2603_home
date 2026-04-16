@@ -33,14 +33,10 @@ public class SecurityConfig {
     private final ManagerUserDetailsService managerUserDetailsService;  // '관리자' 로그인 로직
     private final ManagerLoginSuccessHandler managerLoginSuccessHandler;  // 관리자 로그인 성공 시 처리
 
-    /* Spring Security에서 정적 리소스나 보안 필터 제외 대상을 설정할 때 사용 */
-    /* 정적 리소스(CSS, JS, Image, etc) 보안 필터링에서 제외 */
+    /* 정적 리소스(CSS, JS, Image, etc) 보안 필터링에서 제외대상 설정 */
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         log.info("--- [SecurityConfig] webSecurityCustomizer: 정적 리소스 보안 제외 설정 ---");
-//        return (web -> {
-//            web.ignoring().requestMatchers(PathRequest.toStaticResources().atCommonLocations());
-//        });
         return (web) -> web.ignoring()
                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations())
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/fonts/**", "/webjars/**");
@@ -167,7 +163,6 @@ public class SecurityConfig {
                             .passwordParameter("password")
                             .successHandler(managerLoginSuccessHandler)
                             .failureUrl("/admin/login?error")
-//                            .defaultSuccessUrl("/admin/dashboard", true)
                             .permitAll();
                 })
                 .logout(logout -> {
@@ -200,13 +195,13 @@ public class SecurityConfig {
                         .ignoringRequestMatchers("/login/**")
                         .ignoringRequestMatchers("/forgot-password/**")
                         .ignoringRequestMatchers("/admin/staff/**")
-                        // 아래 줄을 추가하여 대시보드 API들의 CSRF 검사를 건너뜁니다.
+                        // 대시보드 API들의 CSRF 검사를 건너뜁니다.
                         .ignoringRequestMatchers("/admin/dashboard/**")
                         .ignoringRequestMatchers("/admin/macro/**")
                         // 요금정책
                         .ignoringRequestMatchers("/admin/policy/**")
                         // 카테고리
-                        .ignoringRequestMatchers("/admin/category/**")  // ← 추가
+                        .ignoringRequestMatchers("/admin/category/**")
                 );
 
         log.info("--- [SecurityConfig] Admin Security Chain 구성 완료 ---");

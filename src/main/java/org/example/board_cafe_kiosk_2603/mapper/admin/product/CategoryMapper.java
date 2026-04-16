@@ -6,6 +6,7 @@ import org.example.board_cafe_kiosk_2603.domain.admin.product.Category;
 import org.example.board_cafe_kiosk_2603.domain.admin.product.CategoryType;
 import org.example.board_cafe_kiosk_2603.dto.admin.product.CategoryRequestDTO;
 import org.example.board_cafe_kiosk_2603.dto.admin.product.CategoryResponseDTO;
+import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageRequestDTO;
 
 import java.util.List;
 import java.util.Optional;
@@ -59,4 +60,10 @@ public interface CategoryMapper {
      // 삭제 가능 여부 검증에 활용
      // category_id FK 기준 COUNT 쿼리
     int countLinkedProducts(int id);
+
+    /** 전체 카테고리 목록 조회 - 페이징 */
+    List<CategoryResponseDTO> findAllPaged(PageRequestDTO pageRequestDTO);
+
+    /** 전체 카테고리 수 */
+    int countAll();
 }

@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 @Log4j2
 @Service
 @RequiredArgsConstructor
-public class GameItemServiceImpl implements GameItemService {
+public class GameItemServiceImpl implements GameItemService  {
 
     private final GameItemMapper gameItemMapper;
     private final CafeTableMapper cafeTableMapper;

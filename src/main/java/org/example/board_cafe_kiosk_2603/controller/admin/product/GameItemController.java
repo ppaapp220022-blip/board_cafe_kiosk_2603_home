@@ -2,13 +2,10 @@ package org.example.board_cafe_kiosk_2603.controller.admin.product;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.example.board_cafe_kiosk_2603.domain.admin.product.GameItem;
 import org.example.board_cafe_kiosk_2603.domain.admin.product.GameItemStatus;
 import org.example.board_cafe_kiosk_2603.dto.admin.product.GameItemRequestDTO;
 import org.example.board_cafe_kiosk_2603.dto.admin.product.GameItemResponseDTO;
-import org.example.board_cafe_kiosk_2603.dto.admin.product.GameResponseDTO;
 import org.example.board_cafe_kiosk_2603.service.admin.product.GameItemService;
-import org.example.board_cafe_kiosk_2603.service.admin.product.GameService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -28,7 +25,6 @@ public class GameItemController {
     // 개별 아이템 등록/수정/삭제
     // 아이템 상태(대여가능/수리중 등) 관리
 
-    private final GameService gameService;
     private final GameItemService gameItemService;
 
     /**
@@ -50,54 +46,6 @@ public class GameItemController {
         return "admin/product_game";
     }
 
-    /**
-     * 게임 아이템 등록 폼 페이지
-     * GET /admin/product/game-items/add
-     */
-    /* 게임 아이템 등록 페이지 이동 */
-//    @GetMapping("/add")
-//    public String addForm(Model model) {
-//        log.info("--- 게임 아이템 등록 폼 요청 ---");
-//
-//        // 아이템이 속할 게임 목록과 선택 가능한 상태 값(Enum) 전달
-//        List<GameResponseDTO> gameList = gameService.getAll();
-//        model.addAttribute("gameList", gameList);
-//        model.addAttribute("statusList", GameItemStatus.values());
-//        model.addAttribute("activePage", "productReg");
-//
-////        return "admin/product_game_item_form";
-//        return "admin/product_game_form";
-//    }
-
-    /* 게임 아이템 등록 처리 */
-//    @PostMapping("/add")
-//    public String register(@ModelAttribute GameItemRequestDTO gameItemRequestDTO) {
-//        log.info("---  게임 아이템 신규 등록 시작 - DTO: {} ---", gameItemRequestDTO);
-//
-//        gameItemService.register(gameItemRequestDTO);
-//
-//        log.info("--- 게임 아이템 등록 성공 ---");
-////        return "redirect:/admin/product/game-items";
-//        return "redirect:/admin/product/game";
-//    }
-
-    /* 게임 아이템 수정 폼 페이지 */
-//    @GetMapping("/edit/{id}")
-//    public String editForm(@PathVariable int id, Model model) {
-//        log.info("--- 게임 아이템 수정 폼 요청 (ItemID: {}) ---", id);
-//
-//        GameItemResponseDTO gameItem = gameItemService.getById(id);
-//        List<GameResponseDTO> gameList = gameService.getAll();
-//
-//        model.addAttribute("gameItem", gameItem);
-//        model.addAttribute("gameList", gameList);
-//        model.addAttribute("statusList", GameItemStatus.values());
-//        model.addAttribute("activePage", "productReg");
-//
-//        log.info("--- 게임 아이템 수정 완료  ---");
-////        return "admin/product_game_item_form";
-//        return "admin/product_game_form";
-//    }
 
     /**
      * 게임 아이템 수정 처리

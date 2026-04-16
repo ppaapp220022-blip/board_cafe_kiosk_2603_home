@@ -79,4 +79,25 @@
           AND is_deleted = false
     </select>
 
+    <!-- 전체 카테고리 목록 조회 - 페이징 -->
+    <select id="findAllPaged" resultType="org.example.board_cafe_kiosk_2603.dto.admin.product.CategoryResponseDTO">
+        SELECT c.id,
+               c.name,
+               c.type,
+               CASE
+                   WHEN c.type = 'GAME' THEN
+                           (SELECT COUNT(*) FROM game g WHERE g.category_id = c.id)
+                   ELSE
+                       (SELECT COUNT(*) FROM menu m WHERE m.category_id = c.id AND m.is_deleted = false)
+                   END AS productCount
+        FROM category c
+        ORDER BY c.type, c.id
+        LIMIT #{size} OFFSET #{skip}
+    </select>
+
+    <!-- 전체 카테고리 수 -->
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) FROM category
+    </select>
+
 </mapper>

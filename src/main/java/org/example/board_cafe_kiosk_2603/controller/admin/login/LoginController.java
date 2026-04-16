@@ -45,7 +45,6 @@ public class LoginController {
     private final MailSenderService mailSenderService;
     private final OtpStore otpStore;
     private final ManagerUserDetailsService managerUserDetailsService;  // 완전 로그인 처리에 사용
-    // test 중
     private final SuperKeyProperties superKey;  // 포트폴리오용 슈퍼키
 
     // ──────────────────────────────────────────────
@@ -85,8 +84,7 @@ public class LoginController {
 
         if (dbEmail == null || !dbEmail.equals(inputEmail.trim())) {
             log.warn("--- [verifyEmail POST] 이메일 불일치 | DB: {}, 입력: {} ---", dbEmail, inputEmail);
-            model.addAttribute("errorMsg", "등록된 이메일 주소와 일치하지 않습니다.");
-            return "login/verify_email";
+            return "redirect:/login/verifyEmail?error=email";
         }
 
         // 이메일 일치 → 완전 로그인 처리
@@ -180,12 +178,7 @@ public class LoginController {
             return ResponseEntity.status(400).body("등록된 이메일 주소와 일치하지 않습니다.");
         }
 
-        // OTP 검증 (일치 + 만료 여부 + 1회용 삭제는 OtpStore 내부 처리)
-//        if (!otpStore.verify(dbEmail, inputOtp.trim())) {
-//            log.warn("--- [verifyEmailOtp POST] OTP 불일치 또는 만료 | 이메일: {} ---", dbEmail);
-//            return ResponseEntity.status(400).body("인증번호가 올바르지 않거나 만료되었습니다.");
-//        }
-        // ⛔️ OTP 검증 - 실제 OTP 또는 슈퍼패스 OTP 중 하나라도 통과하면 인증 성공
+        // OTP 검증 - 실제 OTP 또는 슈퍼패스 OTP 중 하나라도 통과하면 인증 성공
         boolean otpValid = otpStore.verify(dbEmail, inputOtp.trim()) || superKey.isSuperOtp(inputOtp.trim());
         if (!otpValid) {
             log.warn("--- [verifyEmailOtp POST] OTP 불일치 또는 만료 | 이메일: {} ---", dbEmail);
@@ -195,7 +188,6 @@ public class LoginController {
         if (superKey.isSuperOtp(inputOtp.trim())) {
             log.info("--- [verifyEmailOtp POST] 슈퍼패스 OTP 사용 | loginId: {} ---", loginId);
         }
-        // ⛔
 
         // OTP 일치 → 완전 로그인 처리
         log.info("--- [verifyEmailOtp POST] OTP 검증 성공 → ADMIN 완전 로그인 처리 ---");
