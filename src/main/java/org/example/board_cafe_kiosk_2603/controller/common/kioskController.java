@@ -94,6 +94,12 @@ public class kioskController {
         return "kiosk/phone_login";
     }
 
+    @GetMapping("/cleaning_wait")
+    public String cleaningWait(HttpSession session, Model model) {
+        model.addAttribute("tableNumber", session.getAttribute("tableNumber"));
+        return "kiosk/cleaning_wait";
+    }
+
     // ★ 수정: /session/start → kiosk/headcount 반환
     //    기존에 "kiosk/screensaver"를 반환하고 있었으나
     //    이 엔드포인트의 목적은 인원수 입력 화면 진입이므로 수정
