@@ -4,17 +4,13 @@ import lombok.extern.log4j.Log4j2;
 import org.example.board_cafe_kiosk_2603.domain.admin.manager.RoleType;
 import org.example.board_cafe_kiosk_2603.dto.admin.manager.ManagerRequest;
 import org.example.board_cafe_kiosk_2603.dto.admin.manager.ManagerResponse;
-import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageRequestDTO;
-import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageResponseDTO;
+import org.example.board_cafe_kiosk_2603.dto.common.pagination.PageRequestDTO;
+import org.example.board_cafe_kiosk_2603.dto.common.pagination.PageResponseDTO;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @Log4j2
 @SpringBootTest

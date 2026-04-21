@@ -2,7 +2,7 @@ package org.example.board_cafe_kiosk_2603.mapper.admin.policy;
 
 import lombok.extern.log4j.Log4j2;
 import org.example.board_cafe_kiosk_2603.domain.admin.policy.Policy;
-import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageRequestDTO;
+import org.example.board_cafe_kiosk_2603.dto.common.pagination.PageRequestDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

@@ -3,7 +3,7 @@ package org.example.board_cafe_kiosk_2603.mapper.admin;
 import lombok.extern.log4j.Log4j2;
 import org.example.board_cafe_kiosk_2603.domain.admin.point.Point;
 import org.example.board_cafe_kiosk_2603.domain.admin.point.PointHistory;
-import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageRequestDTO;
+import org.example.board_cafe_kiosk_2603.dto.common.pagination.PageRequestDTO;
 import org.example.board_cafe_kiosk_2603.mapper.admin.point.PointMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

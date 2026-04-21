@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.example.board_cafe_kiosk_2603.domain.admin.policy.Policy;
 import org.example.board_cafe_kiosk_2603.dto.admin.policy.PolicyDTO;
-import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageRequestDTO;
-import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageResponseDTO;
+import org.example.board_cafe_kiosk_2603.dto.common.pagination.PageRequestDTO;
+import org.example.board_cafe_kiosk_2603.dto.common.pagination.PageResponseDTO;
 import org.example.board_cafe_kiosk_2603.mapper.admin.policy.PolicyMapper;
 import org.springframework.stereotype.Service;
 

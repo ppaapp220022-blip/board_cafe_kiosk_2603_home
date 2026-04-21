@@ -1,12 +1,11 @@
 package org.example.board_cafe_kiosk_2603.controller.admin.point;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.example.board_cafe_kiosk_2603.dto.admin.point.PointAdminDTO;
 import org.example.board_cafe_kiosk_2603.dto.admin.point.PointHistoryDTO;
-import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageRequestDTO;
-import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageResponseDTO;
+import org.example.board_cafe_kiosk_2603.dto.common.pagination.PageRequestDTO;
+import org.example.board_cafe_kiosk_2603.dto.common.pagination.PageResponseDTO;
 import org.example.board_cafe_kiosk_2603.service.admin.point.PointService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

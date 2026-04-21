@@ -4,7 +4,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.example.board_cafe_kiosk_2603.domain.admin.product.Menu;
 import org.example.board_cafe_kiosk_2603.dto.admin.product.MenuResponseDTO;
-import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageRequestDTO;
+import org.example.board_cafe_kiosk_2603.dto.common.pagination.PageRequestDTO;
 
 import java.util.List;
 import java.util.Optional;

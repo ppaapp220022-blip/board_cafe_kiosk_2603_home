@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.example.board_cafe_kiosk_2603.domain.admin.product.CategoryType;
 import org.example.board_cafe_kiosk_2603.dto.admin.product.*;
-import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageRequestDTO;
-import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageResponseDTO;
+import org.example.board_cafe_kiosk_2603.dto.common.pagination.PageRequestDTO;
+import org.example.board_cafe_kiosk_2603.dto.common.pagination.PageResponseDTO;
 import org.example.board_cafe_kiosk_2603.service.admin.product.CategoryService;
 import org.example.board_cafe_kiosk_2603.service.admin.product.GameItemService;
 import org.example.board_cafe_kiosk_2603.service.admin.product.GameService;
@@ -19,7 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Log4j2
 @Controller

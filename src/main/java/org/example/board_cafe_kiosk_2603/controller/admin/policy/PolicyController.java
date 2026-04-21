@@ -3,8 +3,8 @@ package org.example.board_cafe_kiosk_2603.controller.admin.policy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.example.board_cafe_kiosk_2603.dto.admin.policy.PolicyDTO;
-import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageRequestDTO;
-import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageResponseDTO;
+import org.example.board_cafe_kiosk_2603.dto.common.pagination.PageRequestDTO;
+import org.example.board_cafe_kiosk_2603.dto.common.pagination.PageResponseDTO;
 import org.example.board_cafe_kiosk_2603.service.admin.policy.PolicyService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -13,7 +13,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
-import java.util.Objects;
 
 @Log4j2
 @Controller

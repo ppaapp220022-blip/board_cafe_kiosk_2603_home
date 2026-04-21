@@ -4,7 +4,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.example.board_cafe_kiosk_2603.domain.admin.point.Point;
 import org.example.board_cafe_kiosk_2603.domain.admin.point.PointHistory;
-import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageRequestDTO;
+import org.example.board_cafe_kiosk_2603.dto.common.pagination.PageRequestDTO;
 
 import java.util.List;
 

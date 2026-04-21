@@ -1,10 +1,8 @@
 package org.example.board_cafe_kiosk_2603.service.admin.policy;
 
 import org.example.board_cafe_kiosk_2603.dto.admin.policy.PolicyDTO;
-import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageRequestDTO;
-import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageResponseDTO;
-
-import java.util.List;
+import org.example.board_cafe_kiosk_2603.dto.common.pagination.PageRequestDTO;
+import org.example.board_cafe_kiosk_2603.dto.common.pagination.PageResponseDTO;
 
 public interface PolicyService {
     // ID로 단건 조회

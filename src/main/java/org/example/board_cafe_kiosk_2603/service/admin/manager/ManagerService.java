@@ -3,8 +3,8 @@ package org.example.board_cafe_kiosk_2603.service.admin.manager;
 import org.example.board_cafe_kiosk_2603.dto.admin.manager.ManagerRequest;
 import org.example.board_cafe_kiosk_2603.dto.admin.manager.ManagerResponse;
 import org.example.board_cafe_kiosk_2603.dto.admin.manager.ProfileUpdateRequest;
-import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageRequestDTO;
-import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageResponseDTO;
+import org.example.board_cafe_kiosk_2603.dto.common.pagination.PageRequestDTO;
+import org.example.board_cafe_kiosk_2603.dto.common.pagination.PageResponseDTO;
 
 import java.util.List;
 import java.util.Optional;

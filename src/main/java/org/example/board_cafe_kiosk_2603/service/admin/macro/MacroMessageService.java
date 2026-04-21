@@ -1,8 +1,8 @@
 package org.example.board_cafe_kiosk_2603.service.admin.macro;
 
 import org.example.board_cafe_kiosk_2603.dto.admin.macro.MacroMessageResponseDTO;
-import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageRequestDTO;
-import org.example.board_cafe_kiosk_2603.dto.common.pagenation.PageResponseDTO;
+import org.example.board_cafe_kiosk_2603.dto.common.pagination.PageRequestDTO;
+import org.example.board_cafe_kiosk_2603.dto.common.pagination.PageResponseDTO;
 
 import java.util.List;
 

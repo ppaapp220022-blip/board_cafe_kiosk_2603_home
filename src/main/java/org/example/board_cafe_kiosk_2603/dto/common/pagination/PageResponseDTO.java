@@ -1,4 +1,4 @@
-package org.example.board_cafe_kiosk_2603.dto.common.pagenation;
+package org.example.board_cafe_kiosk_2603.dto.common.pagination;
 
 import lombok.Builder;
 import lombok.Getter;
