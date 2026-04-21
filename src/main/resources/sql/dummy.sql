@@ -56,6 +56,11 @@ VALUES (1, '$2a$12$6.m99XxVXQhLA.kW.pV.8.yAkQtntwMG6zJ2XEzCYdIt6F92AHZoa', 'EMPT
 -- 11 : 1011
 -- 12 : 1012
 
+-- UUID 별도 발급
+UPDATE cafe_table
+SET access_token = UUID()
+WHERE id IN (1, 2, 3, 4, 5);
+
 -- ============================================================
 -- 3. customer (등록 고객)
 -- ============================================================

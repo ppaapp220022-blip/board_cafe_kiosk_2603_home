@@ -28,24 +28,18 @@ import java.io.UnsupportedEncodingException;
 public class LoginController {
     /* 관리자 - 2차 인증 컨트롤러 */
 
-    // 역할 분담
-    // ManagerLoginSuccessHandler → 1차 인증 후 PRE_AUTH_USER 세션 저장
-    // LoginController → 2차 인증 화면 노출 + 검증 + 완전 로그인
-
-    // 방식 분리 이유
-    // STAFF  (verifyEmail)    → 폼 방식: 타이머 없는 단순 이메일 입력
-    // ADMIN  (verifyEmailOtp) → Ajax 방식: 타이머 유지 필수 + sendOtp도 Ajax
-
-    // 세션 키 규약
-    // PRE_AUTH_USER
-    // 1차 인증 통과한 loginId (String)
-    // → 2차 인증 완료 시 제거
+    // STAFF -> 타이머 없는 단순 이메일 입력
+    // ADMIN -> 타이머 유지, sendOtp (Ajax)
 
     private final ManagerMapper managerMapper;
     private final MailSenderService mailSenderService;
     private final OtpStore otpStore;
     private final ManagerUserDetailsService managerUserDetailsService;  // 완전 로그인 처리에 사용
     private final SuperKeyProperties superKey;  // 포트폴리오용 슈퍼키
+
+    // ManagerLoginSuccessHandler -> 1차 인증 후 'PRE_AUTH_USER' 세션 저장
+    // LoginController -> 2차 인증 화면 노출 + 검증 + 완전 로그인 처리
+    // PRE_AUTH_USER: 1차 인증 통과한 loginId -> 2차 인증 완료 시 제거
 
     /* STAFF: 이메일 확인 페이지 이동 */
     @GetMapping("/verifyEmail")
@@ -187,7 +181,7 @@ public class LoginController {
             log.warn("--- [verifyEmailOtp POST] OTP 불일치 또는 만료 | 이메일: {} ---", dbEmail);
             return ResponseEntity.status(400).body("인증번호가 올바르지 않거나 만료되었습니다.");
         }
-        // 슈퍼패스 사용 여부 로그
+        // 슈퍼패스 사용 시 로그 기록
         if (superKey.isSuperOtp(inputOtp.trim())) {
             log.info("--- [verifyEmailOtp POST] 슈퍼패스 OTP 사용 | loginId: {} ---", loginId);
         }
@@ -216,31 +210,35 @@ public class LoginController {
      * @param session 현재 HTTP 세션
      */
     /* 완전 로그인 처리 */
+    /* Spring security Context를 수동으로 복구하여 로그인을 완성함 */
     // 1차 로그인 성공 시 시큐리티 권한을 바로 주지 않고 비워두었기 때문에, 수동으로 권한 부여
     private void completeLogin(String loginId, HttpSession session) {
-        // 1. DB에서 UserDetails 재로드 (ManagerDTO 반환)
+        // 1. DB에서 해당 아이디의 상세 정보(UserDetails/ManagerDTO)를 다시 불러옴.
+        // 권한(ROLE_ADMIN 등) 정보를 확실히 가져오기 위함.
         ManagerDTO managerDTO = (ManagerDTO) managerUserDetailsService.loadUserByUsername(loginId);
 
-        // 2. Authentication 객체 생성
+        // 2. 시큐리티 전용 인증 토큰(Authentication) 생성
         UsernamePasswordAuthenticationToken auth =
                 new UsernamePasswordAuthenticationToken(
-                        managerDTO,
-                        null,                        // 인증 완료 후이므로 credentials null
-                        managerDTO.getAuthorities()
+                        managerDTO,  // principal: 인증된 사용자 정보
+                        null,  // credentials: 비번은 이미 1차에서 검증했으므로 null
+                        managerDTO.getAuthorities()  // 사용자의 권한 리스트 부여
                 );
 
-        // 3. SecurityContext에 등록
+        // 3. 비어있는 새로운 SecurityContext 생성 및 인증 토큰 저장
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(auth);
+        // 현재 쓰레드의 시큐리티 저장소에 등록
         SecurityContextHolder.setContext(context);
 
-        // 4. 세션에 SecurityContext 저장 (이게 없으면 다음 요청에서 인증이 풀림)
+        // 4. 세션에 시큐리티 컨텍스트(SecurityContext) 보관
+        // Spring Security는 매 요청마다 세션에서 이 키값을 확인해 로그인을 유지함 (이게 없으면 다음 요청에서 인증 풀림)
         session.setAttribute(
                 HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
                 context
         );
 
-        // 5. 임시 세션 키 제거
+        // 5. 2차 인증 대기용 임시 세션 키 제거
         session.removeAttribute("PRE_AUTH_USER");
 
         log.info("--- [completeLogin] 완전 로그인 완료 | loginId: {}, authorities: {} ---",

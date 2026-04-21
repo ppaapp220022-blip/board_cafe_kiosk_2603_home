@@ -175,6 +175,7 @@
 
 <body>
 <th:block layout:fragment="content">
+    <span id="isAdminOrSuper" sec:authorize="hasAnyRole('ADMIN', 'SUPER')" style="display:none;"></span>
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
         <h1 class="page-title">💬 매크로 메시지 관리</h1>
 
@@ -276,7 +277,8 @@
          * [핵심] Thymeleaf가 서버 사이드에서 권한을 평가하여 JS 변수로 주입
          * renderTable()에서 동적으로 버튼을 생성할 때 이 변수를 참조
          */
-        const IS_ADMIN_OR_SUPER = /*[[${#authorization.expression('hasAnyRole(''ADMIN'', ''SUPER'')')}]]*/ false;
+        // const IS_ADMIN_OR_SUPER = /*[[${#authorization.expression('hasAnyRole(''ADMIN'', ''SUPER'')')}]]*/ false;
+        const IS_ADMIN_OR_SUPER = document.getElementById('isAdminOrSuper') !== null;
 
         let currentDirection = 'STAFF_TO_TABLE'; // 기본값을 고정
 
@@ -295,6 +297,7 @@
              * [수정] btnAddMacro는 ADMIN/SUPER에게만 렌더링되므로 null 체크 필수
              * STAFF에게는 btnAddMacroDisabled가 렌더링됨
              */
+            // STAFF는 btnAddMacro가 업으므로 null 체크
             const addBtn = document.getElementById('btnAddMacro');
             if (addBtn) addBtn.style.display = 'block';
 
@@ -328,6 +331,7 @@
                  * [핵심 수정] IS_ADMIN_OR_SUPER 변수로 삭제 버튼 분기
                  * renderTable()이 동적으로 DOM을 덮어써도 권한 체크가 유지됨
                  */
+                // IS_ADMIN_OR_SUPER로 동적 렌더링 시에도 권한 분기
                 const deleteBtn = IS_ADMIN_OR_SUPER
                     ? `<button type="button" class="btn-delete"
                                data-id="${valId}"

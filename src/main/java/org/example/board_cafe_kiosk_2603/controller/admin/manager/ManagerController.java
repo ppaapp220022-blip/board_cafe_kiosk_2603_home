@@ -1,10 +1,8 @@
 package org.example.board_cafe_kiosk_2603.controller.admin.manager;
 
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.example.board_cafe_kiosk_2603.config.OtpStore;
-import org.example.board_cafe_kiosk_2603.domain.admin.manager.Manager;
 import org.example.board_cafe_kiosk_2603.dto.admin.manager.ManagerRequest;
 import org.example.board_cafe_kiosk_2603.dto.admin.manager.ManagerResponse;
 import org.example.board_cafe_kiosk_2603.dto.admin.manager.ProfileUpdateRequest;
@@ -20,7 +18,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.util.List;
 
 @Log4j2
 @Controller
@@ -33,24 +30,14 @@ public class ManagerController {
     private final OtpStore otpStore;
     private final ManagerService managerService;
 
-    /* 직원 목록 페이지 */
-//    @GetMapping
-//    public String staffPage(Model model) {
-//        log.info("--- 직원 목록 페이지 진입 ---");
-//        List<ManagerResponse> staffList = managerService.findAll();
-//
-//        log.info("--- 조회된 직원: {}명 ---", staffList);
-//        model.addAttribute("staffList", staffList);
-//        return "admin/staff";
-//    }
-
-    /* 신규 직원 등록 (모달 폼 → Ajax) */
+    /* 신규 직원 등록 */
     @PostMapping
-    @ResponseBody
+    @ResponseBody  // AJAX 요청이므로 데이터만 반환
     public ResponseEntity<String> createStaff(@RequestBody ManagerRequest managerRequest) {
         log.info("--- [직원 등록 시작] 입력 정보: {} ---", managerRequest);
 
         try {
+            // JSON 데이터를 객체로 받아 직원 생성 서비스 호출
             managerService.createManager(managerRequest);
             log.info("--- [직원 등록 완료] ID: {} 등록 성공 ---", managerRequest.getLoginId());
             return ResponseEntity.ok("success");
@@ -60,9 +47,9 @@ public class ManagerController {
         }
     }
 
-    /* 직원 활성화/비활성화 상태 토글 (모달 -> Ajax 처리) */
+    /* 직원 활성화/비활성화 상태 토글 */
     @PostMapping("/toggle-status")
-    @ResponseBody // JSON 또는 성공 메시지를 반환하기 위해 필요
+    @ResponseBody  // AJAX 요청이므로 데이터만 반환 (모달 폼 -> AJAX)
     public ResponseEntity<String> toggleStaffStatus(@RequestParam("id") Integer id,
                                                     @RequestParam("active") Boolean isActive) {
 
@@ -70,6 +57,7 @@ public class ManagerController {
         log.info("요청 ID: {}, 변경할 상태: {}", id, isActive);
 
         try {
+            // 특정 직원의 계정 사용 여부를 실시간으로 바꿈
             managerService.updateActive(id, isActive);
             log.info("--- [상태 변경 성공] ID {}번 직원의 활성화 상태가 {}로 변경됨 ---", id, isActive);
             return ResponseEntity.ok("success");
@@ -81,9 +69,11 @@ public class ManagerController {
 
     /* 아이디 중복 확인 */
     @GetMapping("/check-id")
-    @ResponseBody
+    @ResponseBody  // AJAX 요청이므로 데이터만 반환
     public ResponseEntity<Boolean> checkId(@RequestParam("loginId") String loginId) {
+
         log.info("--- [아이디 중복 확인] 요청 ID: {} ---", loginId);
+        // DB에 해당 아이디가 이미 존재하는지 확인
         boolean isDuplicate = managerService.isLoginIdDuplicate(loginId);
 
         // 결과가 true면 중복, false면 사용 가능
@@ -100,7 +90,7 @@ public class ManagerController {
             return "redirect:/login";
         }
 
-        String loginId = principal.getName();  // 현재 로그인한 ID
+        String loginId = principal.getName();  // 현재 로그인한 ID 추출
         log.info("[프로필 조회] 로그인 사용자 ID: {}", loginId);
 
         ManagerResponse manager = managerService.findByLoginId(loginId)
@@ -113,9 +103,9 @@ public class ManagerController {
         return "admin/staff_profile";
     }
 
-    /* OTP 인증 번호 메일 발송 */
+    /* OTP 인증 번호 메일 발송 (프로필 수정 전) */
     @PostMapping("/profile/send-otp")
-    @ResponseBody
+    @ResponseBody  // AJAX 요청이므로 데이터만 반환
     public ResponseEntity<String> sendOtp(Principal principal) {
         // 세션에서 현재 로그인한 관리자 이메일 가져오기
         String loginId = principal.getName();
@@ -132,6 +122,7 @@ public class ManagerController {
         otpStore.save(email, code);
 
         try {
+            // 메일 전송
             mailSenderService.sendMailForAlarm(email, code);
             log.info("--- [OTP 메일 전송 성공] 이메일: {}, 번호: {} ---", email, code);
             return ResponseEntity.ok("OTP 발송 완료");
@@ -141,9 +132,9 @@ public class ManagerController {
         }
     }
 
-    /* 프로필 수정 (OTP 검증 포함) */
+    /* 프로필 수정 최종 제출 (OTP 검증 포함) */
     @PostMapping("/profile/update")
-    @ResponseBody
+    @ResponseBody  // AJAX 요청이므로 데이터만 반환
     public ResponseEntity<String> updateProfile(
             @RequestBody ProfileUpdateRequest request,
             Principal principal) {
@@ -178,16 +169,16 @@ public class ManagerController {
         PageResponseDTO<ManagerResponse> responseDTO = managerService.getPagedManagers(pageRequestDTO);
 
         // 각 탭별 개수 조회
-        PageRequestDTO allReq      = PageRequestDTO.builder().page(1).size(1).build();
-        PageRequestDTO activeReq   = PageRequestDTO.builder().page(1).size(1).filter("active").build();
+        PageRequestDTO allReq = PageRequestDTO.builder().page(1).size(1).build();
+        PageRequestDTO activeReq = PageRequestDTO.builder().page(1).size(1).filter("active").build();
         PageRequestDTO inactiveReq = PageRequestDTO.builder().page(1).size(1).filter("inactive").build();
 
         model.addAttribute("responseDTO", responseDTO);
         model.addAttribute("pageRequestDTO", pageRequestDTO);
         // filter가 null이면 "all"로 기본값 설정
         model.addAttribute("filter", pageRequestDTO.getFilter() != null ? pageRequestDTO.getFilter() : "all");
-        model.addAttribute("countAll",      managerService.getCount(allReq));
-        model.addAttribute("countActive",   managerService.getCount(activeReq));
+        model.addAttribute("countAll", managerService.getCount(allReq));
+        model.addAttribute("countActive", managerService.getCount(activeReq));
         model.addAttribute("countInactive", managerService.getCount(inactiveReq));
         model.addAttribute("activePage", "staffManagement");
 

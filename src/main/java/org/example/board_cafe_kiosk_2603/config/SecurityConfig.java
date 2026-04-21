@@ -63,7 +63,9 @@ public class SecurityConfig {
                             // 관리자 대시보드 연동 및 정산 페이지 접근 허용
                             .requestMatchers(
                                     "/kiosk/checkout",
+                                    "/kiosk/cleaning_wait",
                                     "/kiosk/order/active",
+                                    "/kiosk/table/status",
                                     "/kiosk/payment/prepare",
                                     "/kiosk/point/lookup",
                                     "/kiosk/toss/success",
