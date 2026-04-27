@@ -33,6 +33,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeParseException;
@@ -114,7 +115,8 @@ public class PaymentService {
 
             // 금액 계산
             int menuTotal   = activeOrders.stream().mapToInt(Orders::getTotalAmount).sum();
-            int totalAmount = pkgPrice + menuTotal;
+            int overCharge  = calculateOverCharge(session);
+            int totalAmount = pkgPrice + menuTotal + overCharge;
             int pointUsed   = request.getPointUsed() != null ? request.getPointUsed() : 0;
             int finalAmount = Math.max(totalAmount - pointUsed, 0);
 
@@ -135,8 +137,8 @@ public class PaymentService {
                     .cafePackage(cafePackage)
                     .build();
 
-            log.debug("=== 결제 준비 완료 - orderId: {}, amount: {}, packageId: {}",
-                    orderIdToss, finalAmount, cafePackage != null ? cafePackage.getId() : "없음");
+            log.debug("=== 결제 준비 완료 - orderId: {}, amount: {}, packageId: {}, overCharge: {}",
+                    orderIdToss, finalAmount, cafePackage != null ? cafePackage.getId() : "없음", overCharge);
             return response;
 
         } catch (Exception e) {
@@ -189,7 +191,8 @@ public class PaymentService {
 
             int pkgPrice = calculatePackagePrice(session);
             int menuTotal   = activeOrders.stream().mapToInt(Orders::getTotalAmount).sum();
-            int totalAmount = pkgPrice + menuTotal;
+            int overCharge  = calculateOverCharge(session);
+            int totalAmount = pkgPrice + menuTotal + overCharge;
             int finalAmount = Math.max(totalAmount - pointUsed, 0);
 
             // 토스에서 받은 금액과 서버 계산 금액 검증
@@ -319,6 +322,33 @@ public class PaymentService {
         }
         int guestCount = session.getInitialGuestCnt() != null ? session.getInitialGuestCnt() : 1;
         return pkg.getBasePrice() * guestCount;
+    }
+
+    private int calculateOverCharge(CafeTableSession session) {
+        if (session == null || session.getPackageId() == null || session.getCheckInTime() == null) {
+            return 0;
+        }
+
+        CafePackage pkg = cafePackageMapper.findById(session.getPackageId());
+        if (pkg == null || pkg.getDurationMinutes() == null || pkg.getExtraPricePerMin() == null) {
+            return 0;
+        }
+
+        int durationMinutes = pkg.getDurationMinutes();
+        double extraPricePerMin = pkg.getExtraPricePerMin();
+        if (durationMinutes <= 0 || extraPricePerMin <= 0) {
+            return 0;
+        }
+
+        long elapsedMinutes = Math.max(0, Duration.between(session.getCheckInTime(), LocalDateTime.now()).toMinutes());
+        long overMinutes = elapsedMinutes - durationMinutes;
+        if (overMinutes <= 0) {
+            return 0;
+        }
+
+        long overUnits = (long) Math.ceil(overMinutes / 10.0);
+        int guestCount = session.getInitialGuestCnt() != null ? session.getInitialGuestCnt() : 1;
+        return (int) Math.ceil(overUnits * extraPricePerMin * guestCount);
     }
 
     /**

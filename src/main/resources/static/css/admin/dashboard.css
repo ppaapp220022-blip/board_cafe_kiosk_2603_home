@@ -74,6 +74,31 @@
     background: #1a73e8;
     animation: pulse-mini 1.4s infinite;
 }
+
+.live-amount-box {
+    margin-top: 10px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: #fff5f2;
+    border: 1px solid #ffd7cc;
+}
+.live-amount-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+.live-amount-label {
+    font-size: 12px;
+    color: #8a4b32;
+    font-weight: 600;
+}
+.live-amount-value {
+    font-size: 14px;
+    color: #ea4335;
+    font-weight: 800;
+    white-space: nowrap;
+}
 @keyframes pulse-mini {
     0%, 100% { opacity: 1; transform: scale(1); }
     50% { opacity: 0.6; transform: scale(1.25); }

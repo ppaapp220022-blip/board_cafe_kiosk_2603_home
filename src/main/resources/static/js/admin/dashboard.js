@@ -4,6 +4,7 @@ let serialAssignContext = { orderId: null, gameName: '', quantity: 1 };
 let rentalReturnContext = { orderId: null, gameName: '', quantity: 1 };
 let pendingOrdersState = [];
 let latestModalOrderItems = [];
+const checkoutMetaCache = new Map();
 
 function parsePendingOrderId(order) {
     const id = Number(order?.id ?? order?.orderId ?? 0);
@@ -22,6 +23,39 @@ function hideMessageBox() {
     const btn = document.getElementById('readBtn');
     if (box) box.style.display = 'none';
     if (btn) btn.style.display = 'none';
+}
+
+function syncCardLiveAmount(tableId, amount) {
+    if (!tableId) return;
+    const card = document.querySelector(`.table-card[data-id="${tableId}"]`);
+    if (!card) return;
+    const liveNode = card.querySelector('[data-role="live-amount"]');
+    if (liveNode) {
+        liveNode.textContent = `₩${Number(amount || 0).toLocaleString()}`;
+    }
+}
+
+async function renderModalLiveTotal(menuAmount) {
+    const priceSpan = document.getElementById('totalPrice');
+    if (!priceSpan) return;
+
+    const baseMenuAmount = Number(menuAmount || 0);
+    let packageAmount = 0;
+    let overCharge = 0;
+
+    if (currentTableId && currentTableStatus === 'OCCUPIED') {
+        try {
+            const meta = await fetchCheckoutMeta(currentTableId);
+            packageAmount = Number(meta?.packageTotal || 0);
+            overCharge = calcOverCharge(meta);
+        } catch (e) {
+            console.warn('모달 정산 메타 조회 실패(주문합계만 표시):', e);
+        }
+    }
+
+    const total = baseMenuAmount + packageAmount + overCharge;
+    priceSpan.innerText = `${total.toLocaleString()}원`;
+    syncCardLiveAmount(currentTableId, total);
 }
 
 function renderOrders(orders, activeRentals = []) {
@@ -74,7 +108,7 @@ function renderOrders(orders, activeRentals = []) {
     if (!orderItems || orderItems.length === 0) {
         latestModalOrderItems = [];
         listDiv.innerHTML = '<div style="color:#999; display:flex; justify-content:center; padding: 20px; border:none;">진행 중인 주문이 없습니다.</div>';
-        priceSpan.innerText = '0원';
+        renderModalLiveTotal(0);
         return;
     }
     latestModalOrderItems = orderItems.slice();
@@ -116,8 +150,6 @@ function renderOrders(orders, activeRentals = []) {
 
         const isGameRequest = items.length > 0
             && items.every(v => Number(v?.price ?? v?.menuPrice ?? 0) === 0);
-
-        if (isGameRequest) return '';
 
         const orderTotal = items.reduce((acc, v) => {
             const price = Number(v?.price ?? v?.menuPrice ?? 0) || 0;
@@ -225,14 +257,14 @@ function renderOrders(orders, activeRentals = []) {
 
     if (!listDiv.innerHTML.trim()) {
         listDiv.innerHTML = '<div style="color:#999; display:flex; justify-content:center; padding: 20px; border:none;">진행 중인 주문이 없습니다.</div>';
-        priceSpan.innerText = '0원';
+        renderModalLiveTotal(0);
         updateTableCardOrderStatus(null);
         updateOrderStatusButton();
         fetchRentedGameItems();
         return;
     }
 
-    priceSpan.innerText = sum.toLocaleString() + '원';
+    renderModalLiveTotal(sum);
     updateTableCardOrderStatus(latest);
     updateOrderStatusButton();
     fetchRentedGameItems();
@@ -248,7 +280,7 @@ function updateTableCardOrderStatus(latest) {
     const miniText = miniBadge ? miniBadge.querySelector('.mini-text') : null;
     if (!miniBadge || !miniText) return;
 
-    if (!latest || !latest.status || latest.status === 'COMPLETED' || latest.status === 'CANCELLED') {
+    if (!latest || !latest.status || latest.status === 'CANCELLED') {
         miniBadge.classList.remove('visible');
         return;
     }
@@ -456,7 +488,7 @@ function computeLatestOrderStatus(orderItems) {
     const validGameItems = orderItems.filter(item => isGameOrderItem(item) && item?.status !== 'CANCELLED');
     const hasNormalActive = orderItems.some(item => {
         const s = item?.status;
-        if (!s || s === 'CANCELLED' || s === 'COMPLETED') return false;
+        if (!s || s === 'CANCELLED') return false;
         return !isGameOrderItem(item);
     });
 
@@ -473,14 +505,15 @@ function computeLatestOrderStatus(orderItems) {
         ORDERED: 1,
         CONFIRMED: 2,
         COOKING: 3,
-        DELIVERING: 4
+        DELIVERING: 4,
+        COMPLETED: 5
     };
 
     let latest = null;
     let max = 0;
     for (const item of orderItems) {
         const s = item?.status;
-        if (!s || s === 'CANCELLED' || s === 'COMPLETED') continue;
+        if (!s || s === 'CANCELLED') continue;
         if (isGameOrderItem(item)) continue;
         const r = rank[s] || 0;
         if (r >= max) {
@@ -500,7 +533,8 @@ function getMiniBadgeLabel(status, gameFlow) {
         ORDERED: '주문 접수',
         CONFIRMED: '주문 확인',
         COOKING: '조리 중',
-        DELIVERING: '배달 중'
+        DELIVERING: '배달 중',
+        COMPLETED: '완료'
     };
     const gameLabels = {
         ORDERED: '게임 요청',
@@ -538,7 +572,7 @@ async function refreshTableCardOrderBadges() {
             const miniBadge = container.querySelector('[data-role="order-mini-badge"]');
             const miniText = miniBadge ? miniBadge.querySelector('.mini-text') : null;
 
-            if (!latest || latest.status === 'COMPLETED' || latest.status === 'CANCELLED') {
+            if (!latest || latest.status === 'CANCELLED') {
                 if (miniBadge) miniBadge.classList.remove('visible');
                 return;
             }
@@ -551,6 +585,133 @@ async function refreshTableCardOrderBadges() {
             console.error('테이블 카드 주문 상태 갱신 실패:', e);
         }
     }));
+}
+
+function toOrderItems(input) {
+    if (!Array.isArray(input) || input.length === 0) return [];
+
+    const sample = input[0];
+    const hasNestedItems = sample?.items || sample?.orderItems;
+    const isFlatItem = sample?.menuName || sample?.menu_name;
+    if (!hasNestedItems || isFlatItem) {
+        return input;
+    }
+
+    const flattened = [];
+    for (const order of input) {
+        const orderStatus = order?.status || 'ORDERED';
+        const children = order?.items || order?.orderItems || [];
+        for (const child of children) {
+            flattened.push({
+                status: child?.status || orderStatus,
+                price: child?.price || child?.menuPrice || 0,
+                quantity: child?.quantity || child?.qty || 0
+            });
+        }
+    }
+    return flattened;
+}
+
+function calcLiveAmount(orderItems) {
+    const items = toOrderItems(orderItems);
+    return items.reduce((sum, item) => {
+        const status = String(item?.status || '').toUpperCase();
+        if (status === 'CANCELLED') return sum;
+        const price = Number(item?.price || 0) || 0;
+        const qty = Number(item?.quantity || 0) || 0;
+        return sum + (price * qty);
+    }, 0);
+}
+
+async function fetchCheckoutMeta(tableId) {
+    const cacheKey = String(tableId);
+    const now = Date.now();
+    const cached = checkoutMetaCache.get(cacheKey);
+    if (cached && (now - cached.fetchedAt) < 30000) {
+        return cached;
+    }
+
+    const res = await fetch(`/admin/dashboard/${tableId}/checkout-meta`, {
+        headers: { 'Accept': 'application/json' },
+        credentials: 'same-origin'
+    });
+    if (!res.ok) {
+        throw new Error(`checkout meta fetch failed: ${res.status}`);
+    }
+    const data = await res.json();
+
+    const meta = {
+        packageTotal: Number(data?.packageTotal || 0),
+        sessionStartTime: Number(data?.sessionStartTime || 0),
+        durationMinutes: Number(data?.durationMinutes || 0),
+        extraPricePerMin: Number(data?.extraPricePerMin || 0),
+        partySize: Number(data?.partySize || 1) || 1,
+        fetchedAt: now
+    };
+    checkoutMetaCache.set(cacheKey, meta);
+    return meta;
+}
+
+function normalizeEpochMillis(rawValue) {
+    const n = Number(rawValue);
+    if (!n || Number.isNaN(n)) return 0;
+    if (n > 0 && n < 100000000000) return n * 1000;
+    return n;
+}
+
+function calcOverCharge(meta) {
+    const durationMinutes = Number(meta?.durationMinutes || 0);
+    const extraPricePerMin = Number(meta?.extraPricePerMin || 0);
+    if (durationMinutes <= 0 || extraPricePerMin <= 0) return 0;
+
+    const startMs = normalizeEpochMillis(meta?.sessionStartTime || 0);
+    if (!startMs) return 0;
+    const elapsedMs = Date.now() - startMs;
+    const packageDurationMs = durationMinutes * 60 * 1000;
+    const overMs = elapsedMs - packageDurationMs;
+    if (overMs <= 0) return 0;
+
+    const overUnits = Math.ceil(overMs / (10 * 60 * 1000));
+    const partySize = Number(meta?.partySize || 1) || 1;
+    return overUnits * extraPricePerMin * partySize;
+}
+
+async function refreshTableCardLiveAmounts() {
+    const cards = Array.from(document.querySelectorAll('.table-card.status-occupied'));
+    if (!cards.length) return;
+
+    for (const card of cards) {
+        const tableId = card.getAttribute('data-id');
+        if (!tableId) continue;
+
+        try {
+            const res = await fetch(`/admin/dashboard/${tableId}/orders`, {
+                headers: { 'Accept': 'application/json' },
+                credentials: 'same-origin'
+            });
+            if (!res.ok) continue;
+
+            const contentType = res.headers.get('content-type') || '';
+            if (!contentType.includes('application/json')) continue;
+
+            const orderItems = await res.json();
+            const menuAmount = calcLiveAmount(orderItems);
+            let packageAmount = 0;
+            let overCharge = 0;
+            try {
+                const meta = await fetchCheckoutMeta(tableId);
+                packageAmount = Number(meta?.packageTotal || 0);
+                overCharge = calcOverCharge(meta);
+            } catch (metaErr) {
+                console.warn('정산 메타 조회 실패(주문합계만 표시):', metaErr);
+            }
+
+            const liveAmount = menuAmount + packageAmount + overCharge;
+            syncCardLiveAmount(tableId, liveAmount);
+        } catch (e) {
+            console.error('테이블 카드 실시간 금액 갱신 실패:', e);
+        }
+    }
 }
 
 async function callUpdateStatus(status) {
@@ -1293,11 +1454,15 @@ async function openPendingGameOrder(tableId) {
 document.addEventListener('DOMContentLoaded', () => {
     fetchPendingOrders();
     refreshTableCardOrderBadges();
+    refreshTableCardLiveAmounts();
     const pendingOrdersInterval = setInterval(() => {
         fetchPendingOrders();
     }, 5000);
     const tableOrderBadgeInterval = setInterval(() => {
         refreshTableCardOrderBadges();
+    }, 5000);
+    const tableLiveAmountInterval = setInterval(() => {
+        refreshTableCardLiveAmounts();
     }, 5000);
 
     async function pollTableSnapshot() {
@@ -1358,6 +1523,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('beforeunload', () => {
         clearInterval(pendingOrdersInterval);
         clearInterval(tableOrderBadgeInterval);
+        clearInterval(tableLiveAmountInterval);
         clearInterval(tableSnapshotInterval);
     });
 });

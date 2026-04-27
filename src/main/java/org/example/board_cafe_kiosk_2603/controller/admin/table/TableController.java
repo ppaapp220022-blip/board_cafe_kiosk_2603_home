@@ -93,6 +93,16 @@ public class TableController {
     }
 
     /**
+     대시보드 실시간 정산 금액 계산용 메타 조회
+     정산 페이지 진입과 달리 관리자 세션의 결제 대상 테이블을 변경하지 않는다.
+     */
+    @ResponseBody
+    @GetMapping("/{id}/checkout-meta")
+    public ResponseEntity<Map<String, Object>> getCheckoutMeta(@PathVariable("id") Integer id) {
+        return ResponseEntity.ok(kioskPageService.buildCheckoutMeta(id));
+    }
+
+    /**
      테이블 상태 변경 및 세션 연동 (입실/퇴실/청소)
      */
     @ResponseBody

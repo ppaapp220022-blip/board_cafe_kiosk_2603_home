@@ -16,6 +16,7 @@ import org.springframework.ui.Model;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -183,6 +184,39 @@ public class KioskPageService {
 
         log.info("정산 화면 - 테이블: {}, 메뉴: ₩{}, 패키지: {} ₩{}, 합계: ₩{}, 포인트: {}P",
                 tableNumber, cartDTO.getTotalPrice(), packageName, packageTotal, totalPrice, pointBalance);
+    }
+
+    public Map<String, Object> buildCheckoutMeta(Integer tableId) {
+        Map<String, Object> meta = new LinkedHashMap<>();
+        meta.put("packageTotal", 0);
+        meta.put("sessionStartTime", 0);
+        meta.put("durationMinutes", 0);
+        meta.put("extraPricePerMin", 0);
+        meta.put("partySize", 1);
+
+        if (tableId == null) {
+            return meta;
+        }
+
+        CafeTableSession activeSession = tableSessionAdminService.getActiveSession(tableId);
+        if (activeSession == null) {
+            return meta;
+        }
+
+        int partySize = activeSession.getInitialGuestCnt() != null ? activeSession.getInitialGuestCnt() : 1;
+        meta.put("partySize", partySize);
+        meta.put("sessionStartTime", toEpochMillis(activeSession.getCheckInTime()));
+
+        if (activeSession.getPackageId() != null) {
+            CafePackageDTO pkg = cafePackageService.getById(activeSession.getPackageId());
+            if (pkg != null) {
+                meta.put("packageTotal", pkg.getBasePrice() * partySize);
+                meta.put("durationMinutes", pkg.getDurationMinutes() != null ? pkg.getDurationMinutes() : 0);
+                meta.put("extraPricePerMin", pkg.getExtraPricePerMin() != null ? pkg.getExtraPricePerMin() : 0);
+            }
+        }
+
+        return meta;
     }
 
     private Long readSessionStartMillis(Object rawStartTime) {
