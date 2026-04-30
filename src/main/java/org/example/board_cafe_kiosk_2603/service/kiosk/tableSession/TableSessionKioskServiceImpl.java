@@ -75,18 +75,20 @@ public class TableSessionKioskServiceImpl implements TableSessionKioskService{
         CartDTO cartDTO = cartService.getCart(tableNumber);
         String customerPhone = (String) session.getAttribute("customerPhone");
         int pointBalance = resolvePointBalance(customerPhone);
-        int partySize = getPartySize(session);
 
         // DB에서 활성 세션 먼저 조회
         Integer packageId = null;
         Long sessionStartMillis = null;
+        CafeTableSession activeSession = null;
         if (tableId != null) {
-            CafeTableSession activeSession = tableSessionAdminService.getActiveSession(tableId);
+            activeSession = tableSessionAdminService.getActiveSession(tableId);
             if (activeSession != null) {
                 packageId = activeSession.getPackageId();
                 sessionStartMillis = toEpochMillis(activeSession.getCheckInTime());
             }
         }
+        int partySize = resolveCheckoutPartySize(activeSession, session);
+        session.setAttribute("partySize", partySize);
 
         // 활성 세션이 없으면 기존 세션값을 사용하되, 값이 없으면 현재 시각으로 초기화해 과도한 초과시간 표시를 방지한다.
         if (sessionStartMillis == null && !adminCheckoutMode) {
@@ -166,6 +168,14 @@ public class TableSessionKioskServiceImpl implements TableSessionKioskService{
         }
 
         return meta;
+    }
+
+    // 세션 활성화시 인원수 체크
+    private int resolveCheckoutPartySize(CafeTableSession activeSession, HttpSession session) {
+        if (activeSession != null && activeSession.getInitialGuestCnt() != null) {
+            return activeSession.getInitialGuestCnt();
+        }
+        return getPartySize(session);
     }
 
     // 테이블 시작 시간 계산
