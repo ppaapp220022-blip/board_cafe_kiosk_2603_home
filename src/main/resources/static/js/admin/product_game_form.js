@@ -64,7 +64,7 @@ function addNewItem() {
         '<input type="hidden" name="newItems[' + idx + '].status" value="NORMAL">' +
         '<button type="button" class="btn-remove-item"' +
         '        onclick="this.closest(\'.item-row\').remove()">' +
-        '    🗑 삭제' +
+        '    삭제' +
         '</button>';
     list.appendChild(row);
 }

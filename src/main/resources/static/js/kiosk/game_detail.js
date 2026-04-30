@@ -1,9 +1,12 @@
 lucide.createIcons();
 
-const tableNumber = /*[[${tableNumber}]]*/ 0;
-const orderId = /*[[${orderId}]]*/ 0;
-const orderData = /*[[${order}]]*/ {};
-const requestedGames = /*[[${requestedGames}]]*/ [];
+const gameDetailState = window.gameDetailState || {};
+const tableNumber = Number(gameDetailState.tableNumber || 0);
+const orderId = Number(gameDetailState.orderId || 0);
+const orderData = gameDetailState.order || {};
+const requestedGames = Array.isArray(gameDetailState.requestedGames)
+    ? gameDetailState.requestedGames
+    : [];
 
 function startTableStatusWatcher() {
     async function checkTableStatus() {

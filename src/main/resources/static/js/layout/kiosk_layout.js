@@ -1,10 +1,22 @@
+function navigateMenu(menu) {
+    window.location.href = `/kiosk/${menu}`;
+}
 
-function navigateMenu(menu) { window.location.href = `/kiosk/${menu}`; }
-function navigateCart() { window.location.href = `/kiosk/cart`; }
-function navigateCheckout() { if(confirm('정산하시겠습니까?')) window.location.href = `/kiosk/checkout`; }
+function navigateCart() {
+    window.location.href = `/kiosk/cart`;
+}
 
-function openServiceModal() { document.getElementById('serviceModal').classList.add('active'); }
-function closeServiceModal() { document.getElementById('serviceModal').classList.remove('active'); }
+function navigateCheckout() {
+    if (confirm('정산하시겠습니까?')) window.location.href = `/kiosk/checkout`;
+}
+
+function openServiceModal() {
+    document.getElementById('serviceModal').classList.add('active');
+}
+
+function closeServiceModal() {
+    document.getElementById('serviceModal').classList.remove('active');
+}
 
 /* ================= 스크린세이버 로직 추가 ================= */
 let idleTimer;
@@ -24,16 +36,17 @@ window.onmousemove = resetIdleTimer;
 window.onclick = resetIdleTimer;
 window.onkeydown = resetIdleTimer;
 window.ontouchstart = resetIdleTimer;
+
 /* ======================================================= */
 
 async function callService(serviceType) {
     try {
         const res = await fetch('/kiosk/service-request', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ serviceType, tableNumber: TABLE_NUMBER })
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({serviceType, tableNumber: TABLE_NUMBER})
         });
-        const data = await res.json().catch(() => ({ success: false }));
+        const data = await res.json().catch(() => ({success: false}));
         if (!res.ok || !data.success) {
             throw new Error(data.message || ('서버 오류 (' + res.status + ')'));
         }
@@ -73,6 +86,7 @@ function startTimer() {
             badge.classList.add('overtime');
         }
     }
+
     tick();
     setInterval(tick, 1000);
 }
@@ -87,14 +101,14 @@ function showToast(message, durationMs = 2000) {
 
 async function addItemToCartDirect(btn) {
     const item = btn.closest('.menu-item');
-    const menuName  = item.dataset.name;
+    const menuName = item.dataset.name;
     const menuPrice = parseInt(item.dataset.price, 10);
 
     try {
         const res = await fetch('/kiosk/cart/add', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ menuName, menuPrice, quantity: 1 })
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({menuName, menuPrice, quantity: 1})
         });
         const cart = await res.json().catch(() => ({}));
         if (!res.ok || cart.success === false) {
@@ -123,7 +137,7 @@ function startTableStatusWatcher() {
     async function checkTableStatus() {
         try {
             const res = await fetch('/kiosk/table/status', {
-                headers: { 'Accept': 'application/json' },
+                headers: {'Accept': 'application/json'},
                 credentials: 'same-origin'
             });
             if (!res.ok) return;
@@ -151,7 +165,7 @@ function startStaffMacroWatcher() {
     async function checkStaffMessages() {
         try {
             const res = await fetch('/kiosk/messages/staff/unread', {
-                headers: { 'Accept': 'application/json' },
+                headers: {'Accept': 'application/json'},
                 credentials: 'same-origin'
             });
             if (!res.ok) return;
@@ -169,7 +183,7 @@ function startStaffMacroWatcher() {
                     showToast('📨 ' + msg.content, 4000);
                 }
                 if (msg?.id) {
-                    await fetch(`/kiosk/messages/${msg.id}/read`, { method: 'PATCH' });
+                    await fetch(`/kiosk/messages/${msg.id}/read`, {method: 'PATCH'});
                 }
             }
         } catch (err) {

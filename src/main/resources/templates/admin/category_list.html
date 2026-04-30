@@ -35,14 +35,14 @@
 
     <!-- ── 상단 탭 네비게이션 ── -->
     <div class="tab-container">
-        <a href="/admin/product/game"            class="tab-btn">🎲 게임 관리</a>
-        <a href="/admin/product/menu?tab=food"   class="tab-btn">🍔 음식 관리</a>
-        <a href="/admin/product/menu?tab=drink"  class="tab-btn">☕ 음료 관리</a>
-        <a href="/admin/product/menu?tab=guest"  class="tab-btn">👥 인원 추가</a>
-        <a href="/admin/product/game?tab=hidden" class="tab-btn">🎲 게임 숨김 목록</a>
-        <a href="/admin/product/menu?tab=hidden" class="tab-btn">👁️ 메뉴 숨김 목록</a>
+        <a href="/admin/product/game"            class="tab-btn">게임 관리</a>
+        <a href="/admin/product/menu?tab=food"   class="tab-btn">음식 관리</a>
+        <a href="/admin/product/menu?tab=drink"  class="tab-btn">음료 관리</a>
+        <a href="/admin/product/menu?tab=guest"  class="tab-btn">인원 추가</a>
+        <a href="/admin/product/game?tab=hidden" class="tab-btn">게임 숨김 목록</a>
+        <a href="/admin/product/menu?tab=hidden" class="tab-btn">메뉴 숨김 목록</a>
         <a href="/admin/category" class="tab-btn"
-           th:classappend="${activePage == 'category'} ? ' active'">🏷️ 카테고리 관리</a>
+           th:classappend="${activePage == 'category'} ? ' active'">카테고리 관리</a>
     </div>
 
     <!-- ── 성공/에러 플래시 메시지 → 토스트로 표시 ── -->
@@ -98,14 +98,14 @@
                                 type="button" class="btn-table btn-edit"
                                 th:attr="data-id=${cat.id}, data-name=${cat.name}, data-type=${cat.type}"
                                 onclick="openEditModal(this)">
-                            📝 수정
+                            수정
                         </button>
 
                         <!-- 수정 버튼: STAFF 비활성 -->
                         <button sec:authorize="hasRole('STAFF')"
                                 class="btn-table btn-edit"
                                 style="opacity: 0.4; cursor: not-allowed;"
-                                onclick="alert('관리자 권한이 필요합니다.'); return false;">📝 수정
+                                onclick="alert('관리자 권한이 필요합니다.'); return false;">수정
                         </button>
 
                         <!-- 삭제 버튼: ADMIN, SUPER -->
@@ -117,7 +117,7 @@
                                 type="button" class="btn-table btn-delete"
                                 th:attr="data-id=${cat.id}, data-count=${cat.productCount}, data-name=${cat.name}"
                                 onclick="handleDelete(this)">
-                            🗑️ 삭제
+                            삭제
                         </button>
 
                         <!-- 삭제용 숨김 form (JS에서 submit)                  -->
@@ -130,7 +130,7 @@
                         <button sec:authorize="hasRole('STAFF')"
                                 class="btn-table btn-delete"
                                 style="opacity: 0.4; cursor: not-allowed;"
-                                onclick="alert('관리자 권한이 필요합니다.'); return false;">🗑️ 삭제
+                                onclick="alert('관리자 권한이 필요합니다.'); return false;">삭제
                         </button>
 
                     </div>
@@ -166,7 +166,7 @@
          ════════════════════════════════════════════════ -->
     <div class="modal-overlay" id="addModal">
         <div class="modal-box">
-            <div class="modal-title">🏷️ 새 카테고리 추가</div>
+            <div class="modal-title">새 카테고리 추가</div>
             <form th:action="@{/admin/category/add}" method="post">
                 <div class="form-group">
                     <label for="addName">카테고리 명칭 <span style="color:var(--danger-red)">*</span></label>
@@ -176,10 +176,10 @@
                 <div class="form-group">
                     <label for="addType">구분 <span style="color:var(--danger-red)">*</span></label>
                     <select id="addType" name="type" class="input-field">
-                        <option value="FOOD">🍔 음식 (FOOD)</option>
-                        <option value="DRINK">☕ 음료 (DRINK)</option>
-                        <option value="GAME">🎲 게임 (GAME)</option>
-                        <option value="GUEST">👥 인원 추가 (GUEST)</option>
+                        <option value="FOOD">음식 (FOOD)</option>
+                        <option value="DRINK">음료 (DRINK)</option>
+                        <option value="GAME">게임 (GAME)</option>
+                        <option value="GUEST">인원 추가 (GUEST)</option>
                     </select>
                 </div>
                 <div class="modal-footer">
@@ -198,7 +198,7 @@
          ════════════════════════════════════════════════ -->
     <div class="modal-overlay" id="editModal">
         <div class="modal-box">
-            <div class="modal-title">✏️ 카테고리 수정</div>
+            <div class="modal-title">카테고리 수정</div>
             <form id="editForm" th:action="@{/admin/category/edit}" method="post">
                 <div class="form-group">
                     <label for="editName">카테고리 명칭 <span style="color:var(--danger-red)">*</span></label>
@@ -208,10 +208,10 @@
                 <div class="form-group">
                     <label for="editType">구분 <span style="color:var(--danger-red)">*</span></label>
                     <select id="editType" name="type" class="input-field">
-                        <option value="FOOD">🍔 음식 (FOOD)</option>
-                        <option value="DRINK">☕ 음료 (DRINK)</option>
-                        <option value="GAME">🎲 게임 (GAME)</option>
-                        <option value="GUEST">👥 인원 추가 (GUEST)</option>
+                        <option value="FOOD">음식 (FOOD)</option>
+                        <option value="DRINK">음료 (DRINK)</option>
+                        <option value="GAME">게임 (GAME)</option>
+                        <option value="GUEST">인원 추가 (GUEST)</option>
                     </select>
                 </div>
                 <div class="modal-footer">
@@ -228,7 +228,9 @@
          ════════════════════════════════════════════════ -->
     <div class="modal-overlay" id="deleteBlockModal">
         <div class="modal-box alert-modal-box">
-            <div class="alert-icon">🚫</div>
+            <div class="alert-icon">
+                <i data-lucide="lock"></i>
+            </div>
             <div class="alert-title">카테고리를 삭제할 수 없습니다</div>
             <div class="alert-desc" id="deleteBlockMsg">
                 연결된 상품이 존재하여 삭제할 수 없습니다.<br>
@@ -245,7 +247,9 @@
     <div class="modal-overlay" id="serverErrorModal"
          th:if="${errorMsg}">
         <div class="modal-box alert-modal-box">
-            <div class="alert-icon">⚠️</div>
+            <div class="alert-icon">
+                <i data-lucide="triangle-alert"></i>
+            </div>
             <div class="alert-title">오류 발생</div>
             <div class="alert-desc" th:text="${errorMsg}">오류 메시지</div>
             <button class="btn-alert-ok" onclick="closeModal('serverErrorModal')">확인</button>

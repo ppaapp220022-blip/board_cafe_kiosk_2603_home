@@ -83,7 +83,7 @@
                          alt="미리보기">
                     <div class="image-placeholder" id="imgPlaceholder"
                          th:style="${game != null and game.imageUrl != null} ? 'display:none' : ''">
-                        📷<br>이미지를 선택하면 미리보기가 표시됩니다
+                        <br>이미지를 선택하면 미리보기가 표시됩니다
                     </div>
                 </div>
                 <input type="file" id="imageFile" name="imageFile" class="form-control"
@@ -110,7 +110,7 @@
 
             <!-- ── 수정 모드: 기존 재고 목록 ── -->
             <th:block th:if="${game != null and game.id != 0}">
-                <div class="section-title">🎯 보유 재고 관리</div>
+                <div class="section-title">보유 재고 관리</div>
                 <div class="item-list" id="existingItemList">
 
                     <p class="empty-items-msg"
@@ -148,13 +148,13 @@
                                 th:name="'items[' + ${stat.index} + '].status'"
                                 th:onchange="'onStatusChange(this, ' + ${item.id} + ')'">
                             <option value="NORMAL"
-                                    th:selected="${item.status.name() == 'NORMAL'}">✅ 대여 가능</option>
+                                    th:selected="${item.status.name() == 'NORMAL'}">대여 가능</option>
                             <option value="RENTED"
-                                    th:selected="${item.status.name() == 'RENTED'}">📦 대여 중</option>
+                                    th:selected="${item.status.name() == 'RENTED'}">대여 중</option>
                             <option value="DAMAGED"
-                                    th:selected="${item.status.name() == 'DAMAGED'}">⚠️ 손상</option>
+                                    th:selected="${item.status.name() == 'DAMAGED'}">손상</option>
                             <option value="LOST"
-                                    th:selected="${item.status.name() == 'LOST'}">❌ 분실</option>
+                                    th:selected="${item.status.name() == 'LOST'}">분실</option>
                         </select>
 
                         <!--
@@ -168,7 +168,7 @@
                                          : (${item.status.name() == 'RENTED'} ? '대여 중인 항목은 삭제할 수 없습니다' : '아이템을 삭제합니다')"
                                 th:onclick="${item.status.name() == 'DAMAGED' or item.status.name() == 'LOST'}
                                             ? 'markDeleted(' + ${item.id} + ', this)' : ''">
-                            🗑 삭제
+                            삭제
                         </button>
                     </div>
                 </div>
@@ -176,7 +176,7 @@
 
             <!-- ── 신규 재고 추가 ── -->
             <div class="section-title"
-                 th:text="${game != null and game.id != 0} ? '➕ 신규 재고 추가' : '🎯 초기 재고 등록 (선택)'">
+                 th:text="${game != null and game.id != 0} ? '신규 재고 추가' : '초기 재고 등록 (선택)'">
             </div>
             <div class="item-list" id="newItemList"></div>
             <button type="button" class="btn-add-item" onclick="addNewItem()">

@@ -16,7 +16,7 @@
 <th:block layout:fragment="content">
     <span id="isAdminOrSuper" sec:authorize="hasAnyRole('ADMIN', 'SUPER')" style="display:none;"></span>
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-        <h1 class="page-title">💬 매크로 메시지 관리</h1>
+        <h1 class="page-title">매크로 메시지 관리</h1>
 
         <!-- 매크로 등록 버튼: ADMIN, SUPER 가능-->
         <button id="btnAddMacro" class="btn-add"
