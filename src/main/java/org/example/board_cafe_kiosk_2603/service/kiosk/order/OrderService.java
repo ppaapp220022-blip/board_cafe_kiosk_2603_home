@@ -189,13 +189,6 @@ public class OrderService {
                 .collect(Collectors.toList());
     }
 
-    public List<OrdersDTO> getNewNormalOrders() {
-        return ordersMapper.findByStatus(OrderStatus.ORDERED.name()).stream()
-                .map(order -> toDTO(order, fetchItemDTOs(order.getId())))
-                .filter(order -> !isGameOnlyOrder(order))
-                .collect(Collectors.toList());
-    }
-
     public List<OrdersDTO> getOrdersByTableId(int tableId) {
         var session = tableSessionMapper.findActiveByTableId(tableId);
         if (session == null) return List.of();

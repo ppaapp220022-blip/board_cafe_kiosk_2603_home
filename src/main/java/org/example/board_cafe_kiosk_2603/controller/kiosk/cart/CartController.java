@@ -5,8 +5,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.example.board_cafe_kiosk_2603.dto.kiosk.cart.CartDTO;
 import org.example.board_cafe_kiosk_2603.dto.kiosk.cart.CartItemDTO;
-import org.example.board_cafe_kiosk_2603.service.kiosk.KioskPageService;
 import org.example.board_cafe_kiosk_2603.service.kiosk.cart.CartService;
+import org.example.board_cafe_kiosk_2603.service.kiosk.tableSession.TableSessionKioskService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -30,7 +30,7 @@ import java.util.Map;
 public class CartController {
 
     private final CartService     cartService;
-    private final KioskPageService kioskPageService;
+    private final TableSessionKioskService tableSessionKioskService;
 
     // ===========================================================
     // 페이지
@@ -40,7 +40,7 @@ public class CartController {
     public String cartPage(HttpSession session, Model model) {
         Integer tableNumber = tableNumber(session);
         if (tableNumber == null) return "redirect:/kiosk/session/start";
-        kioskPageService.buildCartModel(model, tableNumber, session);
+        tableSessionKioskService.buildCartModel(model, tableNumber, session);
         return "kiosk/cart";
     }
 

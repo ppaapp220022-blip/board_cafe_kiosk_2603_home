@@ -8,7 +8,6 @@ import org.example.board_cafe_kiosk_2603.dto.kiosk.order.OrderCreateRequest;
 import org.example.board_cafe_kiosk_2603.dto.kiosk.order.OrderItemDTO;
 import org.example.board_cafe_kiosk_2603.dto.kiosk.order.OrdersDTO;
 import org.example.board_cafe_kiosk_2603.service.admin.product.GameService;
-import org.example.board_cafe_kiosk_2603.service.kiosk.KioskPageService;
 import org.example.board_cafe_kiosk_2603.service.kiosk.order.OrderService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -42,7 +41,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OrderController {
     private final OrderService orderService;
-    private final KioskPageService kioskPageService;
     private final GameService gameService;
 
     // ===========================================================

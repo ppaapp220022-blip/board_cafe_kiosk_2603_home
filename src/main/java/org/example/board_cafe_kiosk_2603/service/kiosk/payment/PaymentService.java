@@ -466,7 +466,8 @@ public class PaymentService {
             currentSessionId = cafeTableMapper.selectCurrentSessionId(tableId);
         }
 
-        log.debug("결제 완료 후 세션 종료/상태 반영 결과 | tableId: {}, sessionId: {}, msgReadRows: {}, closeRows: {}, statusRows: {}, finalStatus: {}, finalCurrentSessionId: {}",
+        log.debug("결제 완료 후 세션 종료/상태 반영 결과 | " + "tableId: {}, sessionId: {}, " +
+                        "msgReadRows: {}, closeRows: {}, statusRows: {}, finalStatus: {}, finalCurrentSessionId: {}",
                 tableId, sessionId, readUpdated, closedRows, statusRows, currentStatus, currentSessionId);
     }
 

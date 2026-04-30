@@ -1,4 +1,4 @@
-package org.example.board_cafe_kiosk_2603.controller.common;
+package org.example.board_cafe_kiosk_2603.controller.kiosk.tableSession;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -46,7 +46,7 @@ import java.util.*;
 @Controller
 @RequestMapping("/kiosk")
 @RequiredArgsConstructor
-public class kioskController {
+public class TableSessionController {
 
     private final GameService gameService;
     private final MenuService menuService;

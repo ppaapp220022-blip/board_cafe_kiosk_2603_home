@@ -6,7 +6,7 @@ import jakarta.servlet.http.HttpSession;
 import org.example.board_cafe_kiosk_2603.dto.admin.table.CafeTableDTO;
 import org.example.board_cafe_kiosk_2603.dto.kiosk.order.OrderItemDTO;
 import org.example.board_cafe_kiosk_2603.service.admin.cafeTable.CafeTableService;
-import org.example.board_cafe_kiosk_2603.service.kiosk.KioskPageService;
+import org.example.board_cafe_kiosk_2603.service.kiosk.tableSession.TableSessionKioskService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -21,7 +21,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class TableController {
     private final CafeTableService cafeTableService;
-    private final KioskPageService kioskPageService;
+    private final TableSessionKioskService tableSessionKioskService;
 
     /**
      * 대시보드 메인 페이지
@@ -87,7 +87,7 @@ public class TableController {
         session.setAttribute("tableNumber", tableNumber);
         session.setAttribute("adminCheckoutMode", true);
 
-        kioskPageService.buildCheckoutModel(model, tableNumber, session);
+        tableSessionKioskService.buildCheckoutModel(model, tableNumber, session);
         model.addAttribute("tableNumber", tableNumber);
         model.addAttribute("checkoutSource", "admin");
         return "kiosk/checkout";
@@ -100,7 +100,7 @@ public class TableController {
     @ResponseBody
     @GetMapping("/{id}/checkout-meta")
     public ResponseEntity<Map<String, Object>> getCheckoutMeta(@PathVariable("id") Integer id) {
-        return ResponseEntity.ok(kioskPageService.buildCheckoutMeta(id));
+        return ResponseEntity.ok(tableSessionKioskService.buildCheckoutMeta(id));
     }
 
     /**

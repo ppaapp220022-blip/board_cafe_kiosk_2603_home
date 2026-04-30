@@ -5,8 +5,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.example.board_cafe_kiosk_2603.dto.kiosk.payment.PaymentDTO;
-import org.example.board_cafe_kiosk_2603.service.kiosk.KioskPageService;
 import org.example.board_cafe_kiosk_2603.service.kiosk.payment.PaymentService;
+import org.example.board_cafe_kiosk_2603.service.kiosk.tableSession.TableSessionKioskService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class PaymentController {
 
-    private final KioskPageService kioskPageService;
+    private final TableSessionKioskService tableSessionKioskService;
     private final PaymentService paymentService;
 
     // ===================================================
@@ -44,7 +44,7 @@ public class PaymentController {
             return "redirect:/kiosk";
         }
 
-        kioskPageService.buildCheckoutModel(model, tableNumber, session);
+        tableSessionKioskService.buildCheckoutModel(model, tableNumber, session);
         model.addAttribute("tableNumber", tableNumber);
         model.addAttribute("checkoutSource", "kiosk");
 
