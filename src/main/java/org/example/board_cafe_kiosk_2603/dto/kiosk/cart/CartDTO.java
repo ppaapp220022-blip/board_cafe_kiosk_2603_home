@@ -7,6 +7,12 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+/*
+ * 작성자 : 김민기
+ * 기능 : Cart 데이터 전달 객체
+ * 날짜 : 2026-03-27
+ */
+
 @Data
 @Builder
 @NoArgsConstructor

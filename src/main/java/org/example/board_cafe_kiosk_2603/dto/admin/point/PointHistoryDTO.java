@@ -5,6 +5,12 @@ import org.example.board_cafe_kiosk_2603.domain.admin.point.PointHistory;
 
 import java.time.LocalDateTime;
 
+/*
+ * 작성자 : 김민기
+ * 기능 : PointHistory 데이터 전달 객체
+ * 날짜 : 2026-03-27
+ */
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -17,8 +23,12 @@ public class PointHistoryDTO {
     private int amount;
     private int balanceAfter;
     private LocalDateTime createdAt;
+    /*
+     * 작성자 : 김민기
+     * 기능 : 정적 팩토리 메서드
+     * 날짜 : 2026-03-27
+     */
 
-    // === 정적 팩토리 ===
     public static PointHistoryDTO from(PointHistory history) {
         return PointHistoryDTO.builder()
                 .id(history.getId())

@@ -8,31 +8,60 @@ import org.example.board_cafe_kiosk_2603.dto.common.pagination.PageResponseDTO;
 
 import java.util.List;
 
+
+
+/*
+ * 작성자 : 서주연
+ * 기능 : 카테고리 서비스 인터페이스
+ * 날짜 : 2026-03-27
+ */
 public interface CategoryService {
-    /* 카테고리 전체 목록 반환 (연결 상품 수 포함) */
+    /*
+     * 작성자 : 서주연
+     * 기능 : 전체 목록 조회
+     * 날짜 : 2026-03-27
+     */
     List<CategoryResponseDTO> getAll();
-
-    /* type 기준 카테고리 목록 반환 */
+    /*
+     * 작성자 : 서주연
+     * 기능 : 유형별 목록 조회
+     * 날짜 : 2026-03-27
+     */
     List<CategoryResponseDTO> getByType(CategoryType type);
-
-    /* PK로 카테고리 단건 반환 */
+    /*
+     * 작성자 : 서주연
+     * 기능 : ID로 단건 조회
+     * 날짜 : 2026-03-27
+     */
     CategoryResponseDTO getById(int id);
-
-    /* 카테고리 등록 */
+    /*
+     * 작성자 : 서주연
+     * 기능 : 데이터 등록
+     * 날짜 : 2026-03-27
+     */
     void register(CategoryRequestDTO categoryRequestDTO);
-
-    /* 카테고리 수정 */
+    /*
+     * 작성자 : 서주연
+     * 기능 : 데이터 수정
+     * 날짜 : 2026-03-27
+     */
     void modify(int id, CategoryRequestDTO categoryRequestDTO);
-
-    /* 카테고리 삭제 */
-    // 연결된 상품이 존재할 경우 IllegalStateException 발생
+    /*
+     * 작성자 : 서주연
+     * 기능 : 데이터 삭제
+     * 날짜 : 2026-03-27
+     */
     void remove(int id);
-
-    /* 삭제 가능 여부 확인 */
-    // 연결 상품 수가 0이면 true 반환
-    // Controller에서 사전 검증 후 클라이언트에 피드백 제공 시 활용
+    /*
+     * 작성자 : 서주연
+     * 기능 : 삭제 가능 여부 확인
+     * 날짜 : 2026-03-27
+     */
     boolean canDelete(int id);
-
-    /** 전체 카테고리 목록 - 페이징 */
+    /*
+     * 작성자 : 서주연
+     * 기능 : 전체 목록 조회
+     * 날짜 : 2026-03-27
+     */
     PageResponseDTO<CategoryResponseDTO> getAll(PageRequestDTO pageRequestDTO);
 }

@@ -5,16 +5,12 @@ import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
-
-/**
- * WebSocket STOMP 설정
- * 
- * 주문 상태 실시간 업데이트를 위한 웹소켓 설정
- * 
- * 엔드포인트: /ws/orders
- * 구독: /topic/orders/{tableId}
- * 발행: /app/subscribe/{tableId}
+/*
+ * 작성자 : 김민기
+ * 기능 : WebSocket STOMP 설정
+ * 날짜 : 2026-04-09
  */
+
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {

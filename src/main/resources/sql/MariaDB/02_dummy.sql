@@ -112,48 +112,48 @@ VALUES (1, 2, 2, '2026-03-25 13:00:00', '2026-03-25 15:10:00', FALSE, 24500), --
 -- ============================================================
 -- 7. menu (음식·음료 + 추가인원 상품)
 -- ============================================================
-INSERT INTO `menu` (`category_id`, `name`, `price`, `description`, `is_available`)
-VALUES (1, '아메리카노', 3000, '깔끔하고 진한 에스프레소 베이스', TRUE),   -- 1
-       (1, '카페라떼', 3500, '우유와 에스프레소의 조화', TRUE),        -- 2
-       (1, '카푸치노', 3500, '풍성한 우유 거품과 에스프레소', TRUE),     -- 3
-       (1, '바닐라라떼', 4000, '달콤한 바닐라 시럽 추가', TRUE),       -- 4
-       (2, '레몬에이드', 4000, '상큼한 국산 레몬 착즙', TRUE),        -- 5
-       (2, '자몽에이드', 4000, '달콤 쌉싸름한 자몽 에이드', TRUE),      -- 6
-       (2, '녹차라떼', 3500, '국내산 말차 분말 사용', TRUE),         -- 7
-       (2, '유자차', 3500, '따뜻하게도 아이스로도', TRUE),           -- 8
-       (3, '팝콘 (오리지널)', 2000, '고소한 버터 팝콘', TRUE),       -- 9
-       (3, '팝콘 (카라멜)', 2500, '달콤한 카라멜 코팅', TRUE),       -- 10
-       (3, '나초 + 살사소스', 3000, '바삭한 나초와 살사소스 콤보', TRUE), -- 11
-       (3, '믹스 너트', 3500, '7가지 프리미엄 너트 혼합', TRUE),      -- 12
-       (4, '토스트 세트', 5000, '계란 토스트 + 음료 세트', TRUE),     -- 13
-       (4, '컵라면', 1500, '신라면·짜파게티 선택 가능', TRUE),        -- 14
-       (4, '핫도그', 3000, '국산 돼지고기 소시지 사용', FALSE),       -- 15
-       (8, '인원 추가 (1명)', 5000, '기본 패키지 인당 추가 요금', TRUE); -- 16
+INSERT INTO `menu` (`category_id`, `name`, `price`, `description`, `image_url`, `is_available`)
+VALUES (1, '아메리카노', 3000, '깔끔하고 진한 에스프레소 베이스', '/images/products/americano-coffee.svg', TRUE),   -- 1
+       (1, '카페라떼', 3500, '우유와 에스프레소의 조화', '/images/products/cafe-latte.svg', TRUE),        -- 2
+       (1, '카푸치노', 3500, '풍성한 우유 거품과 에스프레소', '/images/products/cappuccino.svg', TRUE),     -- 3
+       (1, '바닐라라떼', 4000, '달콤한 바닐라 시럽 추가', '/images/products/vanilla-latte.svg', TRUE),       -- 4
+       (2, '레몬에이드', 4000, '상큼한 국산 레몬 착즙', '/images/products/lemon-ade.svg', TRUE),        -- 5
+       (2, '자몽에이드', 4000, '달콤 쌉싸름한 자몽 에이드', '/images/products/grapefruit-ade.svg', TRUE),      -- 6
+       (2, '녹차라떼', 3500, '국내산 말차 분말 사용', '/images/products/green-tea-latte.svg', TRUE),         -- 7
+       (2, '유자차', 3500, '따뜻하게도 아이스로도', '/images/products/citron-tea.svg', TRUE),           -- 8
+       (3, '팝콘 (오리지널)', 2000, '고소한 버터 팝콘', '/images/products/popcorn-original.svg', TRUE),       -- 9
+       (3, '팝콘 (카라멜)', 2500, '달콤한 카라멜 코팅', '/images/products/popcorn-caramel.svg', TRUE),       -- 10
+       (3, '나초 + 살사소스', 3000, '바삭한 나초와 살사소스 콤보', '/images/products/nacho-salsa.svg', TRUE), -- 11
+       (3, '믹스 너트', 3500, '7가지 프리미엄 너트 혼합', '/images/products/mixed-nuts.svg', TRUE),      -- 12
+       (4, '토스트 세트', 5000, '계란 토스트 + 음료 세트', '/images/products/toast-set.svg', TRUE),     -- 13
+       (4, '컵라면', 1500, '신라면·짜파게티 선택 가능', '/images/products/cup-noodle.svg', TRUE),        -- 14
+       (4, '핫도그', 3000, '국산 돼지고기 소시지 사용', '/images/products/hotdog.svg', FALSE),       -- 15
+       (8, '인원 추가 (1명)', 5000, '기본 패키지 인당 추가 요금', '/images/products/extra-guest.svg', TRUE); -- 16
 
 -- ============================================================
 -- game 관련 더미 데이터 추가
 -- ============================================================
 
 -- 게임을 menu 테이블에도 등록 (cart_item.menu_id FK 연결용, price=0)
-INSERT INTO `menu` (`category_id`, `name`, `price`, `description`, `is_available`)
-VALUES (5, '맞춤법 게임',  0, '맞춤법을 맞추는 파티 게임', TRUE),   -- 17
-       (6, '숫자 맞추기', 0, '숫자를 맞추는 게임', TRUE),           -- 18
-       (6, '동물 맞추기', 0, '동물 카드 게임', TRUE),               -- 19
-       (7, '색상 맞추기', 0, '색상을 맞추는 협력 게임', TRUE),      -- 20
-       (5, '스피드 게임',  0, '빠르게 반응하는 전략 게임', TRUE),   -- 21
-       (6, '퀴즈 게임',   0, '다양한 퀴즈 보드게임', TRUE);         -- 22
+INSERT INTO `menu` (`category_id`, `name`, `price`, `description`, `image_url`, `is_available`)
+VALUES (5, '맞춤법 게임',  0, '맞춤법을 맞추는 파티 게임', '/images/products/spelling-game.svg', TRUE),   -- 17
+       (6, '숫자 맞추기', 0, '숫자를 맞추는 게임', '/images/products/number-guess.svg', TRUE),           -- 18
+       (6, '동물 맞추기', 0, '동물 카드 게임', '/images/products/animal-match.svg', TRUE),               -- 19
+       (7, '색상 맞추기', 0, '색상을 맞추는 협력 게임', '/images/products/color-match.svg', TRUE),      -- 20
+       (5, '스피드 게임',  0, '빠르게 반응하는 전략 게임', '/images/products/speed-game.svg', TRUE),   -- 21
+       (6, '퀴즈 게임',   0, '다양한 퀴즈 보드게임', '/images/products/quiz-game.svg', TRUE);         -- 22
 
 -- ============================================================
 -- 10. game (보드게임 종목 — MenuService.getGameItems() 이름과 일치)
 -- ============================================================
 --   category: 5=전략 게임, 6=파티 게임, 7=협력 게임
-INSERT INTO `game` (`category_id`, `name`, `min_players`, `max_players`, `play_time`, `is_active`)
-VALUES (6, '맞춤법 게임', 2, 6, 20, TRUE), -- id=1  stock=NORMAL 3개
-       (6, '숫자 맞추기', 2, 4, 15, TRUE), -- id=2  stock=NORMAL 2개
-       (6, '동물 맞추기', 2, 6, 20, TRUE), -- id=3  stock=NORMAL 0개 (전부 대여중/파손)
-       (7, '색상 맞추기', 2, 5, 25, TRUE), -- id=4  stock=NORMAL 1개
-       (5, '스피드 게임', 2, 8, 10, TRUE), -- id=5  stock=NORMAL 0개 (전부 대여중)
-       (6, '퀴즈 게임', 2, 10, 30, TRUE);
+INSERT INTO `game` (`category_id`, `name`, `min_players`, `max_players`, `play_time`, `image_url`, `is_active`)
+VALUES (6, '맞춤법 게임', 2, 6, 20, '/images/products/spelling-game.svg', TRUE), -- id=1  stock=NORMAL 3개
+       (6, '숫자 맞추기', 2, 4, 15, '/images/products/number-guess.svg', TRUE), -- id=2  stock=NORMAL 2개
+       (6, '동물 맞추기', 2, 6, 20, '/images/products/animal-match.svg', TRUE), -- id=3  stock=NORMAL 0개 (전부 대여중/파손)
+       (7, '색상 맞추기', 2, 5, 25, '/images/products/color-match.svg', TRUE), -- id=4  stock=NORMAL 1개
+       (5, '스피드 게임', 2, 8, 10, '/images/products/speed-game.svg', TRUE), -- id=5  stock=NORMAL 0개 (전부 대여중)
+       (6, '퀴즈 게임', 2, 10, 30, '/images/products/quiz-game.svg', TRUE);
 -- id=6  stock=NORMAL 4개
 
 -- ============================================================

@@ -4,22 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-/**
- * 주문 생성 요청 DTO
- *
- * cart.html의 confirmOrder() 함수에서 사용:
- *
- * fetch('/kiosk/order/create', {
- *   method: 'POST',
- *   headers: { 'Content-Type': 'application/json' },
- *   body: JSON.stringify({
- *     tableNumber: 5,
- *     totalAmount: 15000,
- *     customerPhone: "010-1234-5678" (optional)
- *   })
- * })
+/*
+ * 작성자 : 김민기
+ * 기능 : 주문 생성 요청 DTO
+ * 날짜 : 2026-04-06
  */
+
 @Data
 @Builder
 @NoArgsConstructor

@@ -13,16 +13,12 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
-
-/**
- * 장바구니 페이지 + REST API.
- *
- * [페이지] GET    /kiosk/cart        → cart.html
- * [API]   GET    /kiosk/cart/items  → 장바구니 조회
- *         POST   /kiosk/cart/add    → 상품 추가
- *         PUT    /kiosk/cart/update → 수량 변경 / 삭제
- *         DELETE /kiosk/cart/clear  → 전체 비우기
+/*
+ * 작성자 : 김민기
+ * 기능 : 장바구니 페이지 + REST API.
+ * 날짜 : 2026-03-27
  */
+
 @Log4j2
 @Controller
 @RequestMapping("/kiosk/cart")
@@ -31,10 +27,12 @@ public class CartController {
 
     private final CartService     cartService;
     private final TableSessionKioskService tableSessionKioskService;
+    /*
+     * 작성자 : 김민기
+     * 기능 : 장바구니 페이지 조회
+     * 날짜 : 2026-03-27
+     */
 
-    // ===========================================================
-    // 페이지
-    // ===========================================================
 
     @GetMapping
     public String cartPage(HttpSession session, Model model) {
@@ -43,10 +41,12 @@ public class CartController {
         tableSessionKioskService.buildCartModel(model, tableNumber, session);
         return "kiosk/cart";
     }
+    /*
+     * 작성자 : 김민기
+     * 기능 : 장바구니 조회
+     * 날짜 : 2026-03-27
+     */
 
-    // ===========================================================
-    // REST API
-    // ===========================================================
 
     @GetMapping("/items")
     @ResponseBody
@@ -55,6 +55,12 @@ public class CartController {
         if (tableNumber == null) return ResponseEntity.badRequest().build();
         return ResponseEntity.ok(cartService.getCart(tableNumber));
     }
+
+    /*
+     * 작성자 : 김민기
+     * 기능 : addToCart 메서드
+     * 날짜 : 2026-03-27
+     */
 
     @PostMapping(value = "/add")
     @ResponseBody
@@ -78,6 +84,12 @@ public class CartController {
         }
     }
 
+    /*
+     * 작성자 : 김민기
+     * 기능 : updateCart 메서드
+     * 날짜 : 2026-03-27
+     */
+
     @PutMapping("/update")
     @ResponseBody
     public ResponseEntity<CartDTO> updateCart(@RequestBody CartItemDTO item,
@@ -87,6 +99,12 @@ public class CartController {
         return ResponseEntity.ok(cartService.updateItem(tableNumber, item));
     }
 
+    /*
+     * 작성자 : 김민기
+     * 기능 : clearCart 메서드
+     * 날짜 : 2026-03-27
+     */
+
     @DeleteMapping("/clear")
     @ResponseBody
     public ResponseEntity<CartDTO> clearCart(HttpSession session) {
@@ -94,19 +112,12 @@ public class CartController {
         if (tableNumber == null) return ResponseEntity.badRequest().build();
         return ResponseEntity.ok(cartService.clearCart(tableNumber));
     }
-
-    // ===========================================================
-    // 헬퍼
-    // ===========================================================
-
-//    private Integer tableNumber(HttpSession session) {
-//        return (Integer) session.getAttribute("tableNumber");
-//    }
-    /**
-     * session의 tableNumber를 Integer로 안전하게 변환
-     * - KioskLoginSuccessHandler에서 Integer로 저장되지만
-     *   이전 세션(String 저장)이 남아있을 경우를 방어
+    /*
+     * 작성자 : 김민기
+     * 기능 : 세션에서 테이블 번호 조회
+     * 날짜 : 2026-03-27
      */
+
     private Integer tableNumber(HttpSession session) {
         Object raw = session.getAttribute("tableNumber");
         if (raw == null) {

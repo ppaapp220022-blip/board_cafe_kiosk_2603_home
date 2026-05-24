@@ -7,53 +7,116 @@ import org.example.board_cafe_kiosk_2603.dto.common.pagination.PageResponseDTO;
 
 import java.util.List;
 
-/**
- * Menu 비즈니스 로직 인터페이스
+
+/*
+ * 작성자 : 서주연
+ * 기능 : 메뉴 상품 서비스 인터페이스
+ * 날짜 : 2026-03-27
  */
 public interface MenuService {
-    /** 전체 메뉴 목록 반환 (소프트 삭제 제외) */
+    /*
+     * 작성자 : 서주연
+     * 기능 : 전체 목록 조회
+     * 날짜 : 2026-03-27
+     */
     List<MenuResponseDTO> getAll();
 
-    /** category_id 기준 메뉴 목록 반환 */
+    /*
+     * 작성자 : 서주연
+     * 기능 : 카테고리 ID 기준 조회
+     * 날짜 : 2026-03-27
+     */
     List<MenuResponseDTO> getByCategoryId(int categoryId);
 
-    /** 판매 가능 여부 기준 메뉴 목록 반환 */
+    /*
+     * 작성자 : 서주연
+     * 기능 : 판매 가능 여부별 조회
+     * 날짜 : 2026-03-27
+     */
     List<MenuResponseDTO> getByIsAvailable(boolean isAvailable);
 
-    /** PK로 메뉴 단건 반환 */
+    /*
+     * 작성자 : 서주연
+     * 기능 : ID로 단건 조회
+     * 날짜 : 2026-03-30
+     */
     MenuResponseDTO getById(int id);
 
-    /** 메뉴 등록 */
+    /*
+     * 작성자 : 서주연
+     * 기능 : 데이터 등록
+     * 날짜 : 2026-03-30
+     */
     void register(MenuRequestDTO menuRequestDTO);
 
-    /** 메뉴 수정 */
+    /*
+     * 작성자 : 서민성
+     * 기능 : 데이터 수정
+     * 날짜 : 2026-04-13
+     */
     void modify(int id, MenuRequestDTO menuRequestDTO);
 
-    /** 메뉴 소프트 삭제 (숨김)*/
+    /*
+     * 작성자 : 서주연
+     * 기능 : 데이터 삭제
+     * 날짜 : 2026-04-15
+     */
     void remove(int id);
 
-    /** 메뉴 복원 (소프트 삭제 해제) */
+    /*
+     * 작성자 : 서주연
+     * 기능 : 삭제 데이터 복구
+     * 날짜 : 2026-03-30
+     */
     void restore(int id);
 
-    /** 메뉴 판매 상태 토글 */
+    /*
+     * 작성자 : 서주연
+     * 기능 : 판매 가능 여부 전환
+     * 날짜 : 2026-03-27
+     */
     void toggleAvailable(int id);
 
-    /** category type 기준 메뉴 목록 반환 (FOOD / DRINK / GUEST) */
+    /*
+     * 작성자 : 서민성
+     * 기능 : 유형별 목록 조회
+     * 날짜 : 2026-04-13
+     */
     List<MenuResponseDTO> getByType(String type);
 
-    /** 소프트 삭제 여부 기준 메뉴 목록 반환 (숨김 탭용) */
+    /*
+     * 작성자 : 서민성
+     * 기능 : 삭제 상태별 조회
+     * 날짜 : 2026-04-13
+     */
     List<MenuResponseDTO> getByIsDeleted(boolean isDeleted);
 
-    /*========페이지=======*/
-    /** category type 기준 메뉴 목록 반환 - 페이징 */
+    /*
+     * 작성자 : 서민성
+     * 기능 : 유형별 목록 조회
+     * 날짜 : 2026-04-13
+     */
     PageResponseDTO<MenuResponseDTO> getByType(String type, PageRequestDTO pageRequestDTO);
 
-    /** category type + category_id 기준 메뉴 목록 반환 - 페이징 */
+    /*
+     * 작성자 : 서민성
+     * 기능 : 유형 및 카테고리별 조회
+     * 날짜 : 2026-04-13
+     */
     PageResponseDTO<MenuResponseDTO> getByTypeAndCategoryId(String type, int categoryId, PageRequestDTO pageRequestDTO);
 
-    /** 소프트 삭제 여부 기준 메뉴 목록 반환 - 페이징 (숨김 탭용) */
+    /*
+     * 작성자 : 서민성
+     * 기능 : 삭제 상태별 조회
+     * 날짜 : 2026-04-13
+     */
     PageResponseDTO<MenuResponseDTO> getByIsDeleted(boolean isDeleted, PageRequestDTO pageRequestDTO);
 
-    /** 소프트 삭제 여부 + category_id 기준 메뉴 목록 반환 - 페이징 */
+    /*
+     * 작성자 : 서주연
+     * 기능 : 삭제 상태 및 카테고리별 조회
+     * 날짜 : 2026-04-15
+     */
     PageResponseDTO<MenuResponseDTO> getByIsDeletedAndCategoryId(boolean isDeleted, int categoryId, PageRequestDTO pageRequestDTO);
 }
+

@@ -12,11 +12,12 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
-/**
- * 관리자 포인트 관리 컨트롤러
- * URL: /admin/points/*
+/*
+ * 작성자 : 김민기
+ * 기능 : 관리자 포인트 관리 컨트롤러
+ * 날짜 : 2026-03-27
  */
+
 @Log4j2
 @Controller
 @RequestMapping("/admin/points")
@@ -24,32 +25,34 @@ import java.util.List;
 public class PointController {
 
     private final PointService pointService;
+    /*
+     * 작성자 : 서민성
+     * 기능 : 포인트 관리 페이지
+     * 날짜 : 2026-04-09
+     */
 
-    /** 포인트 관리 페이지 */
-//    @GetMapping
-//    public String pointManagement(Model model) {
-//        model.addAttribute("pointList",      pointService.getAllPoints());
-//        model.addAttribute("totalCustomers", pointService.getTotalCustomers());
-//        model.addAttribute("totalPoints",    pointService.getTotalPoints());
-//        model.addAttribute("avgPoints",      pointService.getAvgPoints());
-//        model.addAttribute("activePage",     "pointManagement");
-//        return "admin/point";
-//
-//    }
 
     @GetMapping
     public String pointManagement() {
         return "redirect:/admin/points/list";
     }
+    /*
+     * 작성자 : 김민기
+     * 기능 : 포인트 이력 조회 (AJAX)
+     * 날짜 : 2026-03-27
+     */
 
-    /** 포인트 이력 조회 (AJAX) */
     @GetMapping("/{pointId}/history")
     @ResponseBody
     public List<PointHistoryDTO> pointHistory(@PathVariable int pointId) {
         return pointService.getHistoryByPointId(pointId);
     }
+    /*
+     * 작성자 : 서민성
+     * 기능 : 페이징 처리된 포인트 목록 페이지
+     * 날짜 : 2026-04-09
+     */
 
-    /* 페이징 처리된 포인트 목록 페이지 */
     @GetMapping("/list")
     public String list(PageRequestDTO pageRequestDTO, Model model) {
         log.info("포인트 페이징 목록 요청: " + pageRequestDTO);

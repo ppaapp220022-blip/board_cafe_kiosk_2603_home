@@ -14,13 +14,12 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-
-/**
- * 패키지 선택 페이지 + REST API 컨트롤러.
- *
- * [페이지] GET  /kiosk/package_selection  → package_selection.html
- * [API]   POST /kiosk/package/select      → 패키지 선택 처리 (JSON)
+/*
+ * 작성자 : 김민기
+ * 기능 : 패키지 선택 페이지 + REST API 컨트롤러.
+ * 날짜 : 2026-03-27
  */
+
 @Log4j2
 @Controller
 @RequestMapping("/kiosk")
@@ -31,10 +30,12 @@ public class CafePackageController {
     private final CafeTableService cafeTableService;
     private final TableSessionKioskService tableSessionKioskService;
     private final TableSessionAdminService tableSessionAdminService;
+    /*
+     * 작성자 : 김민기
+     * 기능 : 패키지 선택 페이지 조회
+     * 날짜 : 2026-03-27
+     */
 
-    // ===========================================================
-    // 페이지
-    // ===========================================================
 
     @GetMapping("/package_selection")
     public String packageSelectionPage(HttpSession session, Model model) {
@@ -48,10 +49,12 @@ public class CafePackageController {
         log.info("패키지 선택 화면 - 테이블: {}, 인원: {}", tableNumber, partySize);
         return "kiosk/package_selection";
     }
+    /*
+     * 작성자 : 김민기
+     * 기능 : 패키지 선택 처리
+     * 날짜 : 2026-03-27
+     */
 
-    // ===========================================================
-    // REST API
-    // ===========================================================
 
     @PostMapping("/package/select")
     @ResponseBody

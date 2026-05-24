@@ -5,6 +5,12 @@ import org.example.board_cafe_kiosk_2603.domain.admin.point.Point;
 
 import java.time.LocalDateTime;
 
+/*
+ * 작성자 : 김민기
+ * 기능 : PointAdmin 데이터 전달 객체
+ * 날짜 : 2026-03-27
+ */
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -14,8 +20,12 @@ public class PointAdminDTO {
     private String phone;
     private int balance;
     private LocalDateTime updatedAt;
+    /*
+     * 작성자 : 김민기
+     * 기능 : 정적 팩토리 메서드
+     * 날짜 : 2026-03-27
+     */
 
-    // === 정적 팩토리 ===
     public static PointAdminDTO from(Point point) {
         return PointAdminDTO.builder()
                 .id(point.getId())

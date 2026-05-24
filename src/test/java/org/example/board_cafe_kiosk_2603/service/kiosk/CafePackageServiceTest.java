@@ -17,6 +17,12 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
+/*
+ * 작성자 : 김민기
+ * 기능 : CafePackageService 테스트
+ * 날짜 : 2026-03-27
+ */
+
 @Log4j2
 @ExtendWith(MockitoExtension.class)
 class CafePackageServiceTest {
@@ -27,12 +33,24 @@ class CafePackageServiceTest {
     @InjectMocks
     private CafePackageService cafePackageService;
 
+    /*
+     * 작성자 : 김민기
+     * 기능 : buildPackage 메서드
+     * 날짜 : 2026-03-27
+     */
+
     private CafePackage buildPackage(int id, String name, int price) {
         return CafePackage.builder()
                 .id(id).name(name).type("HOURLY")
                 .durationMinutes(60).basePrice(price).active(true)
                 .build();
     }
+
+    /*
+     * 작성자 : 김민기
+     * 기능 : getActivePackages_returnsList 메서드
+     * 날짜 : 2026-03-27
+     */
 
     @Test
     void getActivePackages_returnsList() {
@@ -51,12 +69,24 @@ class CafePackageServiceTest {
         then(cafePackageMapper).should().findAllActive();
     }
 
+    /*
+     * 작성자 : 김민기
+     * 기능 : getActivePackages_empty 메서드
+     * 날짜 : 2026-03-27
+     */
+
     @Test
     void getActivePackages_empty() {
         given(cafePackageMapper.findAllActive()).willReturn(List.of());
 
         assertThat(cafePackageService.getActivePackages()).isEmpty();
     }
+
+    /*
+     * 작성자 : 김민기
+     * 기능 : getById_success 메서드
+     * 날짜 : 2026-03-27
+     */
 
     @Test
     void getById_success() {
@@ -67,6 +97,12 @@ class CafePackageServiceTest {
 
         assertThat(cafePackageService.getById(1)).isNotNull();
     }
+
+    /*
+     * 작성자 : 김민기
+     * 기능 : getById_notFound 메서드
+     * 날짜 : 2026-03-27
+     */
 
     @Test
     void getById_notFound() {

@@ -9,6 +9,12 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 
 import java.util.Properties;
 
+/*
+ * 작성자 : 서주연
+ * 기능 : MailSender 설정
+ * 날짜 : 2026-04-08
+ */
+
 @Log4j2
 @Configuration
 public class MailSenderConfig {

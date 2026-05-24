@@ -3,50 +3,55 @@ package org.example.board_cafe_kiosk_2603.mapper.kiosk.payment;
 import org.apache.ibatis.annotations.Mapper;
 import org.example.board_cafe_kiosk_2603.domain.kiosk.payment.Payment;
 
-/**
- * 결제(Payment) 관련 MyBatis Mapper 인터페이스
- * Payment 엔티티의 데이터베이스 CRUD 작업
- */
 @Mapper
+
+/*
+ * 작성자 : 김민기
+ * 기능 : 결제 데이터 접근 인터페이스
+ * 날짜 : 2026-04-06
+ */
 public interface PaymentMapper {
 
-    /**
-     * 결제 레코드 생성
-     * @param payment 저장할 Payment 객체
+    /*
+     * 작성자 : 김민기
+     * 기능 : 데이터 등록
+     * 날짜 : 2026-04-06
      */
     void insert(Payment payment);
 
-    /**
-     * 결제 키로 결제 조회 (중복 결제 방지)
-     * @param paymentKey 토스 결제 키
-     * @return Payment 객체, 없으면 null
+    /*
+     * 작성자 : 김민기
+     * 기능 : 결제 키로 결제 조회
+     * 날짜 : 2026-04-06
      */
     Payment findByPaymentKey(String paymentKey);
 
-    /**
-     * 토스용 주문번호로 결제 조회
-     * @param orderIdToss 토스용 주문번호
-     * @return Payment 객체, 없으면 null
+    /*
+     * 작성자 : 김민기
+     * 기능 : 주문 ID로 결제 조회
+     * 날짜 : 2026-04-06
      */
     Payment findByOrderIdToss(String orderIdToss);
 
-    /**
-     * 세션 ID로 결제 조회
-     * @param sessionId 세션 ID
-     * @return Payment 객체, 없으면 null
+    /*
+     * 작성자 : 김민기
+     * 기능 : 세션 ID 기준 조회
+     * 날짜 : 2026-04-06
      */
     Payment findBySessionId(long sessionId);
 
-    /**
-     * 결제 상태 업데이트 (READY → DONE)
-     * @param payment 업데이트할 Payment 객체
+    /*
+     * 작성자 : 김민기
+     * 기능 : 상태 변경
+     * 날짜 : 2026-04-06
      */
     void updateStatus(Payment payment);
 
-    /**
-     * 결제 ID로 조회
-     * @param id 결제 ID
-     * @return Payment 객체, 없으면 null
+    /*
+     * 작성자 : 김민기
+     * 기능 : ID로 단건 조회
+     * 날짜 : 2026-04-06
      */
     Payment findById(int id);
 }
+

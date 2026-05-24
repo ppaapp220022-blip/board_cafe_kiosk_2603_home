@@ -11,6 +11,12 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/*
+ * 작성자 : 김민기
+ * 기능 : CafePackage 서비스 인터페이스
+ * 날짜 : 2026-03-27
+ */
+
 @Log4j2
 @Service
 @RequiredArgsConstructor
@@ -18,16 +24,24 @@ public class CafePackageService {
 
     private final CafePackageMapper cafePackageMapper;
     private final ModelMapper       modelMapper;
+    /*
+     * 작성자 : 김민기
+     * 기능 : 활성화된 패키지 목록 조회
+     * 날짜 : 2026-03-27
+     */
 
-    /** 활성화된 패키지 목록 조회 */
     public List<CafePackageDTO> getActivePackages() {
         return cafePackageMapper.findAllActive()
                 .stream()
                 .map(p -> modelMapper.map(p, CafePackageDTO.class))
                 .collect(Collectors.toList());
     }
+    /*
+     * 작성자 : 김민기
+     * 기능 : ID로 단건 조회
+     * 날짜 : 2026-03-27
+     */
 
-    /** ID로 단건 조회 */
     public CafePackageDTO getById(int id) {
         CafePackage pkg = cafePackageMapper.findById(id);
         return pkg != null ? modelMapper.map(pkg, CafePackageDTO.class) : null;

@@ -7,42 +7,111 @@ import org.example.board_cafe_kiosk_2603.dto.kiosk.order.OrderItemDTO;
 import java.util.List;
 import java.util.Optional;
 
+
+
+/*
+ * 작성자 : 강수연
+ * 기능 : 관리자 테이블 관리 서비스 인터페이스
+ * 날짜 : 2026-03-26
+ */
 public interface CafeTableService {
-    /* 전체 테이블 목록 및 현재 세션 정보 조회 */
+    /*
+     * 작성자 : 강수연
+     * 기능 : 전체 테이블 상태 조회
+     * 날짜 : 2026-03-26
+     */
     List<CafeTableDTO> getAllTableStatus();
 
-    /* 테이블 상태 변경 (입실/퇴실/청소) 및 세션 동기화 */
+    /*
+     * 작성자 : 강수연
+     * 기능 : 테이블 상태 변경
+     * 날짜 : 2026-03-30
+     */
     void changeTableStatus(Integer id, String status);
 
-    /* 새 액세스 토큰 발급 및 할당 */
+    /*
+     * 작성자 : 서주연
+     * 기능 : 테이블 접근 토큰 재발급
+     * 날짜 : 2026-04-01
+     */
     String generateNewToken(Integer id);
 
-    /* 자정 전체 초기화 실행 (세션 마감 및 테이블 공석 처리) */
+    /*
+     * 작성자 : 서주연
+     * 기능 : 영업일 시작 기준 전체 테이블 초기화
+     * 날짜 : 2026-04-06
+     */
     void resetAllTablesForNewDay();
 
-    /* 실시간 주문 상세 내역 조회(대시보드 모달창에 표시할 특정 테이블의 현재 주문 항목 리스트 출력) */
+    /*
+     * 작성자 : 김민기
+     * 기능 : 활성 주문 목록 조회
+     * 날짜 : 2026-04-16
+     */
     List<OrderItemDTO> getActiveOrders(Integer tableId);
 
-    /* 읽지 않은 테이블 요청 목록 */
+    /*
+     * 작성자 : 강수연
+     * 기능 : 미읽음 메시지 조회
+     * 날짜 : 2026-03-30
+     */
     List<String> getUnreadMessages(Integer tableId);
 
-    /* 알림 확인 처리 */
+    /*
+     * 작성자 : 강수연
+     * 기능 : 메시지 읽음 처리
+     * 날짜 : 2026-03-30
+     */
     void markMessagesAsRead(Integer tableId);
 
-    // 키오스크 로그인
-    // 키오스크 로그인: 테이블 번호 + 비밀번호 검증 후 테이블 반환
+    /*
+     * 작성자 : 서주연
+     * 기능 : 테이블 로그인 처리
+     * 날짜 : 2026-04-01
+     */
     Optional<CafeTable> login(int tableNumber, String password);
 
+
+    /*
+     * 작성자 : 서주연
+     * 기능 : 접근 토큰 갱신
+     * 날짜 : 2026-04-06
+     */
     void updateAccessToken(int tableId, String accessToken);
+
+    /*
+     * 작성자 : 김민기
+     * 기능 : 테이블 상태 조회
+     * 날짜 : 2026-04-12
+     */
     String getTableStatus(int tableId);
+
+    /*
+     * 작성자 : 서주연
+     * 기능 : 현재 세션 ID 조회
+     * 날짜 : 2026-04-06
+     */
     Long findCurrentSessionId(int tableId);
 
-    // table_session 직접 조회
+    /*
+     * 작성자 : 서주연
+     * 기능 : 활성 세션 조회
+     * 날짜 : 2026-04-06
+     */
     Long findActiveSessionByTableId(int tableId);
-    // 불일치 복구
+
+    /*
+     * 작성자 : 서주연
+     * 기능 : 테이블과 세션 상태 동기화
+     * 날짜 : 2026-04-06
+     */
     void syncTableWithSession(int tableId, Long sessionId);
 
-    // access_token 조회 메서드
+    /*
+     * 작성자 : 김민기
+     * 기능 : 테이블 접근 토큰 조회
+     * 날짜 : 2026-04-16
+     */
     String getTableAccessToken(int tableId);
 
 }

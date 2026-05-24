@@ -43,6 +43,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/*
+ * 작성자 : 김민기
+ * 기능 : Payment 서비스 인터페이스
+ * 날짜 : 2026-03-27
+ */
+
 @Log4j2
 @Service
 @RequiredArgsConstructor
@@ -69,16 +75,12 @@ public class PaymentService {
     private String confirmUrl;
 
     private static final double EARN_RATE = 0.05;
-
-    // ===================================================
-    // 1단계: 결제 준비
-    // ===================================================
-
-    /**
-     * 결제 준비 - 토스 결제창 호출 전 준비 단계
-     * 세션 내 여러 주문을 한 번의 결제로 처리
-     * 패키지 요금 + 주문 금액 합산, 포인트 사용 가능
+    /*
+     * 작성자 : 김민기
+     * 기능 : 결제 준비 처리
+     * 날짜 : 2026-03-27
      */
+
     public PaymentDTO preparePayment(int tableNumber, PaymentDTO request) {
         try {
             log.debug("=== 결제 준비 시작 - tableNumber: {}", tableNumber);
@@ -146,16 +148,12 @@ public class PaymentService {
             return errorResponse("결제 준비 중 오류가 발생했습니다.");
         }
     }
-
-    // ===================================================
-    // 2단계: 결제 승인
-    // ===================================================
-
-    /**
-     * 토스 결제 승인 및 DB 저장
-     * 세션 내 여러 주문(Order)을 한 번의 결제(Payment)로 처리
-     * Payment.session_id UNIQUE → 세션당 최종 1회만 결제
+    /*
+     * 작성자 : 김민기
+     * 기능 : 결제 승인 처리
+     * 날짜 : 2026-03-27
      */
+
     @Transactional
     public PaymentDTO confirmPayment(String paymentKey, String orderIdToss,
                                      int amount, int tableNumber,
@@ -243,10 +241,12 @@ public class PaymentService {
             return errorResponse("결제 승인 중 오류가 발생했습니다.");
         }
     }
+    /*
+     * 작성자 : 김민기
+     * 기능 : 토스 결제 승인 API 호출
+     * 날짜 : 2026-03-27
+     */
 
-    // ===================================================
-    // 토스 API 호출
-    // ===================================================
 
     private TossConfirmResponse callTossConfirmApi(String paymentKey, String orderId, int amount) {
         try {
@@ -285,6 +285,12 @@ public class PaymentService {
         }
     }
 
+    /*
+     * 작성자 : 김민기
+     * 기능 : parseTossError 메서드
+     * 날짜 : 2026-03-27
+     */
+
     private String parseTossError(String body) {
         try {
             JsonNode root = objectMapper.readTree(body);
@@ -294,24 +300,24 @@ public class PaymentService {
             return "결제 승인에 실패했습니다.";
         }
     }
-
-    // ===================================================
-    // 비즈니스 로직 헬퍼
-    // ===================================================
-
-    /**
-     * 세션의 활성 주문 목록 조회 (CANCELLED 제외)
+    /*
+     * 작성자 : 김민기
+     * 기능 : 활성 주문 목록 조회
+     * 날짜 : 2026-03-27
      */
+
     private List<Orders> getActiveOrders(long sessionId) {
         List<Orders> sessionOrders = ordersMapper.findBySessionId(sessionId);
         return sessionOrders.stream()
                 .filter(o -> !OrderStatus.CANCELLED.name().equals(o.getStatus()))
                 .collect(Collectors.toList());
     }
-
-    /**
-     * 패키지 금액 계산 (인원수 곱하기)
+    /*
+     * 작성자 : 김민기
+     * 기능 : 패키지 금액 계산 (인원수 곱하기)
+     * 날짜 : 2026-03-27
      */
+
     private int calculatePackagePrice(CafeTableSession session) {
         if (session.getPackageId() == null) {
             return 0;
@@ -323,6 +329,12 @@ public class PaymentService {
         int guestCount = session.getInitialGuestCnt() != null ? session.getInitialGuestCnt() : 1;
         return pkg.getBasePrice() * guestCount;
     }
+
+    /*
+     * 작성자 : 김민기
+     * 기능 : calculateOverCharge 메서드
+     * 날짜 : 2026-04-27
+     */
 
     private int calculateOverCharge(CafeTableSession session) {
         if (session == null || session.getPackageId() == null || session.getCheckInTime() == null) {
@@ -350,10 +362,12 @@ public class PaymentService {
         int guestCount = session.getInitialGuestCnt() != null ? session.getInitialGuestCnt() : 1;
         return (int) Math.ceil(overUnits * extraPricePerMin * guestCount);
     }
-
-    /**
-     * CafePackage → CafePackageDTO 변환
+    /*
+     * 작성자 : 김민기
+     * 기능 : CafePackage → CafePackageDTO 변환
+     * 날짜 : 2026-03-27
      */
+
     private CafePackageDTO buildCafePackageDTO(CafePackage pkg) {
         return CafePackageDTO.builder()
                 .id(pkg.getId())
@@ -367,13 +381,31 @@ public class PaymentService {
                 .build();
     }
 
+    /*
+     * 작성자 : 김민기
+     * 기능 : generateOrderId 메서드
+     * 날짜 : 2026-03-27
+     */
+
     private String generateOrderId(int tableNumber) {
         return "KIOSK-T" + tableNumber + "-" + System.currentTimeMillis();
     }
 
+    /*
+     * 작성자 : 김민기
+     * 기능 : generateCustomerKey 메서드
+     * 날짜 : 2026-03-27
+     */
+
     private String generateCustomerKey(int tableNumber, long sessionId) {
         return "GUEST-T" + tableNumber + "-S" + sessionId;
     }
+
+    /*
+     * 작성자 : 김민기
+     * 기능 : buildOrderNameFromOrders 메서드
+     * 날짜 : 2026-04-09
+     */
 
     private String buildOrderNameFromOrders(List<Orders> orders) {
         if (orders.isEmpty()) return "이용요금";
@@ -382,10 +414,12 @@ public class PaymentService {
         int extra = orders.size() - 1;
         return items.get(0).getMenuName() + (extra > 0 ? " 외 " + extra + "건" : "");
     }
-
-    /**
-     * 결제 정보 DB 저장
+    /*
+     * 작성자 : 김민기
+     * 기능 : 결제 정보 DB 저장
+     * 날짜 : 2026-04-01
      */
+
     private void createPayment(CafeTableSession session, int finalAmount,
                                String paymentKey, String orderIdToss,
                                TossConfirmResponse tossResponse, int tableNumber) {
@@ -407,6 +441,12 @@ public class PaymentService {
         paymentMapper.insert(payment);
     }
 
+    /*
+     * 작성자 : 김민기
+     * 기능 : parseApprovedAt 메서드
+     * 날짜 : 2026-03-27
+     */
+
     private LocalDateTime parseApprovedAt(String approvedAt) {
         if (approvedAt == null || approvedAt.isBlank()) {
             return LocalDateTime.now();
@@ -418,10 +458,12 @@ public class PaymentService {
             return LocalDateTime.now();
         }
     }
-
-    /**
-     * 포인트 사용 + 적립 처리
+    /*
+     * 작성자 : 김민기
+     * 기능 : 포인트 사용 + 적립 처리
+     * 날짜 : 2026-04-01
      */
+
     private int processPoints(String customerPhone, int pointUsed, int finalAmount, Long orderId) {
         int earnedPoints = 0;
 
@@ -444,9 +486,21 @@ public class PaymentService {
         return earnedPoints;
     }
 
+    /*
+     * 작성자 : 김민기
+     * 기능 : isValidPhone 메서드
+     * 날짜 : 2026-04-06
+     */
+
     private boolean isValidPhone(String customerPhone) {
         return customerPhone != null && !customerPhone.isBlank();
     }
+
+    /*
+     * 작성자 : 김민기
+     * 기능 : closeTableSessionAndSetCleaning 메서드
+     * 날짜 : 2026-04-10
+     */
 
     private void closeTableSessionAndSetCleaning(Integer tableId, Long sessionId) {
         int readUpdated = cafeTableMapper.updateMessagesReadStatusBySessionId(sessionId);
@@ -471,12 +525,24 @@ public class PaymentService {
                 tableId, sessionId, readUpdated, closedRows, statusRows, currentStatus, currentSessionId);
     }
 
+    /*
+     * 작성자 : 김민기
+     * 기능 : settleRemainingGameRentalsOnCheckout 메서드
+     * 날짜 : 2026-04-14
+     */
+
     private void settleRemainingGameRentalsOnCheckout(Long sessionId) {
         int historyUpdated = gameItemMapper.returnActiveRentalsBySessionId(sessionId);
         int itemUpdated = gameItemMapper.normalizeNormalItemsBySessionId(sessionId);
         log.debug("결제 완료 시 게임 대여 자동 반납 처리 | sessionId: {}, historyUpdated: {}, itemUpdated: {}",
                 sessionId, historyUpdated, itemUpdated);
     }
+
+    /*
+     * 작성자 : 김민기
+     * 기능 : errorResponse 메서드
+     * 날짜 : 2026-04-06
+     */
 
     private PaymentDTO errorResponse(String message) {
         return PaymentDTO.builder()

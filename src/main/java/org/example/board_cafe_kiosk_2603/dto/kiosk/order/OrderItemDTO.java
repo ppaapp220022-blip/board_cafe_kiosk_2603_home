@@ -5,6 +5,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/*
+ * 작성자 : 김민기
+ * 기능 : OrderItem 데이터 전달 객체
+ * 날짜 : 2026-03-27
+ */
+
 @Data
 @Builder
 @NoArgsConstructor

@@ -6,38 +6,82 @@ import org.example.board_cafe_kiosk_2603.domain.kiosk.cart.CartItem;
 
 import java.util.List;
 
+
 @Mapper
+
+/*
+ * 작성자 : 김민기
+ * 기능 : 장바구니 항목 데이터 접근 인터페이스
+ * 날짜 : 2026-03-27
+ */
 public interface CartItemMapper {
 
-    // 장바구니 항목 목록 조회 (menu JOIN)
+    /*
+     * 작성자 : 김민기
+     * 기능 : 장바구니 ID 기준 조회
+     * 날짜 : 2026-03-27
+     */
     List<CartItem> findByCartId(int cartId);
 
-    // cart_id + menu_id로 기존 항목 확인
+    /*
+     * 작성자 : 김민기
+     * 기능 : 장바구니와 메뉴 기준 항목 조회
+     * 날짜 : 2026-03-27
+     */
     CartItem findByCartIdAndMenuId(@Param("cartId") int cartId,
                                    @Param("menuId") int menuId);
 
-    // name + price로 menu_id 조회 (HTML 방식 A 대응)
+    /*
+     * 작성자 : 김민기
+     * 기능 : 메뉴명과 가격으로 메뉴 ID 조회
+     * 날짜 : 2026-03-27
+     */
     Integer findMenuIdByNameAndPrice(@Param("name") String name,
                                      @Param("price") int price);
 
-    // 해당 menu가 게임 카테고리(=game 테이블과 매칭)인지 확인
+    /*
+     * 작성자 : 김민기
+     * 기능 : 게임 메뉴 여부 건수 조회
+     * 날짜 : 2026-04-15
+     */
     int countGameMenuByMenuId(@Param("menuId") int menuId);
 
-    // 해당 게임 메뉴의 대여 가능 재고(NORMAL) 수
+    /*
+     * 작성자 : 김민기
+     * 기능 : 대여 가능한 게임 재고 건수 조회
+     * 날짜 : 2026-04-15
+     */
     int countAvailableGameStockByMenuId(@Param("menuId") int menuId);
 
-    // 항목 추가
+    /*
+     * 작성자 : 김민기
+     * 기능 : 데이터 등록
+     * 날짜 : 2026-03-27
+     */
     void insert(CartItem cartItem);
 
-    // 수량 변경
+    /*
+     * 작성자 : 김민기
+     * 기능 : 장바구니 수량 수정
+     * 날짜 : 2026-03-27
+     */
     void updateQuantity(@Param("cartId") int cartId,
                         @Param("menuId") int menuId,
                         @Param("quantity") int quantity);
 
-    // 단건 삭제
+    /*
+     * 작성자 : 김민기
+     * 기능 : 장바구니 항목 삭제
+     * 날짜 : 2026-03-27
+     */
     void deleteByCartIdAndMenuId(@Param("cartId") int cartId,
                                  @Param("menuId") int menuId);
 
-    // 전체 삭제 (장바구니 비우기)
+    /*
+     * 작성자 : 김민기
+     * 기능 : 장바구니 전체 항목 삭제
+     * 날짜 : 2026-03-27
+     */
     void deleteAllByCartId(int cartId);
 }
+

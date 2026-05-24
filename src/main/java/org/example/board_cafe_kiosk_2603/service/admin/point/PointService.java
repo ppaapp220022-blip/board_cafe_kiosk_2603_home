@@ -17,65 +17,95 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/*
+ * 작성자 : 김민기
+ * 기능 : Point 서비스 인터페이스
+ * 날짜 : 2026-03-27
+ */
+
 @Log4j2
 @Service
 @RequiredArgsConstructor
 public class PointService {
     private final CustomerMapper customerMapper;
     private final PointMapper pointMapper;
+    /*
+     * 작성자 : 김민기
+     * 기능 : 전체 포인트 목록 조회
+     * 날짜 : 2026-03-27
+     */
 
-    // ===================================================
-    // 조회
-    // ===================================================
-
-    /** 전체 포인트 계좌 목록 (관리자 화면용) */
     public List<PointAdminDTO> getAllPoints() {
         return pointMapper.findAll().stream()
                 .map(PointAdminDTO::from)
                 .collect(Collectors.toList());
     }
+    /*
+     * 작성자 : 김민기
+     * 기능 : 전화번호로 포인트 계좌 조회 — 없으면 null
+     * 날짜 : 2026-03-27
+     */
 
-    /** 전화번호로 포인트 계좌 조회 — 없으면 null */
     public PointAdminDTO getPointByPhone(String phone) {
         Point point = pointMapper.findByPhone(phone);
         return point != null ? PointAdminDTO.from(point) : null;
     }
+    /*
+     * 작성자 : 김민기
+     * 기능 : 특정 계좌의 이력 목록
+     * 날짜 : 2026-03-27
+     */
 
-    /** 특정 계좌의 이력 목록 */
     public List<PointHistoryDTO> getHistoryByPointId(int pointId) {
         return pointMapper.findHistoryByPointId(pointId).stream()
                 .map(PointHistoryDTO::from)
                 .collect(Collectors.toList());
     }
+    /*
+     * 작성자 : 김민기
+     * 기능 : 전체 고객 수 조회
+     * 날짜 : 2026-03-27
+     */
 
-    // ===================================================
-    // 통계
-    // ===================================================
 
     public int getTotalCustomers() { return pointMapper.countAll(); }
 
+    /*
+     * 작성자 : 김민기
+     * 기능 : sumTotalBalance 메서드
+     * 날짜 : 2026-03-27
+     */
+
     public int getTotalPoints()    { return pointMapper.sumTotalBalance(); }
+
+    /*
+     * 작성자 : 김민기
+     * 기능 : getAvgPoints 메서드
+     * 날짜 : 2026-03-27
+     */
 
     public int getAvgPoints() {
         int count = pointMapper.countAll();
         return count == 0 ? 0 : pointMapper.sumTotalBalance() / count;
     }
+    /*
+     * 작성자 : 김민기
+     * 기능 : 포인트 계정 생성
+     * 날짜 : 2026-03-27
+     */
 
-    // ===================================================
-    // 계좌 생성
-    // ===================================================
-
-    /** 포인트 계좌 신규 생성 (이력 없음, 키오스크 신규 회원용) */
     @Transactional
     public void createAccount(String phone) {
         // 신규가입 시 customer + point를 함께 보장한다.
         getOrCreatePoint(phone);
         log.info("신규 회원 계정 준비 완료 - 전화번호: {}", phone);
     }
+    /*
+     * 작성자 : 김민기
+     * 기능 : 포인트 적립 처리
+     * 날짜 : 2026-03-27
+     */
 
-    // ===================================================
-    // 포인트 적립 (EARN)
-    // ===================================================
 
     @Transactional
     public void earnPoint(String phone, int amount, Long orderId) {
@@ -109,10 +139,12 @@ public class PointService {
 
         log.info("포인트 적립 - 전화번호: {}, 적립: {}P, 잔액: {}P", phone, amount, newBalance);
     }
+    /*
+     * 작성자 : 김민기
+     * 기능 : 포인트 사용 처리
+     * 날짜 : 2026-03-27
+     */
 
-    // ===================================================
-    // 포인트 사용 (USE)
-    // ===================================================
 
     @Transactional
     public void usePoint(String phone, int amount, Long orderId) {
@@ -142,10 +174,12 @@ public class PointService {
 
         log.info("포인트 사용 - 전화번호: {}, 사용: {}P, 잔액: {}P", phone, amount, newBalance);
     }
+    /*
+     * 작성자 : 김민기
+     * 기능 : 포인트 계정 조회 또는 생성
+     * 날짜 : 2026-03-27
+     */
 
-    // ===================================================
-    // 헬퍼
-    // ===================================================
 
     private Point getOrCreatePoint(String phone) {
         // customer 테이블에도 없으면 생성
@@ -164,8 +198,12 @@ public class PointService {
         }
         return point;
     }
+    /*
+     * 작성자 : 서민성
+     * 기능 : 페이징 처리
+     * 날짜 : 2026-04-09
+     */
 
-    /* 페이징 처리 */
     public PageResponseDTO<PointAdminDTO> getPagedPoints(PageRequestDTO pageRequestDTO) {
 
         // 1. DB에서 페이징 처리된 목록(VO/Domain) 가져오기

@@ -22,6 +22,12 @@ import java.time.ZoneId;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/*
+ * 작성자 : 서민성
+ * 기능 : TableSessionKiosk 관련 비즈니스 로직을 처리하는 서비스 구현체
+ * 날짜 : 2026-03-27
+ */
+
 @Log4j2
 @Service
 @RequiredArgsConstructor
@@ -33,6 +39,12 @@ public class TableSessionKioskServiceImpl implements TableSessionKioskService{
     private final CafePackageService cafePackageService;
     private final TableSessionAdminService tableSessionAdminService;
     private final OrdersMapper ordersMapper;
+
+    /*
+     * 작성자 : 서민성
+     * 기능 : createSession 메서드
+     * 날짜 : 2026-03-27
+     */
 
     @Override
     public Long createSession(int tableId, int packageId, int initialGuestCnt) {
@@ -47,19 +59,33 @@ public class TableSessionKioskServiceImpl implements TableSessionKioskService{
                 tableId, packageId, initialGuestCnt);
         return tableSession.getId();  // Long 반환
     }
+    /*
+     * 작성자 : 김민기
+     * 기능 : 인원수 체크
+     * 날짜 : 2026-04-30
+     */
 
-    // 인원수 체크
     private int getPartySize(HttpSession session) {
         Integer partySize = (Integer) session.getAttribute("partySize");
         return partySize != null ? partySize : 2;
     }
+    /*
+     * 작성자 : 김민기
+     * 기능 : 포인트 조회
+     * 날짜 : 2026-04-30
+     */
 
-    // 포인트 조회
     private int resolvePointBalance(String customerPhone) {
         if (customerPhone == null || customerPhone.isBlank()) return 0;
         PointAdminDTO point = pointService.getPointByPhone(customerPhone);
         return point != null ? point.getBalance() : 0;
     }
+
+    /*
+     * 작성자 : 김민기
+     * 기능 : buildCartModel 메서드
+     * 날짜 : 2026-04-30
+     */
 
     @Override
     public void buildCartModel(Model model, int tableNumber, HttpSession session) {
@@ -70,6 +96,12 @@ public class TableSessionKioskServiceImpl implements TableSessionKioskService{
         model.addAttribute("totalPrice", cartDTO.getTotalPrice());
         model.addAttribute("cartCount", cartDTO.getCartCount());
     }
+
+    /*
+     * 작성자 : 김민기
+     * 기능 : buildCheckoutModel 메서드
+     * 날짜 : 2026-04-30
+     */
 
     @Override
     public void buildCheckoutModel(Model model, int tableNumber, HttpSession session) {
@@ -145,6 +177,12 @@ public class TableSessionKioskServiceImpl implements TableSessionKioskService{
                 tableNumber, cartDTO.getTotalPrice(), packageName, packageTotal, totalPrice, pointBalance);
     }
 
+    /*
+     * 작성자 : 김민기
+     * 기능 : buildCheckoutMeta 메서드
+     * 날짜 : 2026-04-30
+     */
+
     @Override
     public Map<String, Object> buildCheckoutMeta(Integer tableId) {
         Map<String, Object> meta = new LinkedHashMap<>();
@@ -178,8 +216,12 @@ public class TableSessionKioskServiceImpl implements TableSessionKioskService{
 
         return meta;
     }
+    /*
+     * 작성자 : 김민기
+     * 기능 : 세션 활성화시 인원수 체크
+     * 날짜 : 2026-04-30
+     */
 
-    // 세션 활성화시 인원수 체크
     private int resolveCheckoutPartySize(CafeTableSession activeSession, HttpSession session) {
         if (activeSession != null && activeSession.getInitialGuestCnt() != null) {
             return activeSession.getInitialGuestCnt();
@@ -187,6 +229,11 @@ public class TableSessionKioskServiceImpl implements TableSessionKioskService{
         return getPartySize(session);
     }
 
+    /*
+     * 작성자 : 김민기
+     * 기능 : 세션 또는 주문 정보 기준으로 정산용 고객 전화번호 조회
+     * 날짜 : 2026-05-25
+     */
     private String resolveCheckoutCustomerPhone(String sessionCustomerPhone, CafeTableSession activeSession) {
         if (sessionCustomerPhone != null && !sessionCustomerPhone.isBlank()) {
             return sessionCustomerPhone;
@@ -202,7 +249,11 @@ public class TableSessionKioskServiceImpl implements TableSessionKioskService{
                 .orElse("");
     }
 
-    // 테이블 시작 시간 계산
+    /*
+     * 작성자 : 김민기
+     * 기능 : 테이블 시작 시간 계산
+     * 날짜 : 2026-04-30
+     */
     private Long readSessionStartMillis(Object rawStartTime) {
         if (rawStartTime instanceof Long) {
             return (Long) rawStartTime;
@@ -222,8 +273,12 @@ public class TableSessionKioskServiceImpl implements TableSessionKioskService{
         }
         return null;
     }
+    /*
+     * 작성자 : 김민기
+     * 기능 : 테이블 종료 시간 계산
+     * 날짜 : 2026-04-30
+     */
 
-    // 테이블 종료 시간 계산
     private Long toEpochMillis(LocalDateTime dateTime) {
         if (dateTime == null) return null;
         return dateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();

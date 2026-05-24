@@ -4,9 +4,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 
+/*
+ * 작성자 : 김민기
+ * 날짜 : 2026-03-27
+ */
+
 @Configuration
 public class RestTemplateConfig {
-    // toss 결제시 사용. 지우면 안됨
     @Bean
     public RestTemplate restTemplate() {
         return new RestTemplate();

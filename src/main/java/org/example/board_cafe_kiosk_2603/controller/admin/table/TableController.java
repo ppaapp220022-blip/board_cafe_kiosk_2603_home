@@ -15,6 +15,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+/*
+ * 작성자 : 강수연
+ * 기능 : Table 관련 요청을 처리하는 컨트롤러
+ * 날짜 : 2026-03-26
+ */
+
 @Log4j2
 @Controller
 @RequestMapping("/admin/dashboard")
@@ -23,10 +29,12 @@ public class TableController {
     private final CafeTableService cafeTableService;
     private final TableSessionKioskService tableSessionKioskService;
 
-    /**
-     * 대시보드 메인 페이지
-       현재 12개 테이블의 실시간 상태(이용중/공석/청소중)와 입실 시간을 조회하여 뷰에 전달
+    /*
+     * 작성자 : 강수연
+     * 기능 : dashboard 메서드
+     * 날짜 : 2026-03-26
      */
+
     @GetMapping
     public String dashboard(Model model) {
         log.info("--- TableController dashboard ---");
@@ -37,19 +45,24 @@ public class TableController {
         return "admin/dashboard";
     }
 
-    /**
-     대시보드 테이블 상태 폴링용 API
-     프론트에서 주기적으로 조회하여 상태가 바뀌면 화면을 새로고침
+    /*
+     * 작성자 : 김민기
+     * 기능 : getTablesSnapshot 메서드
+     * 날짜 : 2026-04-12
      */
+
     @ResponseBody
     @GetMapping("/tables")
     public ResponseEntity<List<CafeTableDTO>> getTablesSnapshot() {
         return ResponseEntity.ok(cafeTableService.getAllTableStatus());
     }
 
-    /**
-     특정 테이블의 실시간 주문 항목 조회 (AJAX 호출용)
+    /*
+     * 작성자 : 강수연
+     * 기능 : getTableOrders 메서드
+     * 날짜 : 2026-03-30
      */
+
     @ResponseBody
     @GetMapping("/{id}/orders")
     public ResponseEntity<List<OrderItemDTO>> getTableOrders(@PathVariable("id") Integer id) {
@@ -66,10 +79,12 @@ public class TableController {
         return ResponseEntity.ok(activeOrders);
     }
 
-    /**
-     대시보드에서 정산 페이지 진입
-     kiosk 권한 체인을 타지 않고 관리자 권한으로 checkout.html을 렌더링
+    /*
+     * 작성자 : 김민기
+     * 기능 : moveToCheckout 메서드
+     * 날짜 : 2026-04-14
      */
+
     @GetMapping("/{id}/checkout")
     public String moveToCheckout(@PathVariable("id") Integer id, HttpSession session, Model model) {
         List<CafeTableDTO> tables = cafeTableService.getAllTableStatus();
@@ -93,19 +108,24 @@ public class TableController {
         return "kiosk/checkout";
     }
 
-    /**
-     대시보드 실시간 정산 금액 계산용 메타 조회
-     정산 페이지 진입과 달리 관리자 세션의 결제 대상 테이블을 변경하지 않는다.
+    /*
+     * 작성자 : 김민기
+     * 기능 : getCheckoutMeta 메서드
+     * 날짜 : 2026-04-27
      */
+
     @ResponseBody
     @GetMapping("/{id}/checkout-meta")
     public ResponseEntity<Map<String, Object>> getCheckoutMeta(@PathVariable("id") Integer id) {
         return ResponseEntity.ok(tableSessionKioskService.buildCheckoutMeta(id));
     }
 
-    /**
-     테이블 상태 변경 및 세션 연동 (입실/퇴실/청소)
+    /*
+     * 작성자 : 강수연
+     * 기능 : updateStatus 메서드
+     * 날짜 : 2026-03-26
      */
+
     @ResponseBody
     @PatchMapping("/{id}/status")
     public ResponseEntity<Map<String, String>> updateStatus(
@@ -133,10 +153,12 @@ public class TableController {
         }
     }
 
-    /**
-     특정 테이블의 액세스 토큰(UUID) 갱신
-     태블릿의 로그인이 풀렸거나 보안 갱신이 필요할 때 새로운 8자리 토큰 발급
+    /*
+     * 작성자 : 강수연
+     * 기능 : refreshToken 메서드
+     * 날짜 : 2026-03-26
      */
+
     @ResponseBody
     @PostMapping("/{id}/token")
     public ResponseEntity<Map<String, String>> refreshToken(@PathVariable("id") Integer id) {
@@ -154,10 +176,12 @@ public class TableController {
         }
     }
 
-    /**
-     자정 데이터 리셋 강제 실행 (운영/테스트용)
-     모든 활성 세션을 강제 종료하고 모든 테이블을 공석(EMPTY)으로 초기화
+    /*
+     * 작성자 : 강수연
+     * 기능 : forceReset 메서드
+     * 날짜 : 2026-03-26
      */
+
     @ResponseBody
     @DeleteMapping("/reset")
     public ResponseEntity<Map<String, String>> forceReset() {
@@ -172,9 +196,12 @@ public class TableController {
         }
     }
 
-    /**
-     특정 테이블의 미확인 메시지 목록 조회 (모달용)
+    /*
+     * 작성자 : 강수연
+     * 기능 : getUnreadMessages 메서드
+     * 날짜 : 2026-03-30
      */
+
     @GetMapping("/messages/{tableId}")
     @ResponseBody
     public ResponseEntity<List<String>> getUnreadMessages(@PathVariable("tableId") Integer tableId) {
@@ -184,9 +211,12 @@ public class TableController {
         return ResponseEntity.ok(messages);
     }
 
-    /**
-     특정 테이블의 알림 '읽음' 처리
+    /*
+     * 작성자 : 강수연
+     * 기능 : markAsRead 메서드
+     * 날짜 : 2026-03-30
      */
+
     @PatchMapping("/messages/{tableId}/read")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> markAsRead(@PathVariable("tableId") Integer tableId) {

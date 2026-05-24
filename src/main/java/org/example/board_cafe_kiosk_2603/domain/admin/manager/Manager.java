@@ -4,6 +4,12 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
+/*
+ * 작성자 : 서주연
+ * 기능 : Manager 클래스
+ * 날짜 : 2026-03-30
+ */
+
 @Getter
 @ToString
 @Builder

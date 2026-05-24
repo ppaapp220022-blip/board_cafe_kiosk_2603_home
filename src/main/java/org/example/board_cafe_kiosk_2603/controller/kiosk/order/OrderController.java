@@ -20,21 +20,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-/**
- * 키오스크 주문 관리 컨트롤러.
- *
- * [페이지]
- * GET    /kiosk/order/{orderId}            → 주문 상세 페이지
- *
- * [REST API]
- * POST   /kiosk/order/create               → 주문 생성 (카트 기반)
- * GET    /kiosk/order/api/{orderId}        → 주문 단건 조회 (JSON)
- * GET    /kiosk/order/latest               → 테이블 최근 주문 조회 (세션 기반)
- * GET    /kiosk/order/session/{sessionId}  → 세션 전체 주문 목록 조회
- * PATCH  /kiosk/order/{orderId}/status     → 주문 상태 변경
- * DELETE /kiosk/order/{orderId}            → 주문 취소
+/*
+ * 작성자 : 김민기
+ * 기능 : 키오스크 주문 관리 컨트롤러.
+ * 날짜 : 2026-03-27
  */
+
 @Log4j2
 @Controller
 @RequestMapping("/kiosk/order")
@@ -42,20 +33,12 @@ import java.util.stream.Collectors;
 public class OrderController {
     private final OrderService orderService;
     private final GameService gameService;
-
-    // ===========================================================
-    // 페이지
-    // ===========================================================
-
-    /**
-     * 주문 상세 페이지
-     * GET /kiosk/order/{orderId}
-     *
-     * 주문 상태 확인 페이지
-     * - 주문 내용 표시
-     * - 상태 실시간 표시
-     * - 결제로 진행하기 버튼
+    /*
+     * 작성자 : 김민기
+     * 기능 : 주문 상세 페이지 조회
+     * 날짜 : 2026-03-27
      */
+
     @GetMapping("/{orderId}")
     public String orderDetailPage(@PathVariable int orderId, Model model, HttpSession session) {
         Integer tableNumber = sessionTableNumber(session);
@@ -83,11 +66,12 @@ public class OrderController {
 
         return "kiosk/order_detail";
     }
-
-    /**
-     * 게임 주문 상세 페이지
-     * GET /kiosk/game/{orderId}
+    /*
+     * 작성자 : 김민기
+     * 기능 : 게임 주문 상세 페이지
+     * 날짜 : 2026-04-14
      */
+
     @GetMapping("/game/{orderId}")
     public String gameDetailPage(@PathVariable int orderId, Model model, HttpSession session) {
         Integer tableNumber = sessionTableNumber(session);
@@ -142,27 +126,12 @@ public class OrderController {
         model.addAttribute("requestedGames", requestedGames);
         return "kiosk/game_detail";
     }
-
-    // ===========================================================
-    // REST API - 주문 생성
-    // ===========================================================
-
-    /**
-     * 카트에서 주문 생성
-     * POST /kiosk/order/create
-     *
-     * 요청: {
-     *   "tableNumber": 5,
-     *   "totalAmount": 15000,
-     *   "customerPhone": "010-1234-5678" (optional)
-     * }
-     *
-     * 응답: {
-     *   "success": true,
-     *   "id": 123,
-     *   "status": "ORDERED",
-     * }
+    /*
+     * 작성자 : 김민기
+     * 기능 : 주문 생성 처리
+     * 날짜 : 2026-03-27
      */
+
     @PostMapping("/create")
     @ResponseBody
     public ResponseEntity<OrdersDTO> createOrder(
@@ -201,17 +170,12 @@ public class OrderController {
                             .build());
         }
     }
-
-    // ===========================================================
-    // REST API - 조회
-    // ===========================================================
-
-    /**
-     * 신규 주문 목록 조회 (PENDING 상태)
-     * GET /kiosk/order/pending
-     *
-     * 관리자 대시보드에서 신규 주문 알림 조회용
+    /*
+     * 작성자 : 김민기
+     * 기능 : 대기 주문 목록 조회
+     * 날짜 : 2026-04-09
      */
+
     @GetMapping("/pending")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> getPendingOrders() {
@@ -232,11 +196,12 @@ public class OrderController {
                     ));
         }
     }
-
-    /**
-     * 주문 단건 조회 (JSON)
-     * GET /kiosk/order/api/{orderId}
+    /*
+     * 작성자 : 김민기
+     * 기능 : 주문 단건 조회 (JSON)
+     * 날짜 : 2026-03-27
      */
+
     @GetMapping("/api/{orderId}")
     @ResponseBody
     public ResponseEntity<OrdersDTO> getOrderApi(@PathVariable int orderId, HttpSession session) {
@@ -249,11 +214,12 @@ public class OrderController {
         OrdersDTO result = orderService.getOrder(orderId);
         return result.isSuccess() ? ResponseEntity.ok(result) : ResponseEntity.notFound().build();
     }
-
-    /**
-     * 테이블 최근 주문 조회 (JSON)
-     * GET /kiosk/order/latest
+    /*
+     * 작성자 : 김민기
+     * 기능 : 테이블 최근 주문 조회 (JSON)
+     * 날짜 : 2026-03-27
      */
+
     @GetMapping("/latest")
     @ResponseBody
     public ResponseEntity<OrdersDTO> getLatestOrder(HttpSession session) {
@@ -262,11 +228,12 @@ public class OrderController {
         OrdersDTO result = orderService.getLatestOrderByTableNumber(tableNumber);
         return result.isSuccess() ? ResponseEntity.ok(result) : ResponseEntity.notFound().build();
     }
-
-    /**
-     * 세션 주문 목록 조회 (JSON)
-     * GET /kiosk/order/session/{sessionId}
+    /*
+     * 작성자 : 김민기
+     * 기능 : 세션 주문 목록 조회 (JSON)
+     * 날짜 : 2026-03-27
      */
+
     @GetMapping("/session/{sessionId}")
     @ResponseBody
     public ResponseEntity<List<OrdersDTO>> getOrdersBySession(@PathVariable long sessionId, HttpSession session) {
@@ -278,11 +245,12 @@ public class OrderController {
         }
         return ResponseEntity.ok(orderService.getOrdersBySessionId(sessionId));
     }
-
-    /**
-     * 현재 활성 세션의 주문 목록 조회 (장바구니 진입 버튼용)
-     * GET /kiosk/order/active
+    /*
+     * 작성자 : 김민기
+     * 기능 : 현재 활성 세션의 주문 목록 조회 (장바구니 진입 버튼용)
+     * 날짜 : 2026-03-27
      */
+
     @GetMapping("/active")
     @ResponseBody
     public ResponseEntity<List<OrdersDTO>> getActiveOrders(HttpSession session) {
@@ -290,22 +258,12 @@ public class OrderController {
         if (tableNumber == null) return ResponseEntity.ok(List.of());
         return ResponseEntity.ok(orderService.getActiveSessionOrders(tableNumber));
     }
-
-    // ===========================================================
-    // REST API - 상태 변경 / 취소
-    // ===========================================================
-
-    /**
-     * 주문 상태 변경
-     * PATCH /kiosk/order/{orderId}/status
-     * body: { "status": "ORDERED" }
-     * 상태 전이 규칙:
-     * - ORDERED   → CONFIRMED (주문확인)
-     * - CONFIRMED → COOKING   (조리시작)
-     * - COOKING   → DELIVERING(서빙시작)
-     * - DELIVERING→ COMPLETED (서빙완료)
-     * - (모든 상태) → CANCELLED (취소)
+    /*
+     * 작성자 : 김민기
+     * 기능 : 주문 상태 변경 처리
+     * 날짜 : 2026-04-01
      */
+
     @PatchMapping("/{orderId}/status")
     @ResponseBody
     public ResponseEntity<OrdersDTO> updateStatus(@PathVariable int orderId,
@@ -322,11 +280,12 @@ public class OrderController {
         OrdersDTO result = orderService.updateStatus(orderId, status);
         return result.isSuccess() ? ResponseEntity.ok(result) : ResponseEntity.badRequest().body(result);
     }
-
-    /**
-     * 주문 취소
-     * DELETE /kiosk/order/{orderId}
+    /*
+     * 작성자 : 김민기
+     * 기능 : 주문 취소
+     * 날짜 : 2026-04-01
      */
+
     @DeleteMapping("/{orderId}")
     @ResponseBody
     public ResponseEntity<OrdersDTO> cancelOrder(@PathVariable int orderId, HttpSession session) {
@@ -339,14 +298,12 @@ public class OrderController {
         OrdersDTO result = orderService.cancelOrder(orderId);
         return result.isSuccess() ? ResponseEntity.ok(result) : ResponseEntity.badRequest().body(result);
     }
-
-    // ===========================================================
-    // 헬퍼
-    // ===========================================================
-
-    /**
-     * 주문 상태를 한글 메시지로 변환
+    /*
+     * 작성자 : 김민기
+     * 기능 : 주문 상태 표시명 반환
+     * 날짜 : 2026-04-01
      */
+
     private String getStatusDisplay(String status, boolean isGameOnlyOrder) {
         if (isGameOnlyOrder) {
             return switch (status) {
@@ -369,6 +326,12 @@ public class OrderController {
         };
     }
 
+    /*
+     * 작성자 : 김민기
+     * 기능 : isGameOnlyOrder 메서드
+     * 날짜 : 2026-04-14
+     */
+
     private boolean isGameOnlyOrder(OrdersDTO order) {
         if (order == null || order.getItems() == null || order.getItems().isEmpty()) {
             return false;
@@ -376,6 +339,12 @@ public class OrderController {
         return order.getItems().stream()
                 .allMatch(item -> item != null && item.getPrice() == 0);
     }
+
+    /*
+     * 작성자 : 김민기
+     * 기능 : sessionTableNumber 메서드
+     * 날짜 : 2026-03-27
+     */
 
     private Integer sessionTableNumber(HttpSession session) {
         Object raw = session.getAttribute("tableNumber");

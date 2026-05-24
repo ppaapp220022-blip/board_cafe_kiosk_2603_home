@@ -10,20 +10,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 
 import java.util.*;
-
-/**
- * 키오스크 서비스 요청 → table_message DB 저장.
- * 관리자 읽음 처리 API 포함.
- * <p>
- * [키오스크]
- * POST /kiosk/service-request          → 요청 저장 (kiosk_layout.html callService())
- * <p>
- * [관리자]
- * GET  /admin/messages/unread          → 안 읽은 메시지 목록
- * GET  /admin/messages/table/{tableId} → 특정 테이블 메시지 목록
- * PUT  /admin/messages/{id}/read       → 단건 읽음 처리
- * PUT  /admin/messages/read-all        → 전체 읽음 처리
+/*
+ * 작성자 : 김민기
+ * 기능 : 키오스크 서비스 요청 → table_message DB 저장.
+ * 날짜 : 2026-03-30
  */
+
 @Log4j2
 @RestController
 @RequiredArgsConstructor
@@ -31,10 +23,12 @@ public class ServiceRequestController {
 
     private final TableMessageMapper tableMessageMapper;
     private final CartMapper cartMapper;
+    /*
+     * 작성자 : 김민기
+     * 기능 : 서비스 요청 메시지 등록
+     * 날짜 : 2026-03-30
+     */
 
-    // ===========================================================
-    // 키오스크 → 관리자 요청 저장
-    // ===========================================================
 
     @PostMapping("/kiosk/service-request")
     public ResponseEntity<Map<String, Object>> serviceRequest(
@@ -85,10 +79,12 @@ public class ServiceRequestController {
         res.put("message", serviceType + " 요청이 전송되었습니다.");
         return ResponseEntity.ok(res);
     }
+    /*
+     * 작성자 : 김민기
+     * 기능 : 미읽음 메시지 조회
+     * 날짜 : 2026-03-30
+     */
 
-    // ===========================================================
-    // 관리자 — 메시지 조회
-    // ===========================================================
 
     @GetMapping("/admin/messages/unread")
     public Map<String, Object> getUnreadMessages() {
@@ -99,6 +95,12 @@ public class ServiceRequestController {
         res.put("messages", messages);
         return res;
     }
+
+    /*
+     * 작성자 : 김민기
+     * 기능 : getMessagesByTable 메서드
+     * 날짜 : 2026-03-30
+     */
 
     @GetMapping("/admin/messages/table/{tableNumber}")
     public Map<String, Object> getMessagesByTable(
@@ -117,10 +119,12 @@ public class ServiceRequestController {
         res.put("messages", messages);
         return res;
     }
+    /*
+     * 작성자 : 김민기
+     * 기능 : 메시지 읽음 처리
+     * 날짜 : 2026-03-30
+     */
 
-    // ===========================================================
-    // 관리자 — 읽음 처리
-    // ===========================================================
 
     @PutMapping("/admin/messages/{id}/read")
     public Map<String, Object> markAsRead(@PathVariable long id) {
@@ -131,6 +135,12 @@ public class ServiceRequestController {
         return res;
     }
 
+    /*
+     * 작성자 : 김민기
+     * 기능 : markAllAsRead 메서드
+     * 날짜 : 2026-03-30
+     */
+
     @PutMapping("/admin/messages/read-all")
     public Map<String, Object> markAllAsRead() {
         tableMessageMapper.markAllAsRead();
@@ -139,10 +149,12 @@ public class ServiceRequestController {
         res.put("success", true);
         return res;
     }
+    /*
+     * 작성자 : 김민기
+     * 기능 : 직원용 미읽음 메시지 조회
+     * 날짜 : 2026-04-12
+     */
 
-    // ===========================================================
-    // 키오스크 — 관리자 매크로 메시지 조회/읽음 처리
-    // ===========================================================
 
     @GetMapping("/kiosk/messages/staff/unread")
     public Map<String, Object> getUnreadStaffMessages(HttpSession session) {
@@ -193,6 +205,12 @@ public class ServiceRequestController {
         return res;
     }
 
+    /*
+     * 작성자 : 김민기
+     * 기능 : markMessageAsReadForKiosk 메서드
+     * 날짜 : 2026-04-12
+     */
+
     @PatchMapping("/kiosk/messages/{id}/read")
     public Map<String, Object> markMessageAsReadForKiosk(@PathVariable long id) {
         tableMessageMapper.markAsRead(id);
@@ -200,10 +218,12 @@ public class ServiceRequestController {
         res.put("success", true);
         return res;
     }
+    /*
+     * 작성자 : 김민기
+     * 기능 : 정수 변환 처리
+     * 날짜 : 2026-03-30
+     */
 
-    // ===========================================================
-    // 헬퍼
-    // ===========================================================
 
     private int toInt(Object val) {
         if (val == null) return 0;

@@ -16,6 +16,12 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+/*
+ * 작성자 : 서주연
+ * 기능 : Game 관련 비즈니스 로직을 처리하는 서비스 구현체
+ * 날짜 : 2026-03-27
+ */
+
 @Log4j2
 @Service
 @RequiredArgsConstructor
@@ -24,8 +30,12 @@ class GameServiceImpl implements GameService {
     private final GameMapper gameMapper;
     private final MenuMapper menuMapper;
     private final GameEmbeddingService gameEmbeddingService;
+    /*
+     * 작성자 : 서주연
+     * 기능 : 전체 게임 목록 조회
+     * 날짜 : 2026-03-27
+     */
 
-    /* 전체 게임 목록 조회 */
     @Override
     public List<GameResponseDTO> getAll() {
         log.debug("GameServiceImpl.getAll() 실행");
@@ -33,8 +43,12 @@ class GameServiceImpl implements GameService {
         log.debug("조회된 게임 수: {}", list.size());
         return list;
     }
+    /*
+     * 작성자 : 서주연
+     * 기능 : category_id 기준 게임 목록 조회
+     * 날짜 : 2026-03-27
+     */
 
-    /* category_id 기준 게임 목록 조회 */
     @Override
     public List<GameResponseDTO> getByCategoryId(int categoryId) {
         log.debug("GameServiceImpl.getByCategoryId() 실행 - categoryId: {}", categoryId);
@@ -42,8 +56,12 @@ class GameServiceImpl implements GameService {
         log.debug("조회된 게임 수 (categoryId={}): {}", categoryId, list.size());
         return list;
     }
+    /*
+     * 작성자 : 서주연
+     * 기능 : 활성 여부 기준 게임 목록 조회
+     * 날짜 : 2026-03-27
+     */
 
-    /* 활성 여부 기준 게임 목록 조회 */
     @Override
     public List<GameResponseDTO> getByIsActive(boolean isActive) {
         log.debug("GameServiceImpl.getByIsActive() 실행 - isActive: {}", isActive);
@@ -51,8 +69,12 @@ class GameServiceImpl implements GameService {
         log.debug("조회된 게임 수 (isActive={}): {}", isActive, list.size());
         return list;
     }
+    /*
+     * 작성자 : 서주연
+     * 기능 : PK로 게임 단건 조회
+     * 날짜 : 2026-03-27
+     */
 
-    /* PK로 게임 단건 조회 */
     @Override
     public GameResponseDTO getById(int id) {
         log.debug("GameServiceImpl.getById() 실행 - id: {}", id);
@@ -63,6 +85,12 @@ class GameServiceImpl implements GameService {
                 });
     }
 
+    /*
+     * 작성자 : 김민기
+     * 기능 : getByNames 메서드
+     * 날짜 : 2026-04-14
+     */
+
     @Override
     public List<GameResponseDTO> getByNames(List<String> names) {
         if (names == null || names.isEmpty()) {
@@ -70,10 +98,12 @@ class GameServiceImpl implements GameService {
         }
         return gameMapper.findByNames(names);
     }
+    /*
+     * 작성자 : 서주연
+     * 기능 : 게임 등록
+     * 날짜 : 2026-03-27
+     */
 
-    /* 게임 등록 */
-    // 등록 정보 저장 및 AI 지식 등록
-    // game 저장 → menu 동기화 → 임베딩 등록
     @Override
     public int register(GameRequestDTO gameRequestDTO) {
         log.debug("GameServiceImpl.register() 실행 - dto: {}", gameRequestDTO);
@@ -107,10 +137,12 @@ class GameServiceImpl implements GameService {
         log.info("게임 등록 완료 - generated id: {}", game.getId());
         return game.getId();  // insert 후 game.getId() 반환
     }
+    /*
+     * 작성자 : 서주연
+     * 기능 : 게임 수정 (존재 여부 선확인)
+     * 날짜 : 2026-03-27
+     */
 
-    /* 게임 수정 (존재 여부 선확인) */
-    // 정보 변경 및 AI 지식 갱신
-    // 임베딩 조건(game.is_active = TRUE) 미충족 → 자동으로 벡터 삭제
     @Override
     public void modify(int id, GameRequestDTO gameRequestDTO) {
         log.debug("GameServiceImpl.modify() 실행 - id: {}, dto: {}", id, gameRequestDTO);
@@ -152,10 +184,12 @@ class GameServiceImpl implements GameService {
         tryUpsertEmbeddingByGameName(gameRequestDTO.getName());
         log.debug("게임 수정 결과 - affected rows: {}", result);
     }
+    /*
+     * 작성자 : 서주연
+     * 기능 : 게임 삭제 (game_item ON DELETE CASCADE 로 자동 삭제, 존재 여부 선확인)
+     * 날짜 : 2026-03-27
+     */
 
-    /* 게임 삭제 (game_item ON DELETE CASCADE 로 자동 삭제, 존재 여부 선확인) */
-    // ★ DB 삭제 전에 menu_id 먼저 조회 → 삭제 후 벡터도 삭제
-    // ※ 삭제 후에는 menu 조회가 불가능하므로 반드시 삭제 전에 menu_id 확보
     @Override
     public void remove(int id) {
 
@@ -177,10 +211,12 @@ class GameServiceImpl implements GameService {
         }
         log.debug("게임 삭제 결과 - affected rows: {}", id);
     }
+    /*
+     * 작성자 : 서주연
+     * 기능 : 게임 활성 상태 토글 (is_active 반전, 존재 여부 선확인)
+     * 날짜 : 2026-03-27
+     */
 
-    /* 게임 활성 상태 토글 (is_active 반전, 존재 여부 선확인) */
-    // 활성화(true → false) : 임베딩 조건(is_active=TRUE) 미충족 → 벡터 자동 삭제
-    // 비활성화(false → true): 임베딩 조건 충족 시 → 벡터 자동 등록
     @Override
     public void toggleActive(int id) {
         log.info("GameServiceImpl.toggleActive() 실행 - id: {}", id);
@@ -198,11 +234,12 @@ class GameServiceImpl implements GameService {
         tryUpsertEmbeddingByGameName(game.getName());
         log.info("게임 활성 상태 토글 결과 - affected rows: {}", result);
     }
+    /*
+     * 작성자 : 서주연
+     * 기능 : 헬퍼: game.name → menu_id → 임베딩 upsert
+     * 날짜 : 2026-03-27
+     */
 
-    /* 헬퍼: game.name → menu_id → 임베딩 upsert */
-    // 예외 발생 시 로그만 남기고 비즈니스 로직 중단하지 않음
-
-    /* 게임명을 통한 AI 지식 업서트(추가/수정) 트리거 */
     private void tryUpsertEmbeddingByGameName(String gameName) {
         try {
             Integer menuId = menuMapper.findMenuIdByGameName(gameName);
@@ -215,8 +252,12 @@ class GameServiceImpl implements GameService {
             log.error("[임베딩] upsert 실패 - gameName={}, 원인={}", gameName, e.getMessage());
         }
     }
+    /*
+     * 작성자 : 서주연
+     * 기능 : 메뉴 ID를 통한 AI 지식 삭제 트리거
+     * 날짜 : 2026-03-27
+     */
 
-    /* 메뉴 ID를 통한 AI 지식 삭제 트리거 */
     private void tryDeleteEmbeddingByMenuId(Integer menuId) {
         try {
             gameEmbeddingService.deleteByMenuId(menuId);
@@ -224,9 +265,12 @@ class GameServiceImpl implements GameService {
             log.error("[임베딩] delete 실패 - menuId={}, 원인={}", menuId, e.getMessage());
         }
     }
+    /*
+     * 작성자 : 서민성
+     * 기능 : 전체 목록 조회
+     * 날짜 : 2026-04-13
+     */
 
-    /*===========페이지=========== */
-    /* 전체 게임 목록 조회 - 페이징 */
     @Override
     public PageResponseDTO<GameResponseDTO> getAll(PageRequestDTO pageRequestDTO) {
         log.debug("GameServiceImpl.getAll(paged) 실행");
@@ -235,8 +279,12 @@ class GameServiceImpl implements GameService {
         log.debug("조회된 게임 수: {}, 전체: {}", list.size(), total);
         return new PageResponseDTO<>(pageRequestDTO, total, list);
     }
+    /*
+     * 작성자 : 서민성
+     * 기능 : category_id 기준 게임 목록 조회 - 페이징
+     * 날짜 : 2026-04-13
+     */
 
-    /* category_id 기준 게임 목록 조회 - 페이징 */
     @Override
     public PageResponseDTO<GameResponseDTO> getByCategoryId(int categoryId, PageRequestDTO pageRequestDTO) {
         log.debug("GameServiceImpl.getByCategoryId(paged) 실행 - categoryId: {}", categoryId);
@@ -249,8 +297,12 @@ class GameServiceImpl implements GameService {
                 .total(total)
                 .build();
     }
+    /*
+     * 작성자 : 서주연
+     * 기능 : 활성 여부 기준 게임 목록 조회 - 페이징
+     * 날짜 : 2026-04-16
+     */
 
-    /* 활성 여부 기준 게임 목록 조회 - 페이징 */
     @Override
     public PageResponseDTO<GameResponseDTO> getByIsActive(boolean isActive, Integer categoryId, PageRequestDTO pageRequestDTO) {
         List<GameResponseDTO> list = gameMapper.findByIsActivePaged(isActive, categoryId, pageRequestDTO);

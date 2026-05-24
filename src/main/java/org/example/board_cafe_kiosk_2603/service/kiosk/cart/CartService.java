@@ -15,6 +15,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/*
+ * 작성자 : 김민기
+ * 기능 : Cart 서비스 인터페이스
+ * 날짜 : 2026-03-27
+ */
 @Log4j2
 @Service
 @RequiredArgsConstructor
@@ -22,10 +27,6 @@ public class CartService {
 
     private final CartMapper     cartMapper;
     private final CartItemMapper cartItemMapper;
-
-    // ===================================================
-    // 장바구니 조회
-    // ===================================================
 
     public CartDTO getCart(int tableNumber) {
         try {
@@ -65,10 +66,12 @@ public class CartService {
                     .build();
         }
     }
+    /*
+     * 작성자 : 김민기
+     * 기능 : 장바구니 항목 추가
+     * 날짜 : 2026-03-27
+     */
 
-    // ===================================================
-    // 상품 추가
-    // ===================================================
 
     @Transactional
     public CartDTO addItem(int tableNumber, CartItemDTO request) {
@@ -119,10 +122,12 @@ public class CartService {
                 .cartCount(cartCount)
                 .build();
     }
+    /*
+     * 작성자 : 김민기
+     * 기능 : 장바구니 항목 수량 변경
+     * 날짜 : 2026-03-27
+     */
 
-    // ===================================================
-    // 수량 변경 (quantity <= 0 이면 삭제)
-    // ===================================================
 
     @Transactional
     public CartDTO updateItem(int tableNumber, CartItemDTO request) {
@@ -173,10 +178,12 @@ public class CartService {
                 .totalPrice(total)
                 .build();
     }
+    /*
+     * 작성자 : 김민기
+     * 기능 : 장바구니 비우기
+     * 날짜 : 2026-03-27
+     */
 
-    // ===================================================
-    // 장바구니 비우기
-    // ===================================================
 
     @Transactional
     public CartDTO clearCart(int tableNumber) {
@@ -202,10 +209,12 @@ public class CartService {
                     .build();
         }
     }
+    /*
+     * 작성자 : 김민기
+     * 기능 : 테이블 번호로 테이블 ID 조회
+     * 날짜 : 2026-04-01
+     */
 
-    // ===================================================
-    // 헬퍼
-    // ===================================================
 
     private int resolveTableId(int tableNumber) {
         Integer tableId = cartMapper.findCafeTableIdByTableNumber(tableNumber);
@@ -214,6 +223,12 @@ public class CartService {
         }
         return tableId;
     }
+
+    /*
+     * 작성자 : 김민기
+     * 기능 : getOrCreateCart 메서드
+     * 날짜 : 2026-03-27
+     */
 
     private Cart getOrCreateCart(int tableId) {
         Cart cart = cartMapper.findByTableId(tableId);
@@ -226,13 +241,31 @@ public class CartService {
         return cart;
     }
 
+    /*
+     * 작성자 : 김민기
+     * 기능 : isGameMenu 메서드
+     * 날짜 : 2026-04-14
+     */
+
     private boolean isGameMenu(int menuId) {
         return cartItemMapper.countGameMenuByMenuId(menuId) > 0;
     }
 
+    /*
+     * 작성자 : 김민기
+     * 기능 : availableGameStock 메서드
+     * 날짜 : 2026-04-14
+     */
+
     private int availableGameStock(int menuId) {
         return cartItemMapper.countAvailableGameStockByMenuId(menuId);
     }
+
+    /*
+     * 작성자 : 김민기
+     * 기능 : hasEnoughGameStock 메서드
+     * 날짜 : 2026-04-14
+     */
 
     private boolean hasEnoughGameStock(int menuId, int requiredQty) {
         return availableGameStock(menuId) >= requiredQty;

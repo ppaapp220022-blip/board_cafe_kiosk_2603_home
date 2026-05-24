@@ -8,11 +8,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-
-/**
- * 결제 REST API 요청/응답 DTO
- * 토스페이먼츠 결제 위젯 통합 DTO
+/*
+ * 작성자 : 김민기
+ * 기능 : 결제 REST API 요청/응답 DTO
+ * 날짜 : 2026-03-27
  */
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -20,7 +21,6 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PaymentDTO {
 
-    // === Prepare 단계 요청 필드 ===
     private Integer pointUsed;           // 사용할 포인트
 
     // === Package 정보 필드 ===

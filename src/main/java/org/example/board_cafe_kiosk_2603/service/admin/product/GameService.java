@@ -8,44 +8,95 @@ import org.example.board_cafe_kiosk_2603.dto.common.pagination.PageResponseDTO;
 
 import java.util.List;
 
-/**
- * Game 비즈니스 로직 인터페이스
+
+/*
+ * 작성자 : 서주연
+ * 기능 : 보드게임 상품 서비스 인터페이스
+ * 날짜 : 2026-03-27
  */
 public interface GameService {
-    /** 전체 게임 목록 반환 */
+    /*
+     * 작성자 : 서민성
+     * 기능 : 전체 목록 조회
+     * 날짜 : 2026-04-13
+     */
     List<GameResponseDTO> getAll();
 
-    /** category_id 기준 게임 목록 반환 */
+    /*
+     * 작성자 : 서민성
+     * 기능 : 카테고리 ID 기준 조회
+     * 날짜 : 2026-04-13
+     */
     List<GameResponseDTO> getByCategoryId(int categoryId);
 
-    /** 활성 여부 기준 게임 목록 반환 */
+    /*
+     * 작성자 : 서주연
+     * 기능 : 활성 상태별 조회
+     * 날짜 : 2026-04-16
+     */
     List<GameResponseDTO> getByIsActive(boolean isActive);
 
-    /** PK로 게임 단건 반환 */
+    /*
+     * 작성자 : 서주연
+     * 기능 : ID로 단건 조회
+     * 날짜 : 2026-03-27
+     */
     GameResponseDTO getById(int id);
 
-    /** 게임명 리스트로 게임 상세 조회 */
+    /*
+     * 작성자 : 서민성
+     * 기능 : 이름 목록 기준 조회
+     * 날짜 : 2026-04-13
+     */
     List<GameResponseDTO> getByNames(List<String> names);
 
-    /** 게임 등록 */
+    /*
+     * 작성자 : 서주연
+     * 기능 : 데이터 등록
+     * 날짜 : 2026-03-30
+     */
     int register(GameRequestDTO gameRequestDTO);
 
-    /** 게임 수정 */
+    /*
+     * 작성자 : 서주연
+     * 기능 : 데이터 수정
+     * 날짜 : 2026-03-27
+     */
     void modify(int id, GameRequestDTO gameRequestDTO);
 
-    /** 게임 삭제 */
+    /*
+     * 작성자 : 서주연
+     * 기능 : 데이터 삭제
+     * 날짜 : 2026-03-27
+     */
     void remove(int id);
 
-    /** 게임 활성 상태 토글 */
+    /*
+     * 작성자 : 서주연
+     * 기능 : 활성 상태 전환
+     * 날짜 : 2026-03-27
+     */
     void toggleActive(int id);
 
-    /*============페이지=============*/
-    /** 전체 게임 목록 - 페이징 */
+    /*
+     * 작성자 : 서민성
+     * 기능 : 전체 목록 조회
+     * 날짜 : 2026-04-13
+     */
     PageResponseDTO<GameResponseDTO> getAll(PageRequestDTO pageRequestDTO);
 
-    /** category_id 기준 게임 목록 - 페이징 */
+    /*
+     * 작성자 : 서민성
+     * 기능 : 카테고리 ID 기준 조회
+     * 날짜 : 2026-04-13
+     */
     PageResponseDTO<GameResponseDTO> getByCategoryId(int categoryId, PageRequestDTO pageRequestDTO);
 
-    /** 활성 여부 기준 게임 목록 - 페이징 */
+    /*
+     * 작성자 : 서주연
+     * 기능 : 활성 상태별 조회
+     * 날짜 : 2026-04-16
+     */
     PageResponseDTO<GameResponseDTO> getByIsActive(boolean isActive, Integer categoryId, PageRequestDTO pageRequestDTO);
 }
+

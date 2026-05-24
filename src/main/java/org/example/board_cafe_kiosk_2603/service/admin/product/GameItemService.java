@@ -7,46 +7,102 @@ import org.example.board_cafe_kiosk_2603.dto.admin.product.GameItemResponseDTO;
 import java.util.List;
 import java.util.Map;
 
-/**
- * GameItem 비즈니스 로직 인터페이스
+
+/*
+ * 작성자 : 서주연
+ * 기능 : 보드게임 재고 서비스 인터페이스
+ * 날짜 : 2026-03-27
  */
 public interface GameItemService {
-    /** 전체 게임 아이템 목록 반환 */
+    /*
+     * 작성자 : 서주연
+     * 기능 : 전체 목록 조회
+     * 날짜 : 2026-03-27
+     */
     List<GameItemResponseDTO> getAll();
 
-    /** game_id 기준 게임 아이템 목록 반환 */
+    /*
+     * 작성자 : 서주연
+     * 기능 : 게임 ID 기준 조회
+     * 날짜 : 2026-03-27
+     */
     List<GameItemResponseDTO> getByGameId(int gameId);
 
-    /** status 기준 게임 아이템 목록 반환 */
+    /*
+     * 작성자 : 서주연
+     * 기능 : 상태 기준 조회
+     * 날짜 : 2026-03-27
+     */
     List<GameItemResponseDTO> getByStatus(GameItemStatus gameItemStatus);
 
-    /** PK로 게임 아이템 단건 반환 */
+    /*
+     * 작성자 : 김민기
+     * 기능 : ID로 단건 조회
+     * 날짜 : 2026-04-14
+     */
     GameItemResponseDTO getById(int id);
 
-    /** 게임 아이템 등록 */
+    /*
+     * 작성자 : 김민기
+     * 기능 : 데이터 등록
+     * 날짜 : 2026-04-14
+     */
     void register(GameItemRequestDTO gameItemRequestDTO);
 
-    /** 게임 아이템 수정 */
+    /*
+     * 작성자 : 김민기
+     * 기능 : 데이터 수정
+     * 날짜 : 2026-04-14
+     */
     void modify(int id, GameItemRequestDTO gameItemRequestDTO);
 
-    /** 게임 아이템 삭제 */
+    /*
+     * 작성자 : 서주연
+     * 기능 : 데이터 삭제
+     * 날짜 : 2026-03-27
+     */
     void remove(int id);
 
-    /** 게임 아이템 상태 변경 */
+    /*
+     * 작성자 : 서주연
+     * 기능 : changeStatus 처리
+     * 날짜 : 2026-03-27
+     */
     void changeStatus(int id, GameItemStatus gameItemStatus);
 
-    /** 게임명 기준 대여 가능 시리얼 조회 (NORMAL) */
+    /*
+     * 작성자 : 김민기
+     * 기능 : 게임명 기준 대여 가능 재고 조회
+     * 날짜 : 2026-04-15
+     */
     List<GameItemResponseDTO> getAvailableByGameName(String gameName);
 
-    /** 주문에 대해 선택한 시리얼을 대여 처리하고 game_history에 기록 */
+    /*
+     * 작성자 : 김민기
+     * 기능 : 주문에 게임 재고 할당
+     * 날짜 : 2026-04-15
+     */
     void assignGameItemsToOrder(int tableId, int orderId, String gameName, List<Integer> gameItemIds);
 
-    /** 현재 테이블의 활성 게임 대여 목록 조회 */
+    /*
+     * 작성자 : 김민기
+     * 기능 : 테이블의 활성 대여 게임 조회
+     * 날짜 : 2026-04-15
+     */
     List<Map<String, Object>> getActiveGameRentalsByTable(int tableId);
 
-    /** 현재 테이블의 전체 게임 대여 이력 조회 */
+    /*
+     * 작성자 : 김민기
+     * 기능 : 테이블의 게임 대여 이력 조회
+     * 날짜 : 2026-04-15
+     */
     List<Map<String, Object>> getGameRentalHistoryByTable(int tableId);
 
-    /** 결제 전/후 반납 상태 처리 (NORMAL/DAMAGED/LOST) */
+    /*
+     * 작성자 : 김민기
+     * 기능 : 게임 대여 정산 처리
+     * 날짜 : 2026-04-15
+     */
     void settleGameRentals(int tableId, List<Map<String, Object>> updates);
 }
+

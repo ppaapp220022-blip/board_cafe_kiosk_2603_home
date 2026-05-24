@@ -5,13 +5,18 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
+/*
+ * 작성자 : 김민기
+ * 기능 : 도메인 VO 필드 정의
+ * 날짜 : 2026-03-27
+ */
+
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class CafePackageDTO {
 
-    // === 도메인 VO 필드 ===
     private int           id;
     private String        name;
     private String        type;
@@ -29,14 +34,24 @@ public class CafePackageDTO {
     private boolean success;
     private String  message;
     private Integer tableNumber;
+    /*
+     * 작성자 : 김민기
+     * 기능 : 정적 팩토리 메서드
+     * 날짜 : 2026-03-27
+     */
 
-    // === 정적 팩토리 ===
     public static CafePackageDTO fail(String message) {
         return CafePackageDTO.builder()
                 .success(false)
                 .message(message)
                 .build();
     }
+
+    /*
+     * 작성자 : 김민기
+     * 기능 : selected 메서드
+     * 날짜 : 2026-03-27
+     */
 
     public static CafePackageDTO selected(CafePackageDTO pkg, Integer tableNumber) {
         return CafePackageDTO.builder()
@@ -46,6 +61,12 @@ public class CafePackageDTO {
                 .tableNumber(tableNumber)
                 .build();
     }
+
+    /*
+     * 작성자 : 서민성
+     * 기능 : getDisplayTime 메서드
+     * 날짜 : 2026-03-31
+     */
 
     public String getDisplayTime() { // package_selection.html에서 pkg.displayTime을 사용하고 있어서 추가함
         if (durationMinutes == null) return "Free";

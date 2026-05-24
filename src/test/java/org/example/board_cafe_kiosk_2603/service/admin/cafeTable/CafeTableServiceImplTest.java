@@ -10,11 +10,23 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.util.List;
 import java.util.Optional;
 
+/*
+ * 작성자 : 강수연
+ * 기능 : CafeTableServiceImpl 테스트
+ * 날짜 : 2026-03-26
+ */
+
 @Log4j2
 @SpringBootTest
 class CafeTableServiceImplTest {
     @Autowired
     private CafeTableService cafeTableService;
+
+    /*
+     * 작성자 : 강수연
+     * 기능 : getAllTableStatusTest 메서드
+     * 날짜 : 2026-03-26
+     */
 
     @Test
     public void getAllTableStatusTest() {
@@ -26,6 +38,12 @@ class CafeTableServiceImplTest {
                     dto.getTableNumber(), dto.getStatus(), dto.isHasUnreadMessage());
         });
     }
+
+    /*
+     * 작성자 : 강수연
+     * 기능 : changeTableStatusExceptionTest 메서드
+     * 날짜 : 2026-03-26
+     */
 
     @Test
     public void changeTableStatusExceptionTest() {
@@ -41,6 +59,12 @@ class CafeTableServiceImplTest {
         //     .isInstanceOf(IllegalStateException.class);
     }
 
+    /*
+     * 작성자 : 강수연
+     * 기능 : generateNewTokenTest 메서드
+     * 날짜 : 2026-03-26
+     */
+
     @Test
     public void generateNewTokenTest() {
         Integer tableId = 1;
@@ -48,6 +72,12 @@ class CafeTableServiceImplTest {
 
         log.info("발급된 새 토큰: {}", newToken);
     }
+
+    /*
+     * 작성자 : 강수연
+     * 기능 : loginTest 메서드
+     * 날짜 : 2026-03-26
+     */
 
     @Test
     public void loginTest() {
@@ -63,6 +93,12 @@ class CafeTableServiceImplTest {
         }
     }
 
+    /*
+     * 작성자 : 강수연
+     * 기능 : getUnreadMessagesTest 메서드
+     * 날짜 : 2026-03-26
+     */
+
     @Test
     public void getUnreadMessagesTest() {
         Integer tableId = 1;
@@ -71,6 +107,12 @@ class CafeTableServiceImplTest {
         log.info("=== {}번 테이블 손님 요청 내역 ===", tableId);
         messages.forEach(msg -> log.info("내용: {}", msg));
     }
+
+    /*
+     * 작성자 : 강수연
+     * 기능 : resetAllTablesForNewDayTest 메서드
+     * 날짜 : 2026-03-26
+     */
 
     @Test
     public void resetAllTablesForNewDayTest() {

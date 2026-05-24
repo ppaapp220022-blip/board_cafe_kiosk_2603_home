@@ -4,6 +4,12 @@ import lombok.*;
 
 import java.time.LocalDate;
 
+/*
+ * 작성자 : 강수연
+ * 기능 : ItemSalesHistory 클래스
+ * 날짜 : 2026-03-31
+ */
+
 @Getter
 @Builder
 @ToString

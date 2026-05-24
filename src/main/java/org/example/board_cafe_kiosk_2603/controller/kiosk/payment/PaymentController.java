@@ -13,14 +13,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
-/**
- * 결제 관련 컨트롤러
- * - GET  /kiosk/checkout         : 정산 페이지
- * - POST /kiosk/payment/prepare  : 토스 결제창 준비 (위젯 초기화용)
- * - GET  /kiosk/toss/success     : 토스 결제 성공 콜백 → 승인 + DB 저장
- * - GET  /kiosk/toss/fail        : 토스 결제 실패 콜백
+/*
+ * 작성자 : 김민기
+ * 기능 : 결제 관련 컨트롤러
+ * 날짜 : 2026-03-27
  */
+
 @Log4j2
 @Controller
 @RequestMapping("/kiosk")
@@ -29,10 +27,12 @@ public class PaymentController {
 
     private final TableSessionKioskService tableSessionKioskService;
     private final PaymentService paymentService;
+    /*
+     * 작성자 : 김민기
+     * 기능 : 결제 페이지 조회
+     * 날짜 : 2026-03-27
+     */
 
-    // ===================================================
-    // 정산 페이지
-    // ===================================================
 
     @GetMapping("/checkout")
     public String checkoutPage(@RequestParam(value = "tableNumber", required = false) Integer requestTableNumber,
@@ -50,16 +50,12 @@ public class PaymentController {
 
         return "kiosk/checkout";
     }
-
-    // ===================================================
-    // 토스페이먼츠 결제 API
-    // ===================================================
-
-    /**
-     * 1단계: 결제 준비
-     * 토스 결제창을 띄우기 전에 필요한 정보 반환
-     * (orderIdToss, amount, orderName, clientKey 등)
+    /*
+     * 작성자 : 김민기
+     * 기능 : 토스 결제 준비 처리
+     * 날짜 : 2026-03-27
      */
+
     @PostMapping("/payment/prepare")
     @ResponseBody
     public ResponseEntity<PaymentDTO> tossPrepare(
@@ -82,12 +78,12 @@ public class PaymentController {
         PaymentDTO response = paymentService.preparePayment(tableNumber, request);
         return ResponseEntity.ok(response);
     }
-
-    /**
-     * 2단계: 결제 성공 콜백
-     * 토스 위젯에서 결제 완료 후 리다이렉트되는 URL
-     * 여기서 토스 승인 API 호출 + DB 저장 + 포인트 처리
+    /*
+     * 작성자 : 김민기
+     * 기능 : 2단계: 결제 성공 콜백
+     * 날짜 : 2026-03-27
      */
+
     @GetMapping("/toss/success")
     public String tossSuccess(
             @RequestParam("paymentKey") String paymentKey,
@@ -150,10 +146,12 @@ public class PaymentController {
             return "kiosk/toss_fail";
         }
     }
-
-    /**
-     * 결제 실패/취소 콜백
+    /*
+     * 작성자 : 김민기
+     * 기능 : 결제 실패/취소 콜백
+     * 날짜 : 2026-03-27
      */
+
     @GetMapping("/toss/fail")
     public String tossFail(
             @RequestParam(value = "code", required = false) String code,
@@ -168,9 +166,21 @@ public class PaymentController {
         return "kiosk/toss_fail";
     }
 
+    /*
+     * 작성자 : 김민기
+     * 기능 : addFailNavigationModel 메서드
+     * 날짜 : 2026-04-28
+     */
+
     private void addFailNavigationModel(Model model, HttpSession session, String errorMessage) {
         addFailNavigationModel(model, session, errorMessage, null);
     }
+
+    /*
+     * 작성자 : 김민기
+     * 기능 : addFailNavigationModel 메서드
+     * 날짜 : 2026-04-28
+     */
 
     private void addFailNavigationModel(Model model, HttpSession session, String errorMessage, String source) {
         boolean adminCheckoutMode = source != null
@@ -194,6 +204,12 @@ public class PaymentController {
         model.addAttribute("retryButtonText", adminCheckoutMode ? "다시 결제 시도" : "다시 시도");
         model.addAttribute("backButtonText", adminCheckoutMode ? "대시보드로 이동" : "메뉴로 이동");
     }
+
+    /*
+     * 작성자 : 김민기
+     * 기능 : resolveTrustedTableNumber 메서드
+     * 날짜 : 2026-04-14
+     */
 
     private Integer resolveTrustedTableNumber(Integer requestTableNumber,
                                               Integer sessionTableNumber,
@@ -227,9 +243,21 @@ public class PaymentController {
         return sessionTableNumber;
     }
 
+    /*
+     * 작성자 : 김민기
+     * 기능 : readSessionTableNumber 메서드
+     * 날짜 : 2026-04-14
+     */
+
     private Integer readSessionTableNumber(HttpSession session) {
         return readSessionInteger(session, "tableNumber");
     }
+
+    /*
+     * 작성자 : 김민기
+     * 기능 : readSessionInteger 메서드
+     * 날짜 : 2026-04-14
+     */
 
     private Integer readSessionInteger(HttpSession session, String attributeName) {
         Object raw = session.getAttribute(attributeName);
@@ -243,6 +271,12 @@ public class PaymentController {
             return null;
         }
     }
+
+    /*
+     * 작성자 : 김민기
+     * 기능 : isAdminOrStaff 메서드
+     * 날짜 : 2026-04-14
+     */
 
     private boolean isAdminOrStaff() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

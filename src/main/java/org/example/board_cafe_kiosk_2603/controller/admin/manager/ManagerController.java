@@ -19,6 +19,12 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 
+/*
+ * 작성자 : 서주연
+ * 기능 : Manager 관련 요청을 처리하는 컨트롤러
+ * 날짜 : 2026-04-01
+ */
+
 @Log4j2
 @Controller
 @RequestMapping("/admin/staff")
@@ -29,8 +35,12 @@ public class ManagerController {
     private final MailSenderService mailSenderService;
     private final OtpStore otpStore;
     private final ManagerService managerService;
+    /*
+     * 작성자 : 서주연
+     * 기능 : 신규 직원 등록
+     * 날짜 : 2026-04-01
+     */
 
-    /* 신규 직원 등록 */
     @PostMapping
     @ResponseBody  // AJAX 요청이므로 데이터만 반환
     public ResponseEntity<String> createStaff(@RequestBody ManagerRequest managerRequest) {
@@ -46,8 +56,12 @@ public class ManagerController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fail");
         }
     }
+    /*
+     * 작성자 : 서주연
+     * 기능 : 직원 활성화/비활성화 상태 토글
+     * 날짜 : 2026-04-01
+     */
 
-    /* 직원 활성화/비활성화 상태 토글 */
     @PostMapping("/toggle-status")
     @ResponseBody  // AJAX 요청이므로 데이터만 반환 (모달 폼 -> AJAX)
     public ResponseEntity<String> toggleStaffStatus(@RequestParam("id") Integer id,
@@ -66,8 +80,12 @@ public class ManagerController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fail");
         }
     }
+    /*
+     * 작성자 : 서주연
+     * 기능 : 아이디 중복 확인
+     * 날짜 : 2026-04-01
+     */
 
-    /* 아이디 중복 확인 */
     @GetMapping("/check-id")
     @ResponseBody  // AJAX 요청이므로 데이터만 반환
     public ResponseEntity<Boolean> checkId(@RequestParam("loginId") String loginId) {
@@ -80,8 +98,12 @@ public class ManagerController {
         log.info("중복 여부 결과: {}", isDuplicate ? "중복됨(사용불가)" : "미중복(사용가능)");
         return ResponseEntity.ok(isDuplicate);
     }
+    /*
+     * 작성자 : 서주연
+     * 기능 : 내 프로필 수정 페이지 이동
+     * 날짜 : 2026-04-01
+     */
 
-    /* 내 프로필 수정 페이지 이동 */
     @GetMapping("/profile")
     public String profilePage(Model model, Principal principal) {
 
@@ -102,8 +124,12 @@ public class ManagerController {
         model.addAttribute("manager", manager);
         return "admin/staff_profile";
     }
+    /*
+     * 작성자 : 서주연
+     * 기능 : OTP 인증 번호 메일 발송 (프로필 수정 전)
+     * 날짜 : 2026-04-01
+     */
 
-    /* OTP 인증 번호 메일 발송 (프로필 수정 전) */
     @PostMapping("/profile/send-otp")
     @ResponseBody  // AJAX 요청이므로 데이터만 반환
     public ResponseEntity<String> sendOtp(Principal principal) {
@@ -131,8 +157,12 @@ public class ManagerController {
             return ResponseEntity.status(500).body("메일 발송 실패");
         }
     }
+    /*
+     * 작성자 : 서주연
+     * 기능 : 프로필 수정 최종 제출 (OTP 검증 포함)
+     * 날짜 : 2026-04-01
+     */
 
-    /* 프로필 수정 최종 제출 (OTP 검증 포함) */
     @PostMapping("/profile/update")
     @ResponseBody  // AJAX 요청이므로 데이터만 반환
     public ResponseEntity<String> updateProfile(
@@ -159,9 +189,12 @@ public class ManagerController {
         log.info("[프로필 업데이트 완료] 사용자: {}", loginId);
         return ResponseEntity.ok("수정 완료");
     }
+    /*
+     * 작성자 : 서민성
+     * 기능 : 직원 관리 페이지 조회
+     * 날짜 : 2026-04-09
+     */
 
-    /*================페이징============== */
-    // 직원 목록 페이지
     @GetMapping
     public String staffPage(PageRequestDTO pageRequestDTO, Model model) {
         log.info("--- 직원 목록 페이지 진입 ---");
