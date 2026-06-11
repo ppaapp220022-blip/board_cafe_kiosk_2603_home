@@ -1,17 +1,17 @@
-name: Deploy to Elastic Beanstalk
+name: CI
 
 on:
+  pull_request:
   push:
-    branches:
+    branches-ignore:
       - main
   workflow_dispatch:
 
 permissions:
-  id-token: write
   contents: read
 
 jobs:
-  deploy:
+  test:
     runs-on: ubuntu-latest
     services:
       mariadb:
@@ -48,6 +48,7 @@ jobs:
       PGVECTOR_URL: jdbc:postgresql://127.0.0.1:5432/board_cafe_kiosk_2603
       PGVECTOR_USERNAME: postgres
       PGVECTOR_PASSWORD: postgres
+      SPRING_BATCH_JDBC_INITIALIZE_SCHEMA: never
 
     steps:
       - name: Checkout
@@ -77,25 +78,5 @@ jobs:
           mysql --protocol=TCP -h 127.0.0.1 -P 3306 -uroot -p7070 board_cafe_kiosk_2603 < src/main/resources/sql/MariaDB/02_dummy.sql
           psql "postgresql://postgres:postgres@127.0.0.1:5432/board_cafe_kiosk_2603" -c "CREATE EXTENSION IF NOT EXISTS vector;"
 
-      - name: Run tests
+      - name: Run tests and package verification
         run: ./gradlew clean test bootJar
-
-      - name: Prepare deployment bundle
-        run: |
-          cp build/libs/*.jar app.jar
-          zip -r deploy.zip app.jar Procfile .platform
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v6
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Deploy to Elastic Beanstalk
-        uses: aws-actions/aws-elasticbeanstalk-deploy@v1.0.0
-        with:
-          aws-region: ${{ secrets.AWS_REGION }}
-          application-name: ${{ secrets.EB_APPLICATION_NAME }}
-          environment-name: ${{ secrets.EB_ENVIRONMENT_NAME }}
-          version-label: github-${{ github.run_number }}-${{ github.sha }}
-          deployment-package-path: deploy.zip

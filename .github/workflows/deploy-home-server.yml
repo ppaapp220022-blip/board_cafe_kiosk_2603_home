@@ -1,0 +1,124 @@
+name: Deploy Home Server
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: deploy-home-server
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:11.4
+        env:
+          MARIADB_ROOT_PASSWORD: 7070
+          MARIADB_DATABASE: board_cafe_kiosk_2603
+          MARIADB_USER: boardwave
+          MARIADB_PASSWORD: 0331
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mariadb-admin ping -h 127.0.0.1 -uroot -p7070"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+      pgvector:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_DB: board_cafe_kiosk_2603
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d board_cafe_kiosk_2603"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      MARIADB_URL: jdbc:mariadb://127.0.0.1:3306/board_cafe_kiosk_2603
+      MARIADB_USERNAME: root
+      MARIADB_PASSWORD: 7070
+      PGVECTOR_URL: jdbc:postgresql://127.0.0.1:5432/board_cafe_kiosk_2603
+      PGVECTOR_USERNAME: postgres
+      PGVECTOR_PASSWORD: postgres
+      SPRING_BATCH_JDBC_INITIALIZE_SCHEMA: never
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Install DB clients
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mariadb-client postgresql-client
+
+      - name: Initialize test databases
+        run: |
+          mysql --protocol=TCP -h 127.0.0.1 -P 3306 -uroot -p7070 < src/main/resources/sql/MariaDB/01_init.sql
+          mysql --protocol=TCP -h 127.0.0.1 -P 3306 -uroot -p7070 board_cafe_kiosk_2603 < src/main/resources/sql/MariaDB/02_dummy.sql
+          psql "postgresql://postgres:postgres@127.0.0.1:5432/board_cafe_kiosk_2603" -c "CREATE EXTENSION IF NOT EXISTS vector;"
+
+      - name: Run tests and package verification
+        run: ./gradlew clean test bootJar
+
+      - name: Compute image name
+        id: image
+        run: echo "repo=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ steps.image.outputs.repo }}:main
+            ${{ steps.image.outputs.repo }}:${{ github.sha }}
+
+      - name: Deploy to home server
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.HOME_SERVER_HOST }}
+          username: ${{ secrets.HOME_SERVER_USER }}
+          key: ${{ secrets.HOME_SERVER_SSH_KEY }}
+          script: |
+            set -e
+            cd "${{ secrets.HOME_SERVER_DEPLOY_PATH }}"
+            echo "${{ secrets.HOME_SERVER_GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.HOME_SERVER_GHCR_USERNAME }}" --password-stdin
+            APP_IMAGE="${{ steps.image.outputs.repo }}:main" docker compose pull app
+            APP_IMAGE="${{ steps.image.outputs.repo }}:main" docker compose up -d app
+            docker image prune -f
