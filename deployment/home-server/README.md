@@ -83,20 +83,23 @@ docker logs boardwave-app --tail 100
 이 저장소는 두 개의 워크플로우를 사용합니다.
 
 - `ci.yml`: 테스트와 `bootJar` 검증
-- `deploy-home-server.yml`: GHCR 이미지 푸시 후 홈서버 SSH 배포
+- `deploy-home-server.yml`: GHCR 이미지 푸시 후 홈서버 self-hosted runner 배포
 
-필요한 GitHub Secrets:
+필요한 준비:
 
-- `HOME_SERVER_HOST`
-- `HOME_SERVER_USER`
-- `HOME_SERVER_SSH_KEY`
-- `HOME_SERVER_DEPLOY_PATH`
-- `HOME_SERVER_GHCR_USERNAME`
-- `HOME_SERVER_GHCR_TOKEN`
+- GitHub 저장소의 self-hosted runner를 홈서버에 설치
+- runner 라벨에 `boardwave-home` 추가
+- 홈서버에 실제 운영 환경파일 배치
 
-`HOME_SERVER_DEPLOY_PATH` 예시:
+운영 환경파일 경로:
 
-```text
+```bash
+/srv/config/boardwave/home-server.env
+```
+
+배포 경로:
+
+```bash
 /srv/docker/boardwave/deployment/home-server
 ```
 
@@ -105,14 +108,32 @@ docker logs boardwave-app --tail 100
 1. `main` 푸시
 2. GitHub Actions가 테스트 수행
 3. Docker 이미지를 `ghcr.io/ppaapp220022-blip/board_cafe_kiosk_2603_home:main` 으로 푸시
-4. 홈서버에 SSH 접속
-5. `docker compose pull app && docker compose up -d app` 실행
+4. 홈서버 self-hosted runner가 job 실행
+5. `/srv/config/boardwave/home-server.env`를 `.env`로 복사
+6. `docker compose pull app && docker compose up -d app` 실행
+
+### self-hosted runner 설치 메모
+
+GitHub 저장소에서:
+
+- `Settings`
+- `Actions`
+- `Runners`
+- `New self-hosted runner`
+
+를 열고 Linux x64 runner를 홈서버에 설치합니다.
+
+권장 라벨:
+
+```text
+boardwave-home
+```
 
 ## 6. Nginx Proxy Manager 연결
 
 새 Proxy Host를 추가합니다.
 
-- Domain Names: `app.mkserver.cloud`
+- Domain Names: `boardwave.mkserver.cloud`
 - Scheme: `http`
 - Forward Hostname / IP: 홈서버 내부 IP
 - Forward Port: `.env`의 `APP_HTTP_PORT` 값 (`기본 8085`)

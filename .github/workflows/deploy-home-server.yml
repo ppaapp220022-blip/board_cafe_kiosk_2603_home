@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
     services:
       mariadb:
@@ -109,16 +109,32 @@ jobs:
             ${{ steps.image.outputs.repo }}:main
             ${{ steps.image.outputs.repo }}:${{ github.sha }}
 
-      - name: Deploy to home server
-        uses: appleboy/ssh-action@v1.2.2
+  deploy-on-runner:
+    needs: build-and-deploy
+    runs-on: [self-hosted, Linux, X64, boardwave-home]
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Compute image name
+        id: image
+        run: echo "repo=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
         with:
-          host: ${{ secrets.HOME_SERVER_HOST }}
-          username: ${{ secrets.HOME_SERVER_USER }}
-          key: ${{ secrets.HOME_SERVER_SSH_KEY }}
-          script: |
-            set -e
-            cd "${{ secrets.HOME_SERVER_DEPLOY_PATH }}"
-            echo "${{ secrets.HOME_SERVER_GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.HOME_SERVER_GHCR_USERNAME }}" --password-stdin
-            APP_IMAGE="${{ steps.image.outputs.repo }}:main" docker compose pull app
-            APP_IMAGE="${{ steps.image.outputs.repo }}:main" docker compose up -d app
-            docker image prune -f
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy on home server runner
+        env:
+          APP_IMAGE: ${{ steps.image.outputs.repo }}:main
+          BOARDWAVE_DEPLOY_PATH: /srv/docker/boardwave/deployment/home-server
+          BOARDWAVE_ENV_FILE: /srv/config/boardwave/home-server.env
+        run: |
+          chmod +x deployment/home-server/deploy.sh
+          deployment/home-server/deploy.sh
