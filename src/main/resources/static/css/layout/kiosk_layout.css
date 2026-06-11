@@ -3,8 +3,10 @@ body {
     font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background-color: #f4f6f8;
     display: flex;
-    height: 100vh;
-    overflow: hidden;
+    min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    justify-content: center;
 }
 /* --- 좌측 사이드바 --- */
 .sidebar-left {
@@ -13,12 +15,17 @@ body {
     border-right: 1px solid #eaeaea;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: stretch;
     padding: 20px 12px;
+    gap: 14px;
     z-index: 10;
+    flex-shrink: 0;
 }
 .nav-group { display: flex; flex-direction: column; gap: 12px; }
+.sidebar-left > .nav-group:last-of-type {
+    margin-top: auto;
+}
 .nav-btn {
     width: 100%; height: 56px; border-radius: 14px;
     display: flex; align-items: center; justify-content: flex-start;
@@ -50,19 +57,50 @@ body {
 }
 
 /* --- 메인 영역 --- */
-.main-area { flex: 1; display: flex; flex-direction: column; }
+.main-area { flex: 1; display: flex; flex-direction: column; min-width: 0; max-width: 1320px; }
 .header {
     height: 80px; background-color: white; border-bottom: 1px solid #eaeaea;
     display: flex; align-items: center; justify-content: space-between; padding: 0 30px;
+    gap: 16px;
 }
-.header-left { display: flex; align-items: center; gap: 15px; }
+.header-left { display: flex; align-items: center; gap: 15px; min-width: 0; flex-wrap: wrap; }
 .table-info { font-size: 1.5rem; font-weight: 700; color: #333; letter-spacing: -0.5px; }
+.header-right { display: flex; gap: 15px; flex-wrap: wrap; justify-content: flex-end; }
+.party-badge,
+.timer-badge,
+.order-status-box,
+.game-status-box,
+.icon-btn.cart {
+    min-height: 44px;
+    border-radius: 12px;
+    padding: 0 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.party-badge span,
+.timer-badge span,
+.order-status-box span,
+.game-status-box span,
+.icon-btn.cart .btn-label {
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: 1;
+}
+
 .party-badge {
     background: linear-gradient(135deg, #eef6ff 0%, #e3f2fd 100%);
-    color: #007bff; padding: 8px 16px; border-radius: 20px;
-    font-size: 1rem; font-weight: 500; display: flex; align-items: center; gap: 8px; border: 1px solid #bbdefb;
+    color: #007bff;
+    border: 1px solid #bbdefb;
 }
-.header-right { display: flex; gap: 15px; }
+
 .icon-btn {
     width: 56px; height: 56px; border-radius: 50%; display: flex;
     align-items: center; justify-content: center; border: none; cursor: pointer;
@@ -70,62 +108,40 @@ body {
 }
 .icon-btn.cart {
     width: auto;
-    height: 44px;
-    border-radius: 12px;
-    padding: 0 14px;
-    gap: 6px;
+    height: auto;
     background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
 }
-.icon-btn .btn-label {
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: #fff;
-    line-height: 1;
-}
+.icon-btn .btn-label { color: #fff; }
 .cart-badge {
     position: absolute; top: -5px; right: -5px; background-color: #ff5252;
     color: white; font-size: 0.75rem; font-weight: 700; width: 24px; height: 24px;
     border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white;
 }
 .timer-badge {
-    display: flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 20px;
-    font-size: 1rem; font-weight: 700; background: linear-gradient(135deg, #eef6ff 0%, #e3f2fd 100%);
-    color: #007bff; border: 1px solid #bbdefb; min-width: 100px; justify-content: center;
+    background: linear-gradient(135deg, #eef6ff 0%, #e3f2fd 100%);
+    color: #007bff;
+    border: 1px solid #bbdefb;
 }
 .timer-badge.overtime {
     background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
-    color: #f44336; border-color: #ffccbc; animation: pulse-red 1s infinite;
+    color: #f44336;
+    border-color: #ffccbc;
+    animation: pulse-red 1s infinite;
 }
 
 /* 새 주문 상태 박스 */
 .order-status-box {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 12px;
-    border-radius: 16px;
-    font-size: 0.9rem;
-    font-weight: 600;
     background: #fff8f0;
     color: #d85a30;
     border: 1px solid #ffccba;
-    min-height: 40px;
     max-width: 200px;
     cursor: pointer;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .game-status-box {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 12px;
-    border-radius: 16px;
-    font-size: 0.9rem;
-    font-weight: 600;
     background: #eff7ee;
     color: #2d7d32;
     border: 1px solid #b9dfbc;
-    min-height: 40px;
     max-width: 240px;
     cursor: pointer;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -170,7 +186,7 @@ body {
     50% { transform: scale(1.2); opacity: 0.8; }
 }
 @keyframes pulse-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
-.content { flex: 1; padding: 30px; overflow-y: auto; background-color: #f4f6f8; }
+.content { flex: 1; padding: clamp(16px, 3vw, 30px); overflow-y: auto; background-color: #f4f6f8; }
 
 /* 모달 및 기타 */
 .modal-overlay {
@@ -216,16 +232,20 @@ body {
 }
 .menu-img-area {
     height: 180px;
-    background-color: #f8f9fa;
+    background: linear-gradient(180deg, #f8f4ee 0%, #f4efe8 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    padding: 14px;
 }
-.menu-img-area img {
+.menu-img-area img,
+.menu-thumbnail {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    display: block;
+    object-fit: contain;
+    object-position: center;
 }
 .placeholder-icon {
     width: 48px;
@@ -297,12 +317,23 @@ body {
 }
 .menu-item.sold-out { opacity: 0.5; }
 .menu-img-area {
-    width: 100%; aspect-ratio: 4/3;
-    background: #f0f2f5;
-    display: flex; align-items: center; justify-content: center;
+    width: 100%;
+    aspect-ratio: 4/3;
+    background: linear-gradient(180deg, #f8f4ee 0%, #f4efe8 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     overflow: hidden;
+    padding: 14px;
 }
-.menu-img-area img { width: 100%; height: 100%; object-fit: cover; }
+.menu-img-area img,
+.menu-thumbnail {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+    object-position: center;
+}
 .placeholder-icon { width: 48px; height: 48px; color: #ccc; }
 .menu-info-area {
     padding: 16px;
@@ -365,4 +396,368 @@ body {
 /* 주황색 버튼(직원호출)과 구분되도록 간격 조정이 필요하다면 */
 .nav-group .nav-btn.orange {
     background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+}
+
+@media (max-width: 1024px) {
+    .sidebar-left {
+        width: 182px;
+        border-right: 1px solid #eaeaea;
+        border-bottom: none;
+        padding: 18px 10px;
+        gap: 14px;
+    }
+
+    .nav-btn {
+        width: 100%;
+        min-width: 0;
+        height: 54px;
+    }
+
+    .main-area {
+        max-width: none;
+    }
+
+    .header {
+        height: auto;
+        padding: 18px 24px;
+        align-items: center;
+    }
+
+    .party-badge,
+    .timer-badge,
+    .order-status-box,
+    .game-status-box,
+    .icon-btn.cart {
+        min-height: 40px;
+        padding: 0 12px;
+        font-size: 0.82rem;
+    }
+
+    .menu-grid {
+        grid-template-columns: repeat(2, minmax(260px, 1fr));
+    }
+}
+
+@media (max-width: 1024px) and (min-width: 641px) {
+    .sidebar-left {
+        height: 100dvh;
+        max-height: 100dvh;
+        overflow-y: auto;
+        overflow-x: hidden;
+        position: sticky;
+        top: 0;
+        align-self: flex-start;
+    }
+
+    .sidebar-left > .nav-group:last-of-type {
+        margin-top: auto;
+    }
+
+    .header {
+        flex-wrap: nowrap;
+        align-items: center;
+        padding: 14px 18px;
+        gap: 10px;
+    }
+
+    .header-left,
+    .header-right {
+        width: auto;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+    }
+
+    .header-left {
+        flex: 1 1 auto;
+    }
+
+    .header-right {
+        flex: 0 1 auto;
+        justify-content: flex-end;
+    }
+
+    .table-info {
+        font-size: 1.2rem;
+    }
+
+    .party-badge,
+    .timer-badge,
+    .order-status-box,
+    .game-status-box {
+        min-height: 36px;
+        padding: 0 10px;
+        font-size: 0.74rem;
+        gap: 4px;
+        border-radius: 11px;
+    }
+
+    .icon-btn.cart {
+        min-height: 36px;
+        padding: 0 10px;
+        gap: 4px;
+        border-radius: 11px;
+    }
+
+    .timer-badge i,
+    .party-badge i,
+    .icon-btn.cart i {
+        width: 15px;
+        height: 15px;
+    }
+
+    .order-status-dot,
+    .game-status-dot {
+        width: 8px;
+        height: 8px;
+    }
+}
+
+@media (max-width: 640px) {
+    .sidebar-left {
+        width: 108px;
+        padding: 12px 8px;
+        gap: 10px;
+        border-right: 1px solid #eaeaea;
+        border-bottom: none;
+    }
+
+    .nav-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .nav-btn {
+        width: 100%;
+        min-width: 0;
+        height: 42px;
+        padding: 0 8px;
+        gap: 5px;
+        border-radius: 10px;
+        font-size: 0.68rem;
+    }
+
+    .nav-btn i {
+        width: 16px;
+        height: 16px;
+    }
+
+    .nav-label {
+        font-size: 0.66rem;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        line-height: 1.05;
+        word-break: keep-all;
+    }
+
+    .table-info {
+        font-size: 1rem;
+        white-space: nowrap;
+    }
+
+    .main-area {
+        max-width: calc(100vw - 108px);
+    }
+
+    .header {
+        padding: 12px 14px;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: flex-start;
+    }
+
+    .header-left,
+    .header-right {
+        gap: 6px;
+        flex-wrap: wrap;
+        min-width: 0;
+        width: 100%;
+        align-items: flex-start;
+    }
+
+    .header-right {
+        justify-content: flex-start;
+    }
+
+    .party-badge,
+    .timer-badge,
+    .order-status-box,
+    .game-status-box {
+        min-height: 32px;
+        padding: 0 6px;
+        font-size: 0.62rem;
+        gap: 3px;
+    }
+
+    .icon-btn.cart {
+        min-height: 32px;
+        padding: 0 6px;
+        gap: 3px;
+        border-radius: 8px;
+        min-width: 0;
+    }
+
+    .icon-btn.cart i {
+        width: 14px;
+        height: 14px;
+    }
+
+    .content {
+        padding: 12px;
+    }
+
+    .modal-content {
+        width: calc(100vw - 32px);
+        max-width: 500px;
+        padding: 24px 20px;
+    }
+
+    .modal-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .toast {
+        right: 16px;
+        left: 16px;
+        bottom: 16px;
+        text-align: center;
+    }
+
+    .menu-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .menu-img-area {
+        aspect-ratio: 1 / 1;
+        padding: 10px;
+    }
+
+    .menu-info-area {
+        padding: 10px;
+    }
+
+    .menu-name,
+    .menu-price {
+        white-space: normal;
+        font-size: 0.82rem;
+        line-height: 1.2;
+    }
+
+    .add-direct-btn,
+    .menu-info-right .add-direct-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .sidebar-left {
+        width: 96px;
+        padding: 10px 6px;
+    }
+
+    .main-area {
+        max-width: calc(100vw - 96px);
+    }
+
+    .nav-btn {
+        height: 38px;
+        padding: 0 6px;
+        gap: 4px;
+        font-size: 0.62rem;
+    }
+
+    .nav-btn i {
+        width: 14px;
+        height: 14px;
+    }
+
+    .nav-label {
+        font-size: 0.58rem;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        line-height: 1.05;
+        word-break: keep-all;
+    }
+
+    .header {
+        padding: 10px;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .header-left,
+    .header-right {
+        width: 100%;
+        flex-wrap: wrap;
+        align-items: flex-start;
+    }
+
+    .header-right {
+        justify-content: flex-start;
+    }
+
+    .table-info {
+        font-size: 0.9rem;
+    }
+
+    .party-badge,
+    .timer-badge,
+    .order-status-box,
+    .game-status-box {
+        min-height: 28px;
+        padding: 0 5px;
+        font-size: 0.52rem;
+    }
+
+    .timer-badge i {
+        width: 10px;
+        height: 10px;
+    }
+
+    .icon-btn.cart {
+        min-height: 28px;
+        padding: 0 4px;
+        gap: 2px;
+        border-radius: 7px;
+    }
+
+    .icon-btn.cart i {
+        width: 10px;
+        height: 10px;
+    }
+
+    .cart-badge {
+        width: 16px;
+        height: 16px;
+        font-size: 0.5rem;
+        top: -3px;
+        right: -3px;
+    }
+
+    .menu-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .menu-info-area {
+        padding: 8px;
+    }
+
+    .menu-name,
+    .menu-price {
+        font-size: 0.75rem;
+    }
+
+    .add-direct-btn,
+    .menu-info-right .add-direct-btn {
+        width: 32px;
+        height: 32px;
+    }
 }
